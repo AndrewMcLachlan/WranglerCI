@@ -18,7 +18,7 @@
     "@tanstack/react-router": "^1.153.1",
     "@tanstack/react-router-devtools": "^1.153.1",
     "@types/luxon": "^3.7.1",
-    "axios": "^1.13.0",
+    "axios": "^1.13.5",
     "luxon": "^3.7.2",
     "oauth4webapi": "^3.8.3",
     "react": "^19.2.3",
