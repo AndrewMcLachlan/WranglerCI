@@ -1,11 +1,11 @@
 import { NavItemList, type NavItem } from "@andrewmclachlan/moo-ds";
-import type { AccountModel, Repository, RepositoryModel, WorkflowModel } from "../../../api";
+import type { AccountModel, SettingsRepositoryModel } from "../../../api";
 import { useState } from "react";
 import { WorkflowSelector } from "./WorkflowSelector";
 
 export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> = ({ account }) => {
 
-    const [selectedRepo, setSelectedRepo] = useState<RepositoryModel | undefined>(undefined);
+    const [selectedRepo, setSelectedRepo] = useState<SettingsRepositoryModel | undefined>(undefined);
 
     const navList: NavItem[] = account.repositories?.map(repo => ({ id: repo.name, text: repo.name, onClick: () => { }, disabled: repo?.workflows?.length === 0 })) || [];
 

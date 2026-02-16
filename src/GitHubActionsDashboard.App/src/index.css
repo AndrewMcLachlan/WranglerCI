@@ -1,57 +1,61 @@
-@layer mooapp;
+@layer mooapp, gah;
 
 @import "../node_modules/@andrewmclachlan/moo-ds/dist/index.css" layer(mooapp);
 
-@import "./css/variables.css";
-@import "./css/theme.css";
-@import "./css/components.css";
-@import "./css/layout.css";
+@import "./css/variables.css" layer(gah);
+@import "./css/theme.css" layer(gah);
+@import "./css/components.css" layer(gah);
+@import "./css/layout.css" layer(gah);
 
-:root {
+
+@layer gah
+{
+  :root {
+    
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
   
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
- 
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  color: var(--primary);
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
   a {
-    color: currentColor;
-    text-decoration: none;
+    color: var(--primary);
+    text-decoration: inherit;
+  }
+  a:hover {
+    color: #535bf2;
+  }
 
-    &:hover {
+
+
+  h1 {
+    font-size: 3.2em;
+    line-height: 1.1;
+
+    a {
       color: currentColor;
+      text-decoration: none;
+
+      &:hover {
+        color: currentColor;
+      }
     }
   }
-}
 
-.section-content {
-  margin-left: 1rem;
-}
-
-@media (prefers-color-scheme: dark) {
-  .form-switch .form-check-input {
-   --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28100, 100, 100, 1%29'/%3e%3c/svg%3e");
+  .section-content {
+    margin-left: 1rem;
   }
-    .form-switch .form-check-input:checked {
-   --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
+
+  @media (prefers-color-scheme: dark) {
+    .form-switch .form-check-input {
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28100, 100, 100, 1%29'/%3e%3c/svg%3e");
+    }
+      .form-switch .form-check-input:checked {
+    --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%28255, 255, 255, 1%29'/%3e%3c/svg%3e");
+    }
   }
 }

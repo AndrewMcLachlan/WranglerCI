@@ -5,13 +5,26 @@ using Octokit.GraphQL;
 
 namespace GitHubActionsDashboard.Api.Services;
 
+/// <summary>
+/// Provides workflow data via the GitHub GraphQL API.
+/// </summary>
 public interface IGraphQLService
 {
+    /// <summary>
+    /// Retrieves workflow runs for the specified workflow node IDs.
+    /// </summary>
+    /// <param name="workflowNodeIds">The GraphQL node IDs of the workflows to query.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The workflows with their runs.</returns>
     Task<IEnumerable<WorkflowModel>> GetWorkflowRuns(IEnumerable<string> workflowNodeIds, CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Retrieves workflow data using the GitHub GraphQL API.
+/// </summary>
 public class GraphQLService(Octokit.GraphQL.Connection connection) : IGraphQLService
 {
+    /// <inheritdoc />
     public Task<IEnumerable<WorkflowModel>> GetWorkflowRuns(IEnumerable<string> workflowNodeIds, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();

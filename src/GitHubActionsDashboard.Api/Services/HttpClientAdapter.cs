@@ -3,8 +3,12 @@ using Octokit.Internal;
 
 namespace GitHubActionsDashboard.Api.Services;
 
+/// <summary>
+/// An HTTP client adapter that automatically adds ETag-based conditional request headers.
+/// </summary>
 public class ETagHttpClientAdapter(IETagCacheService eTagCacheService, ILogger<ETagHttpClientAdapter> logger) : HttpClientAdapter(new(HttpMessageHandlerFactory.CreateDefault))
 {
+    /// <inheritdoc />
     protected override HttpRequestMessage BuildRequestMessage(IRequest request)
     {
         var message = base.BuildRequestMessage(request);
@@ -32,6 +36,7 @@ public class ETagHttpClientAdapter(IETagCacheService eTagCacheService, ILogger<E
         return message;
     }
 
+    /// <inheritdoc />
     protected override Task<IResponse> BuildResponse(HttpResponseMessage responseMessage, Func<object, object> preprocessResponseBody)
     {
         if (responseMessage.Headers.ETag is not null && responseMessage.RequestMessage?.RequestUri is not null)

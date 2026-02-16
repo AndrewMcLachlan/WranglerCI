@@ -4,13 +4,25 @@ using GitHubActionsDashboard.Api.Exceptions;
 
 namespace GitHubActionsDashboard.Api.Services;
 
+/// <summary>
+/// Generates user-scoped cache keys.
+/// </summary>
 public interface ICacheKeyService
 {
+    /// <summary>
+    /// Returns a cache key scoped to the current authenticated user.
+    /// </summary>
+    /// <param name="key">The logical cache key.</param>
+    /// <returns>A user-scoped cache key.</returns>
     string GetCacheKey(string key);
 }
 
+/// <summary>
+/// Generates cache keys scoped by the current user's access token hash.
+/// </summary>
 public class CacheKeyService(IHttpContextAccessor httpContextAccessor) : ICacheKeyService
 {
+    /// <inheritdoc />
     public string GetCacheKey(string key)
     {
         var httpContext = httpContextAccessor.HttpContext;

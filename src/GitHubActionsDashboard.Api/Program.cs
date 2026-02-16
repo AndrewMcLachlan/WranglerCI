@@ -6,6 +6,7 @@ using GitHubActionsDashboard.Api.Exceptions;
 using GitHubActionsDashboard.Api.Handlers;
 using GitHubActionsDashboard.Api.Models;
 using GitHubActionsDashboard.Api.Models.Dashboard;
+using GitHubActionsDashboard.Api.Models.PullRequests;
 using GitHubActionsDashboard.Api.OpenApi;
 using GitHubActionsDashboard.Api.Serialisation;
 using GitHubActionsDashboard.Api.Services;
@@ -64,6 +65,7 @@ static void AddServices(WebApplicationBuilder builder)
 
     builder.Services.AddScoped<IDashboardService, DashboardService>();
     builder.Services.AddScoped<ISettingsService, SettingsService>();
+    builder.Services.AddScoped<IPullRequestService, PullRequestService>();
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
 
@@ -126,7 +128,7 @@ static void AddServices(WebApplicationBuilder builder)
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.IdleTimeout = TimeSpan.FromMinutes(30);
+        options.IdleTimeout = TimeSpan.FromDays(7);
     });
 
     builder.Services.AddProblemDetails(options =>
@@ -166,7 +168,7 @@ static void AddServices(WebApplicationBuilder builder)
     {
         options.StatusCodeSelector = (ex) =>
         {
-            if (ex is UnauthorizedException) return StatusCodes.Status401Unauthorized;
+            if (ex is UnauthorizedException or AuthorizationException) return StatusCodes.Status401Unauthorized;
             return StatusCodes.Status500InternalServerError;
         };
     });
@@ -174,6 +176,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.Configure<JsonOptions>(options =>
     {
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<RagStatus>());
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<GitHubActionsDashboard.Api.Models.PullRequests.CheckStatus>());
     });
 }
 
@@ -216,6 +219,9 @@ static void AddApp(WebApplication app)
         .WithNames("Get Workflows for a Repository");
 
     api.MapPost("repositories/{owner}/{repo}/workflows/{workflowId}/runs", WorkflowRunsHandler.Handle);
+
+    api.MapPost("pull-requests", PullRequestsHandler.Handle);
+    api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
 
     app.UseSecurityHeaders();
 

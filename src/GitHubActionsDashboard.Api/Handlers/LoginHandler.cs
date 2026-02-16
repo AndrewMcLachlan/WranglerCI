@@ -1,7 +1,13 @@
 ﻿namespace GitHubActionsDashboard.Api.Handlers;
 
+/// <summary>
+/// Handles the GitHub OAuth login flow by redirecting the user to GitHub's authorisation page.
+/// </summary>
 public static class LoginHandler
 {
+    /// <summary>
+    /// Initiates the OAuth flow by redirecting to GitHub's authorisation endpoint.
+    /// </summary>
     public static IResult Handle(HttpContext http, IConfiguration configuration)
     {
         string clientId = configuration.GetValue<string>("ClientId") ?? throw new InvalidOperationException("ClientId is missing");

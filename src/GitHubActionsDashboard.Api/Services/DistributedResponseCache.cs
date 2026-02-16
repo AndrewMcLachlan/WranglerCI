@@ -6,8 +6,12 @@ using Octokit.Internal;
 
 namespace GitHubActionsDashboard.Api.Services;
 
+/// <summary>
+/// An Octokit response cache backed by <see cref="IDistributedCache"/>.
+/// </summary>
 public class DistributedResponseCache(IDistributedCache cache, ICacheKeyService cacheKeyService, ILogger<DistributedResponseCache> logger) : IResponseCache
 {
+    /// <inheritdoc />
     public async Task<CachedResponse.V1?> GetAsync(IRequest request)
     {
         var cacheKey = GetCacheKey(request);
@@ -42,6 +46,7 @@ public class DistributedResponseCache(IDistributedCache cache, ICacheKeyService 
         }
     }
 
+    /// <inheritdoc />
     public async Task SetAsync(IRequest request, Octokit.Caching.CachedResponse.V1 cachedResponse)
     {
         try

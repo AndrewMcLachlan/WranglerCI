@@ -10,5 +10,8 @@ namespace GitHubActionsDashboard.Api.Handlers;
 /// </summary>
 public static class WorkflowsHandler
 {
+    /// <summary>
+    /// Retrieves workflows and their latest runs for the specified repositories.
+    /// </summary>
     public static Task<IEnumerable<RepositoryModel>> Handle([FromServices] IDashboardService gitHubService, [FromBody] WorkflowsRequest request, CancellationToken cancellationToken) => gitHubService.GetWorkflowsAsync(request, cancellationToken);
 }

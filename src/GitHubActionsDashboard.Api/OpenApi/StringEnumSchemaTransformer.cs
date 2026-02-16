@@ -4,8 +4,12 @@ using Octokit;
 
 namespace GitHubActionsDashboard.Api.OpenApi;
 
+/// <summary>
+/// OpenAPI schema transformer that converts Octokit <c>StringEnum&lt;T&gt;</c> types to plain string schemas.
+/// </summary>
 public class StringEnumSchemaTransformer : IOpenApiSchemaTransformer
 {
+    /// <inheritdoc />
     public Task TransformAsync(OpenApiSchema schema, OpenApiSchemaTransformerContext context, CancellationToken cancellationToken)
     {
         if (IsStringEnumSchema(context))

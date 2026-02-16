@@ -2,12 +2,24 @@
 
 namespace GitHubActionsDashboard.Api.Models.Dashboard;
 
+/// <summary>
+/// Represents a workflow with its runs and aggregated RAG status.
+/// </summary>
 public record WorkflowModel : Models.WorkflowBase
 {
+    /// <summary>
+    /// The workflow runs for this workflow.
+    /// </summary>
     public IList<WorkflowRunModel> Runs { get; init; } = [];
 
+    /// <summary>
+    /// The RAG status of the latest run.
+    /// </summary>
     public RagStatus RunStatus { get; init; }
 
+    /// <summary>
+    /// The overall RAG status computed from the most recent run of each branch.
+    /// </summary>
     public RagStatus OverallStatus
     {
         get

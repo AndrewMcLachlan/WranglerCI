@@ -4,8 +4,14 @@ using Octokit;
 
 namespace GitHubActionsDashboard.Api.Handlers;
 
+/// <summary>
+/// Handles requests to list all repositories accessible to the current user.
+/// </summary>
 public static class RepositoriesHandler
 {
+    /// <summary>
+    /// Retrieves all repositories from the user's organisations and personal account.
+    /// </summary>
     public static async Task<Ok<IEnumerable<Repository>>> Handle([FromServices]IGitHubClient client)
     {
         List<Repository> repositories = [];
