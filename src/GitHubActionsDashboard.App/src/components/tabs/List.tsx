@@ -2,7 +2,7 @@ import { Nav } from "@andrewmclachlan/moo-ds";
 
 export type TabsListComponent = React.FC<React.PropsWithChildren<TabsListProps>>;
 
-export const TabsList: TabsListComponent = ({ children, ...rest }) => {
+export const TabsList: TabsListComponent = ({ children }) => {
     return (
         <Nav variant="tabs" role="tabslist">
             {children}
