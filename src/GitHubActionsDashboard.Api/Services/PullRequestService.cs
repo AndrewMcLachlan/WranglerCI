@@ -57,7 +57,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             await Jitter(cancellationToken);
             var prs = await OctoCall(() => gitHubClient.PullRequest.GetAllForRepository(owner, repo, new PullRequestRequest { State = ItemStateFilter.Open }), cancellationToken);
 
-            var filtered = prs.Where(pr => authors.Any(a => string.Equals(a, pr.User.Login, StringComparison.OrdinalIgnoreCase)));
+            var filtered = prs.Where(pr => authors.Any(a => String.Equals(a, pr.User.Login, StringComparison.OrdinalIgnoreCase)));
 
             var models = new List<PullRequestModel>();
 
@@ -138,7 +138,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         }
         catch
         {
-            return CheckStatus.Pending;
+            return CheckStatus.Unknown;
         }
     }
 

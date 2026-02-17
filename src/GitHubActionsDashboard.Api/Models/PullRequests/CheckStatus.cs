@@ -19,4 +19,9 @@ public enum CheckStatus
     /// One or more checks have failed.
     /// </summary>
     Failure,
+
+    /// <summary>
+    /// The status is unknown, which can occur if there was an error retrieving the check runs.
+    /// </summary>
+    Unknown,
 }

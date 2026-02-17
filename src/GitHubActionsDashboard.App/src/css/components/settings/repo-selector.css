@@ -9,6 +9,7 @@
 
         .nav {
             flex: 200px 0 1;
+            flex-direction: column;
             min-width: auto;
             width: auto;
         }

@@ -12,7 +12,7 @@ export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> 
     return (
         <>
             <div className="sidebar">
-                <div className="flex-column nav">
+                <div className="nav">
                     <NavItemList navItems={navList} onClick={(_e, navItem) => setSelectedRepo(account?.repositories?.find(r => r.name === navItem.id))} />
                 </div>
             </div>
