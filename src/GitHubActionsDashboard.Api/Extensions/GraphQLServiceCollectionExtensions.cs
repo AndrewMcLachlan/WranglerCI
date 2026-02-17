@@ -3,8 +3,14 @@ using GitHubActionsDashboard.Api.Services;
 
 namespace GitHubActionsDashboard.Api.Extensions;
 
+/// <summary>
+/// Extension methods for registering GraphQL services.
+/// </summary>
 public static class GraphQLServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers <see cref="IGraphQLService"/> and the GraphQL connection in the service collection.
+    /// </summary>
     public static IServiceCollection AddGraphQLServices(this IServiceCollection services) =>
         services
             .AddScoped<IGraphQLService, GraphQLService>()

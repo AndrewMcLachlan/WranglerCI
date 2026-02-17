@@ -7,12 +7,21 @@
     --primary: #646cff;
 
     --h2-size: 2rem;
-
-    color:
 }
+
+.dark, [data-theme="dark"] {
+    --primary: #646cff;
+    --green: green;
+    --bs-border-color: #3a3a4a;
+    --bs-heading-color: rgba(255, 255, 255, 0.87);
+    --bs-body-color: rgba(255, 255, 255, 0.87);
+    color: rgba(255, 255, 255, 0.87);
+}
+
 
 @media (prefers-color-scheme: dark) {
     :root {
+        --primary: #646cff;
         --green: green;
         --bs-border-color: #3a3a4a;
         --bs-heading-color: rgba(255, 255, 255, 0.87);

@@ -1,5 +1,8 @@
 ﻿namespace GitHubActionsDashboard.Api.Models;
 
+/// <summary>
+/// Base record containing common workflow properties.
+/// </summary>
 public record WorkflowBase
 {
     /// <summary>

@@ -11,7 +11,7 @@ import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faListUl, fa
 
 import { routeTree } from './routeTree.gen'
 import { Spinner } from "./components/Spinner"
-import { LinkProvider } from "@andrewmclachlan/moo-ds"
+import { LinkProvider, ThemeProvider } from "@andrewmclachlan/moo-ds"
 import { NavLnk } from "./components/NavLink"
 import { client } from "./api/client.gen.ts"
 
@@ -40,9 +40,11 @@ configureInterceptors();
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <QueryClientProvider client={queryClient}>
-            <LinkProvider LinkComponent={Link} NavLinkComponent={NavLnk}>
-                <RouterProvider router={router} />
-            </LinkProvider>
+            <ThemeProvider>
+                <LinkProvider LinkComponent={Link} NavLinkComponent={NavLnk}>
+                    <RouterProvider router={router} />
+                </LinkProvider>
+            </ThemeProvider>
         </QueryClientProvider>
     </StrictMode>,
 )

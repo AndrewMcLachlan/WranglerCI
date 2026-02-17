@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as PullRequestsIndexRouteImport } from './routes/pull-requests/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardListRouteImport } from './routes/dashboard/list'
 
@@ -30,6 +31,11 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   path: '/settings/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PullRequestsIndexRoute = PullRequestsIndexRouteImport.update({
+  id: '/pull-requests/',
+  path: '/pull-requests/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -46,12 +52,14 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/settings': typeof SettingsIndexRoute
+  '/pull-requests/': typeof PullRequestsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/pull-requests': typeof PullRequestsIndexRoute
   '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/pull-requests/': typeof PullRequestsIndexRoute
   '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -69,21 +78,24 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/list'
     | '/dashboard/'
-    | '/settings'
+    | '/pull-requests/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard/list' | '/dashboard' | '/settings'
+  to: '/' | '/dashboard/list' | '/dashboard' | '/pull-requests' | '/settings'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/dashboard/list'
     | '/dashboard/'
+    | '/pull-requests/'
     | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  PullRequestsIndexRoute: typeof PullRequestsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
@@ -106,8 +118,15 @@ declare module '@tanstack/react-router' {
     '/settings/': {
       id: '/settings/'
       path: '/settings'
-      fullPath: '/settings'
+      fullPath: '/settings/'
       preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pull-requests/': {
+      id: '/pull-requests/'
+      path: '/pull-requests'
+      fullPath: '/pull-requests/'
+      preLoaderRoute: typeof PullRequestsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -144,6 +163,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  PullRequestsIndexRoute: PullRequestsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 export const routeTree = rootRouteImport

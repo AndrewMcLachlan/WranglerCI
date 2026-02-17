@@ -4,15 +4,19 @@ using System.Web;
 
 namespace GitHubActionsDashboard.Api.Handlers;
 
+/// <summary>
+/// Handles the GitHub OAuth callback, exchanging the authorisation code for an access token.
+/// </summary>
 public static class CallbackHandler
 {
     /// <summary>
-    /// TODO: handle installs - http://localhost:3010/callback/github?code=48cb8c83cdda93f69f77&installation_id=81709900&setup_action=install
+    /// Exchanges the OAuth authorisation code for an access token, retrieves the user profile,
+    /// and stores credentials in the session.
     /// </summary>
-    /// <param name="http"></param>
-    /// <param name="configuration"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <param name="http">The current HTTP context.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>A redirect to the application root on success, or a bad request result on failure.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when required configuration values are missing.</exception>
     public static async Task<IResult> Handle(HttpContext http, IConfiguration configuration)
     {
         string clientId = configuration.GetValue<string>("ClientId") ?? throw new InvalidOperationException("ClientId is missing");

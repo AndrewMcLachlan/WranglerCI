@@ -2,8 +2,14 @@
 
 namespace GitHubActionsDashboard.Api.Models.Dashboard;
 
+/// <summary>
+/// Represents a repository with its workflows and aggregated RAG status.
+/// </summary>
 public record RepositoryModel : Models.RepositoryBase
 {
+    /// <summary>
+    /// The overall RAG status computed from the most recent run of each workflow branch.
+    /// </summary>
     public RagStatus OverallStatus
     {
         get
@@ -33,5 +39,8 @@ public record RepositoryModel : Models.RepositoryBase
         }
     }
 
+    /// <summary>
+    /// The workflows belonging to this repository.
+    /// </summary>
     public IEnumerable<WorkflowModel> Workflows { get; init; } = [];
 }

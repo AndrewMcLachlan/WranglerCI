@@ -1,5 +1,5 @@
 import { useSelectedRepositories, useUpdateSelectedRepositories, type SelectedRepository } from "../-hooks/useSelectedRepositories";
-import type { RepositoryModel, WorkflowModel } from "../../../api";
+import type { SettingsRepositoryModel, WorkflowBase } from "../../../api";
 import { useMemo } from "react";
 
 export const WorkflowSelector: React.FC<React.PropsWithChildren<WorkflowSelectorProps>> = ({ repository }) => {
@@ -12,7 +12,7 @@ export const WorkflowSelector: React.FC<React.PropsWithChildren<WorkflowSelector
 
     const { mutate } = useUpdateSelectedRepositories();
 
-    const handleWorkflowsChange = (workflow: WorkflowModel) => {
+    const handleWorkflowsChange = (workflow: WorkflowBase) => {
 
         const workflows = repositoryEntry.workflows ?? [];
         repositoryEntry.workflows = workflows.some(wf => wf === workflow.id!) ?
@@ -53,5 +53,5 @@ export const WorkflowSelector: React.FC<React.PropsWithChildren<WorkflowSelector
 }
 
 export interface WorkflowSelectorProps {
-    repository: RepositoryModel;
+    repository: SettingsRepositoryModel;
 }

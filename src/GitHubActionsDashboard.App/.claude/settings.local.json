@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e:*)",
+      "Bash(npx vite build:*)",
+      "Bash(kill:*)",
+      "Bash(pkill:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm update:*)",
+      "Bash(npm ls:*)"
+    ]
+  }
+}

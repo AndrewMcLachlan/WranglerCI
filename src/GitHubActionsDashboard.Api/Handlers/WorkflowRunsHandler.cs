@@ -6,8 +6,14 @@ using Octokit;
 
 namespace GitHubActionsDashboard.Api.Handlers;
 
+/// <summary>
+/// Handles requests to retrieve workflow runs for a specific workflow.
+/// </summary>
 public static class WorkflowRunsHandler
 {
+    /// <summary>
+    /// Retrieves recent runs for the specified workflow, optionally filtered by branch.
+    /// </summary>
     public static async Task<Ok<IEnumerable<WorkflowRunModel>>> Handle([FromServices] IDashboardService gitHubService, [FromRoute] string owner, [FromRoute] string repo, [FromRoute] long workflowId, Requests.WorkflowRunsRequest request, CancellationToken cancellationToken)
     {
         List<WorkflowRunModel> workflowRuns = [];

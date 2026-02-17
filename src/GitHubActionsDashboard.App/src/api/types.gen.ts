@@ -9,7 +9,7 @@ export type AccountModel = {
     avatarUrl: string;
     htmlUrl: string;
     type?: null | AccountType;
-    repositories?: Array<RepositoryModel>;
+    repositories?: Array<SettingsRepositoryModel>;
 };
 
 export type AccountType = number;
@@ -18,9 +18,24 @@ export type AdvancedSecurity = {
     status?: null | string;
 };
 
+export type ApprovalResult = {
+    repositoryOwner: string;
+    repositoryName: string;
+    pullRequestNumber: number | string;
+    approved: boolean;
+    merged: boolean;
+    error?: null | string;
+};
+
+export type ApprovePullRequestsRequest = {
+    pullRequests?: Array<PullRequestReference>;
+};
+
 export type BranchFilterRequest = {
     branchFilters?: Array<string>;
 };
+
+export type CheckStatus = 'Pending' | 'Success' | 'Failure';
 
 export type DependabotSecurityUpdates = {
     status?: null | string;
@@ -43,6 +58,33 @@ export type Plan = {
     billingEmail?: null | string;
     filledSeats?: number | string;
     seats?: number | string;
+};
+
+export type PullRequestModel = {
+    id: number | string;
+    number: number | string;
+    nodeId: string;
+    title: string;
+    author: string;
+    repositoryOwner: string;
+    repositoryName: string;
+    htmlUrl: string;
+    headSha: string;
+    headRef: string;
+    createdAt: string;
+    updatedAt: string;
+    checkStatus: CheckStatus;
+};
+
+export type PullRequestReference = {
+    owner: string;
+    repo: string;
+    number: number | string;
+};
+
+export type PullRequestsRequest = {
+    repositories?: Array<RepositoryRequest>;
+    authors?: Array<string>;
 };
 
 export type RagStatus = 'None' | 'Red' | 'Amber' | 'Green';
@@ -116,6 +158,11 @@ export type RepositoryPermissions = {
     pull?: boolean;
 };
 
+export type RepositoryRequest = {
+    owner: string;
+    name: string;
+};
+
 export type RepositoryVisibility = number;
 
 export type RepositoryWorkflowRequest = {
@@ -142,6 +189,15 @@ export type SecurityAndAnalysis = {
     secretScanning?: SecretScanning;
     secretScanningPushProtection?: SecretScanningPushProtection;
     secretScanningValidityChecks?: SecretScanningValidityChecks;
+};
+
+export type SettingsRepositoryModel = {
+    fullName: string;
+    workflows?: Array<WorkflowBase>;
+    name: string;
+    owner: string;
+    nodeId: string;
+    htmlUrl: string;
 };
 
 export type StringEnumOfWorkflowRunConclusion = string;
@@ -323,3 +379,35 @@ export type PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses = {
 };
 
 export type PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse = PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses[keyof PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses];
+
+export type PostPullRequestsData = {
+    body: PullRequestsRequest;
+    path?: never;
+    query?: never;
+    url: '/pull-requests';
+};
+
+export type PostPullRequestsResponses = {
+    /**
+     * OK
+     */
+    200: Array<PullRequestModel>;
+};
+
+export type PostPullRequestsResponse = PostPullRequestsResponses[keyof PostPullRequestsResponses];
+
+export type PostPullRequestsApproveData = {
+    body: ApprovePullRequestsRequest;
+    path?: never;
+    query?: never;
+    url: '/pull-requests/approve';
+};
+
+export type PostPullRequestsApproveResponses = {
+    /**
+     * OK
+     */
+    200: Array<ApprovalResult>;
+};
+
+export type PostPullRequestsApproveResponse = PostPullRequestsApproveResponses[keyof PostPullRequestsApproveResponses];

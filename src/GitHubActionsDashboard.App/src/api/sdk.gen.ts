@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetAdminSessionDebugData, GetAdminSessionDebugResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
+import type { GetAdminSessionDebugData, GetAdminSessionDebugResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -18,61 +18,66 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: Record<string, unknown>;
 };
 
-export const getAdminSessionDebug = <ThrowOnError extends boolean = false>(options?: Options<GetAdminSessionDebugData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetAdminSessionDebugResponses, unknown, ThrowOnError>({
-        url: '/admin/session/debug',
-        ...options
-    });
-};
+export const getAdminSessionDebug = <ThrowOnError extends boolean = false>(options?: Options<GetAdminSessionDebugData, ThrowOnError>) => (options?.client ?? client).get<GetAdminSessionDebugResponses, unknown, ThrowOnError>({ url: '/admin/session/debug', ...options });
 
-export const getRepositories = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetRepositoriesResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/repositories',
-        ...options
-    });
-};
+export const getRepositories = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesData, ThrowOnError>) => (options?.client ?? client).get<GetRepositoriesResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/repositories',
+    ...options
+});
 
-export const getRepositoriesGrouped = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesGroupedData, ThrowOnError>) => {
-    return (options?.client ?? client).get<GetRepositoriesGroupedResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/repositories/grouped',
-        ...options
-    });
-};
+export const getRepositoriesGrouped = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesGroupedData, ThrowOnError>) => (options?.client ?? client).get<GetRepositoriesGroupedResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/repositories/grouped',
+    ...options
+});
 
-export const postWorkflows = <ThrowOnError extends boolean = false>(options: Options<PostWorkflowsData, ThrowOnError>) => {
-    return (options.client ?? client).post<PostWorkflowsResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/workflows',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const postWorkflows = <ThrowOnError extends boolean = false>(options: Options<PostWorkflowsData, ThrowOnError>) => (options.client ?? client).post<PostWorkflowsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/workflows',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
-export const getWorkflowsForARepository = <ThrowOnError extends boolean = false>(options: Options<GetWorkflowsForARepositoryData, ThrowOnError>) => {
-    return (options.client ?? client).post<GetWorkflowsForARepositoryResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/repositories/{owner}/{repo}/workflows',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const getWorkflowsForARepository = <ThrowOnError extends boolean = false>(options: Options<GetWorkflowsForARepositoryData, ThrowOnError>) => (options.client ?? client).post<GetWorkflowsForARepositoryResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/repositories/{owner}/{repo}/workflows',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
-export const postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns = <ThrowOnError extends boolean = false>(options: Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, ThrowOnError>) => {
-    return (options.client ?? client).post<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, unknown, ThrowOnError>({
-        responseType: 'json',
-        url: '/repositories/{owner}/{repo}/workflows/{workflowId}/runs',
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers
-        }
-    });
-};
+export const postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns = <ThrowOnError extends boolean = false>(options: Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, ThrowOnError>) => (options.client ?? client).post<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/repositories/{owner}/{repo}/workflows/{workflowId}/runs',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postPullRequests = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsData, ThrowOnError>) => (options.client ?? client).post<PostPullRequestsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/pull-requests',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postPullRequestsApprove = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsApproveData, ThrowOnError>) => (options.client ?? client).post<PostPullRequestsApproveResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/pull-requests/approve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});

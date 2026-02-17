@@ -1,5 +1,5 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import { Cog } from "@andrewmclachlan/moo-icons";
+import { Cog, PullRequest } from "@andrewmclachlan/moo-icons";
 import { Link } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
 
@@ -18,6 +18,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
                 </h1>
                 <nav className="top-nav">
                     <ul>
+                        <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
                         <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
                     </ul>
                 </nav>

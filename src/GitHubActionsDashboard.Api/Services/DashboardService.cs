@@ -8,14 +8,50 @@ using Octokit;
 
 namespace GitHubActionsDashboard.Api.Services;
 
+/// <summary>
+/// Provides dashboard operations for retrieving workflows and their runs.
+/// </summary>
 public interface IDashboardService
 {
+    /// <summary>
+    /// Retrieves workflows and their latest runs for the repositories specified in the request.
+    /// </summary>
+    /// <param name="request">The repositories and workflow IDs to query.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The repositories with their workflows and latest runs.</returns>
     Task<IEnumerable<RepositoryModel>> GetWorkflowsAsync(WorkflowsRequest request, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Retrieves all workflows for a specific repository.
+    /// </summary>
+    /// <param name="owner">The repository owner.</param>
+    /// <param name="repo">The repository name.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The workflows in the repository.</returns>
     Task<IEnumerable<WorkflowModel>> GetWorkflowsAsync(string owner, string repo, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Retrieves the most recent runs for a specific workflow, optionally filtered to a single branch.
+    /// </summary>
+    /// <param name="owner">The repository owner.</param>
+    /// <param name="repo">The repository name.</param>
+    /// <param name="workflowId">The workflow ID.</param>
+    /// <param name="perPage">The maximum number of runs to return.</param>
+    /// <param name="branch">The branch name to filter by, or <c>null</c> for all branches.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The most recent workflow runs.</returns>
     Task<IEnumerable<WorkflowRunModel>> GetLastRunsAsync(string owner, string repo, long workflowId, int perPage, string? branch, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Retrieves the most recent runs for a specific workflow, filtered by branch patterns.
+    /// </summary>
+    /// <param name="owner">The repository owner.</param>
+    /// <param name="repo">The repository name.</param>
+    /// <param name="workflowId">The workflow ID.</param>
+    /// <param name="perPage">The maximum number of runs to return.</param>
+    /// <param name="branches">The branch name patterns to filter by.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The most recent workflow runs matching the branch filters.</returns>
     Task<IEnumerable<WorkflowRunModel>> GetLastRunsAsync(string owner, string repo, long workflowId, int perPage, IEnumerable<string> branches, CancellationToken cancellationToken);
 }
 

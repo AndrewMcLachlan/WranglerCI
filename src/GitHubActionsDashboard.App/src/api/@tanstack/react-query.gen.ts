@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions, useQuery } fr
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { getAdminSessionDebug, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
-import type { GetAdminSessionDebugData, GetRepositoriesData, GetRepositoriesGroupedData, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
+import { getAdminSessionDebug, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
+import type { GetAdminSessionDebugData, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -37,73 +37,59 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     if (options?.query) {
         params.query = options.query;
     }
-    return [
-        params
-    ];
+    return [params];
 };
 
 export const getAdminSessionDebugQueryKey = (options?: Options<GetAdminSessionDebugData>) => createQueryKey('getAdminSessionDebug', options);
 
-export const getAdminSessionDebugOptions = (options?: Options<GetAdminSessionDebugData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getAdminSessionDebug({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getAdminSessionDebugQueryKey(options)
-    });
-};
+export const getAdminSessionDebugOptions = (options?: Options<GetAdminSessionDebugData>) => queryOptions<unknown, AxiosError<DefaultError>, unknown, ReturnType<typeof getAdminSessionDebugQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getAdminSessionDebug({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getAdminSessionDebugQueryKey(options)
+});
 
-export const useGetAdminSessionDebugQuery = (options?: Options<GetAdminSessionDebugData>) => {
-    return useQuery(getAdminSessionDebugOptions(options));
-};
+export const useGetAdminSessionDebugQuery = (options?: Options<GetAdminSessionDebugData>) => useQuery(getAdminSessionDebugOptions(options));
 
 export const getRepositoriesQueryKey = (options?: Options<GetRepositoriesData>) => createQueryKey('getRepositories', options);
 
-export const getRepositoriesOptions = (options?: Options<GetRepositoriesData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getRepositories({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getRepositoriesQueryKey(options)
-    });
-};
+export const getRepositoriesOptions = (options?: Options<GetRepositoriesData>) => queryOptions<GetRepositoriesResponse, AxiosError<DefaultError>, GetRepositoriesResponse, ReturnType<typeof getRepositoriesQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRepositories({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRepositoriesQueryKey(options)
+});
 
-export const useGetRepositoriesQuery = (options?: Options<GetRepositoriesData>) => {
-    return useQuery(getRepositoriesOptions(options));
-};
+export const useGetRepositoriesQuery = (options?: Options<GetRepositoriesData>) => useQuery(getRepositoriesOptions(options));
 
 export const getRepositoriesGroupedQueryKey = (options?: Options<GetRepositoriesGroupedData>) => createQueryKey('getRepositoriesGrouped', options);
 
-export const getRepositoriesGroupedOptions = (options?: Options<GetRepositoriesGroupedData>) => {
-    return queryOptions({
-        queryFn: async ({ queryKey, signal }) => {
-            const { data } = await getRepositoriesGrouped({
-                ...options,
-                ...queryKey[0],
-                signal,
-                throwOnError: true
-            });
-            return data;
-        },
-        queryKey: getRepositoriesGroupedQueryKey(options)
-    });
-};
+export const getRepositoriesGroupedOptions = (options?: Options<GetRepositoriesGroupedData>) => queryOptions<GetRepositoriesGroupedResponse, AxiosError<DefaultError>, GetRepositoriesGroupedResponse, ReturnType<typeof getRepositoriesGroupedQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getRepositoriesGrouped({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getRepositoriesGroupedQueryKey(options)
+});
 
-export const useGetRepositoriesGroupedQuery = (options?: Options<GetRepositoriesGroupedData>) => {
-    return useQuery(getRepositoriesGroupedOptions(options));
-};
+export const useGetRepositoriesGroupedQuery = (options?: Options<GetRepositoriesGroupedData>) => useQuery(getRepositoriesGroupedOptions(options));
 
 export const postWorkflowsMutation = (options?: Partial<Options<PostWorkflowsData>>): UseMutationOptions<PostWorkflowsResponse, AxiosError<DefaultError>, Options<PostWorkflowsData>> => {
     const mutationOptions: UseMutationOptions<PostWorkflowsResponse, AxiosError<DefaultError>, Options<PostWorkflowsData>> = {
@@ -137,6 +123,34 @@ export const postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsMutation = (o
     const mutationOptions: UseMutationOptions<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, AxiosError<DefaultError>, Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const postPullRequestsMutation = (options?: Partial<Options<PostPullRequestsData>>): UseMutationOptions<PostPullRequestsResponse, AxiosError<DefaultError>, Options<PostPullRequestsData>> => {
+    const mutationOptions: UseMutationOptions<PostPullRequestsResponse, AxiosError<DefaultError>, Options<PostPullRequestsData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postPullRequests({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const postPullRequestsApproveMutation = (options?: Partial<Options<PostPullRequestsApproveData>>): UseMutationOptions<PostPullRequestsApproveResponse, AxiosError<DefaultError>, Options<PostPullRequestsApproveData>> => {
+    const mutationOptions: UseMutationOptions<PostPullRequestsApproveResponse, AxiosError<DefaultError>, Options<PostPullRequestsApproveData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postPullRequestsApprove({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

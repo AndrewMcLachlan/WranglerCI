@@ -6,8 +6,16 @@ using Octokit;
 
 namespace GitHubActionsDashboard.Api.Services;
 
+/// <summary>
+/// Provides settings-related operations such as listing available repositories and workflows.
+/// </summary>
 public interface ISettingsService
 {
+    /// <summary>
+    /// Lists all accessible repositories grouped by account, including their available workflows.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The accounts with their repositories and workflows.</returns>
     Task<IEnumerable<AccountModel>> ListAllWorkflowsAsync(CancellationToken cancellationToken);
 }
 
@@ -45,7 +53,7 @@ internal class SettingsService(IGitHubClient gitHubClient, IDistributedCache cac
                     Type = g.Key.Type,
                     AvatarUrl = g.Key.AvatarUrl,
                     HtmlUrl = g.Key.HtmlUrl,
-                    Repositories = [.. g.Where(r => !r.Archived).Select(r => new RepositoryModel
+                    Repositories = [.. g.Where(r => !r.Archived).Select(r => new SettingsRepositoryModel
                     {
                         Name = r.Name,
                         NodeId = r.NodeId,
