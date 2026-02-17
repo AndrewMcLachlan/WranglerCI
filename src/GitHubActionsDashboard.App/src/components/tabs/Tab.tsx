@@ -1,4 +1,4 @@
-import { Icon, useLink, type IconProps } from "@andrewmclachlan/moo-ds";
+import { Icon, Nav, useLink, type IconProps } from "@andrewmclachlan/moo-ds";
 import classNames from "classnames";
 import { useTabs } from "./TabsProvider";
 
@@ -9,12 +9,18 @@ export const Tab: TabComponent = ({ children, to, value, label, icon, className,
     const { selectedTab, setSelectedTab } = useTabs();
 
     return (
-        <li {...rest} className={classNames(className, value === selectedTab ? "active" : "")}>
-            <span onClick={() => setSelectedTab?.(value)}>
+                    <Nav.Item key={value} {...rest} className={classNames(className, value === selectedTab ? "active" : "")}>
+                        <Nav.Link
+                            active={value === selectedTab}
+                            disabled={false}
+                            onClick={() => setSelectedTab?.(value)}
+                            role="tab"
+                            href="#"
+                        >
                 {icon && <Icon icon={icon} />} {label}
                 {children}
-            </span>
-        </li>
+                        </Nav.Link>
+                    </Nav.Item>
     );
 }
 

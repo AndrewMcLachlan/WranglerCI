@@ -1,13 +1,15 @@
+import { Nav } from "@andrewmclachlan/moo-ds";
+
 export type TabsListComponent = React.FC<React.PropsWithChildren<TabsListProps>>;
 
 export const TabsList: TabsListComponent = ({ children, ...rest }) => {
     return (
-        <ul className="nav nav-tabs" {...rest}>
+        <Nav variant="tabs" role="tabslist">
             {children}
-        </ul>
+        </Nav>
     );
 }
 
 export interface TabsListProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLUListElement>, HTMLUListElement> {
-    
+
 }

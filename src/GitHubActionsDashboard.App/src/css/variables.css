@@ -7,10 +7,15 @@
     --primary: #646cff;
 
     --h2-size: 2rem;
+
+    --link-decoration: none;
 }
 
 .dark, [data-theme="dark"] {
     --primary: #646cff;
+    --primary-rgb: 100, 108, 255;
+    --link-color-rgb: var(--primary-rgb);
+    --link-hover-color-rgb: 150, 166, 255;
     --green: green;
     --bs-border-color: #3a3a4a;
     --bs-heading-color: rgba(255, 255, 255, 0.87);

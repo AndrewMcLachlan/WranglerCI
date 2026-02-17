@@ -1,4 +1,4 @@
-@scope(.tabs) {
+/*@scope(.tabs) {
 
     display: flex;
     flex-direction: column;
@@ -17,7 +17,7 @@
         }
 
         li.active {
-            
+
             border-bottom: 2px solid var(--primary);
         }
 
@@ -26,4 +26,4 @@
             height: 1.5rem;
         }
     }
-}
+}*/

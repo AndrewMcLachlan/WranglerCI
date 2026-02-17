@@ -12,13 +12,4 @@
         width: 2rem;
         text-align: center;
     }
-
-    a {
-        color: var(--primary);
-        text-decoration: none;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
 }

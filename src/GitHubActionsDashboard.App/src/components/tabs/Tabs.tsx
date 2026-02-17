@@ -17,13 +17,28 @@ export const Tabs: TabsComponent = ({ selectedTab, children }) => {
 
     return (
         <TabsProvider defaultTab={selectedTab}>
-            <section className="tabs">
-                {children}
-            </section>
+            {children}
         </TabsProvider>
     );
 }
-
+/*
+<TabContext.Provider value={contextValue}>
+            <Nav variant="tabs" role="tablist">
+                {panes.map((pane) => (
+                    <Nav.Item key={pane.eventKey}>
+                        <Nav.Link
+                            active={activeKey === pane.eventKey}
+                            disabled={pane.disabled}
+                            onClick={() => !pane.disabled && handleSelect(pane.eventKey)}
+                            role="tab"
+                        >
+                            {pane.title}
+                        </Nav.Link>
+                    </Nav.Item>
+                ))}
+            </Nav>
+            {children}
+            */
 Tabs.List = TabsList;
 Tabs.Tab = Tab;
 Tabs.Content = Content;
