@@ -13,12 +13,9 @@ public static class LoginHandler
         string clientId = configuration.GetValue<string>("ClientId") ?? throw new InvalidOperationException("ClientId is missing");
         string redirectUri = configuration.GetValue<string>("RedirectUri") ?? throw new InvalidOperationException("RedirectUri is missing");
 
-        var state = http.Session.GetString("oauth_state");
-        if (String.IsNullOrEmpty(state))
-        {
-            state = Guid.NewGuid().ToString("N");
-            http.Session.SetString("oauth_state", state);
-        }
+        // Always generate a fresh state to avoid stale values from previous flows.
+        var state = Guid.NewGuid().ToString("N");
+        http.Session.SetString("oauth_state", state);
 
         var url = new UriBuilder("https://github.com/login/oauth/authorize");
         var query = new Dictionary<string, string>

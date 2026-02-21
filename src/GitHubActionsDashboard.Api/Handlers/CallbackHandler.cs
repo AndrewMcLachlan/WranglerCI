@@ -24,6 +24,11 @@ public static class CallbackHandler
         string redirectUri = configuration.GetValue<string>("RedirectUri") ?? throw new InvalidOperationException("RedirectUri is missing");
 
         var request = http.Request;
+
+        // GitHub App installation callback — no OAuth exchange needed, just redirect home.
+        if (!String.IsNullOrEmpty(request.Query["installation_id"]))
+            return Results.Redirect("/");
+
         var code = request.Query["code"];
         var state = request.Query["state"];
 
@@ -32,7 +37,12 @@ public static class CallbackHandler
 
         var expectedState = http.Session.GetString("oauth_state");
         if (state != expectedState)
+        {
+            // Session may have been lost during the redirect chain. Retry once.
+            if (request.Query["retry"] != "1")
+                return Results.Redirect("/login/github?retry=1");
             return Results.BadRequest("Invalid state");
+        }
 
         // Exchange code for access token
         var client = new HttpClient();

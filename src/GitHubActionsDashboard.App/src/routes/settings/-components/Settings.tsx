@@ -1,5 +1,5 @@
 import { useGroupedRepositories } from "../../../hooks/useGroupedRepositories";
-import { Tabs } from "../../../components/tabs/Tabs";
+import { Tabs, Tab } from "@andrewmclachlan/moo-ds";
 import { RepoSelector } from "./RepoSelector";
 
 export const Settings = () => {
@@ -14,16 +14,11 @@ export const Settings = () => {
             ) : accounts.isError ? (
                 <p>Error loading repositories: {accounts.error.message}</p>
             ) : (
-                <Tabs selectedTab={accounts.data?.[0]?.login}>
-                    <Tabs.List>
-                        {accounts.data?.map(account => (
-                            <Tabs.Tab key={account.login} value={account.login} label={account.login} icon={account.avatarUrl} />
-                        ))}
-                    </Tabs.List>
+                <Tabs activeKey={accounts.data?.[0]?.login}>
                     {accounts.data?.map(account => (
-                        <Tabs.Content className="repo-selector" key={account.login} value={account.login}>
+                        <Tab className="repo-selector" key={account.login} eventKey={account.login} title={account.login}>
                             <RepoSelector account={account} />
-                        </Tabs.Content>
+                        </Tab>
                     ))}
                 </Tabs>
             )
