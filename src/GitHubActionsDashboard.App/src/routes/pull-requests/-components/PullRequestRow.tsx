@@ -1,6 +1,9 @@
 import { DateTime } from "luxon";
 import { CheckStatusBadge } from "./CheckStatusBadge";
+import { Badge } from "../../dashboard/-components/Badge";
 import type { PullRequestModel } from "../../../api";
+
+export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
 
 export const PullRequestRow: React.FC<PullRequestRowProps> = ({ pr, selected, onToggle }) => {
 
@@ -12,12 +15,15 @@ export const PullRequestRow: React.FC<PullRequestRowProps> = ({ pr, selected, on
     return (
         <tr>
             <td>
-                <input type="checkbox" checked={selected} onChange={() => onToggle(pr)} disabled={pr.checkStatus !== "Success"} />
+                <input type="checkbox" checked={selected} onChange={() => onToggle(pr)} disabled={!canApprove(pr)} />
             </td>
             <td>{pr.repositoryOwner}/{pr.repositoryName}</td>
             <td><a href={pr.htmlUrl!} target="_blank" rel="noopener noreferrer">{pr.title}</a></td>
             <td>{pr.author}</td>
-            <td><CheckStatusBadge status={pr.checkStatus} /></td>
+            <td>
+                <CheckStatusBadge status={pr.checkStatus} />
+                {pr.mergeable === false && <Badge className="red">Conflict</Badge>}
+            </td>
             <td title={DateTime.fromISO(pr.updatedAt!).toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</td>
         </tr>
     );

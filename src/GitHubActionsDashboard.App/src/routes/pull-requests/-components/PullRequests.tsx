@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
-import { PullRequestRow } from "./PullRequestRow";
+import { PullRequestRow, canApprove } from "./PullRequestRow";
 import { Spinner } from "../../../components/Spinner";
 import type { ApprovalResult, PullRequestModel } from "../../../api";
 
@@ -30,10 +30,10 @@ export const PullRequests = () => {
 
     const [selected, setSelected] = useState<Set<number | string>>(new Set());
 
-    const approvable = pullRequests?.filter(pr => pr.checkStatus === "Success") ?? [];
+    const approvable = pullRequests?.filter(canApprove) ?? [];
 
     const toggleSelection = (pr: PullRequestModel) => {
-        if (pr.checkStatus !== "Success") return;
+        if (!canApprove(pr)) return;
         setSelected(prev => {
             const next = new Set(prev);
             if (next.has(pr.number)) {
@@ -123,7 +123,7 @@ export const PullRequests = () => {
                         <th>Repository</th>
                         <th>Title</th>
                         <th>Author</th>
-                        <th>Checks</th>
+                        <th>Status</th>
                         <th>Updated</th>
                     </tr>
                 </thead>

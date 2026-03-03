@@ -35,7 +35,7 @@ export type BranchFilterRequest = {
     branchFilters?: Array<string>;
 };
 
-export type CheckStatus = 'Pending' | 'Success' | 'Failure';
+export type CheckStatus = 'Pending' | 'Success' | 'Failure' | 'Unknown';
 
 export type DependabotSecurityUpdates = {
     status?: null | string;
@@ -74,6 +74,7 @@ export type PullRequestModel = {
     createdAt: string;
     updatedAt: string;
     checkStatus: CheckStatus;
+    mergeable?: null | boolean;
 };
 
 export type PullRequestReference = {
