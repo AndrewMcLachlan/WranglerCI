@@ -69,4 +69,10 @@ public record PullRequestModel
     /// The aggregated check status for the head commit.
     /// </summary>
     public required CheckStatus CheckStatus { get; init; }
+
+    /// <summary>
+    /// Whether the pull request can be cleanly merged.
+    /// <c>null</c> when GitHub has not yet computed mergeability.
+    /// </summary>
+    public bool? Mergeable { get; init; }
 }

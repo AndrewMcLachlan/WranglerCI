@@ -44,9 +44,23 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
 
     public async Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequestsRequest request, CancellationToken cancellationToken)
     {
-        var tasks = request.PullRequests.Select(pr => ApproveAndMergeAsync(pr.Owner, pr.Repo, pr.Number, cancellationToken));
+        // Group by repo so that PRs targeting the same base branch are merged
+        // sequentially, avoiding "Base branch was modified" race conditions.
+        // Different repos are still processed in parallel.
+        var repoGroups = request.PullRequests.GroupBy(pr => (pr.Owner, pr.Repo));
 
-        return await Task.WhenAll(tasks);
+        var repoTasks = repoGroups.Select(async group =>
+        {
+            var results = new List<ApprovalResult>();
+            foreach (var pr in group)
+            {
+                results.Add(await ApproveAndMergeAsync(pr.Owner, pr.Repo, pr.Number, cancellationToken));
+            }
+            return results;
+        });
+
+        var allResults = await Task.WhenAll(repoTasks);
+        return allResults.SelectMany(r => r);
     }
 
     private async Task<IEnumerable<PullRequestModel>> GetRepoPullRequestsAsync(string owner, string repo, IReadOnlyList<string> authors, CancellationToken cancellationToken)
@@ -63,7 +77,10 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
 
             foreach (var pr in filtered)
             {
-                var checkStatus = await GetCheckStatusAsync(owner, repo, pr.Head.Sha, cancellationToken);
+                var checkStatusTask = GetCheckStatusAsync(owner, repo, pr.Head.Sha, cancellationToken);
+                var detailTask = OctoCall(() => gitHubClient.PullRequest.Get(owner, repo, pr.Number), cancellationToken);
+
+                await Task.WhenAll(checkStatusTask, detailTask);
 
                 models.Add(new PullRequestModel
                 {
@@ -79,7 +96,8 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     HeadRef = pr.Head.Ref,
                     CreatedAt = pr.CreatedAt,
                     UpdatedAt = pr.UpdatedAt,
-                    CheckStatus = checkStatus,
+                    CheckStatus = checkStatusTask.Result,
+                    Mergeable = detailTask.Result.Mergeable,
                 });
             }
 
