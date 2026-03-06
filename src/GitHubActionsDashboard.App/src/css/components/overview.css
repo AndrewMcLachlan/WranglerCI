@@ -1,0 +1,89 @@
+@scope (.overview) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1rem;
+}
+
+@scope (.overview-card) {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+
+    .overview-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+
+        h3 {
+            margin: 0;
+            font-size: 1rem;
+            flex: 1;
+        }
+
+        a {
+            opacity: 0.6;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+
+        svg {
+            width: 1rem;
+            height: 1rem;
+        }
+    }
+
+    .overview-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        padding: 0.5rem;
+    }
+
+    .workflow-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 4px;
+
+        &:hover {
+            background-color: color-mix(in srgb, currentColor 5%, transparent);
+        }
+
+        .workflow-name {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .workflow-time {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+        }
+    }
+
+    .passing-summary {
+        background: none;
+        border: 1px dashed color-mix(in srgb, currentColor 20%, transparent);
+        border-radius: 4px;
+        padding: 0.35rem 0.5rem;
+        color: inherit;
+        opacity: 0.6;
+        cursor: pointer;
+        font-size: 0.85rem;
+        text-align: left;
+
+        &:hover {
+            opacity: 1;
+            border-color: color-mix(in srgb, currentColor 40%, transparent);
+        }
+    }
+}

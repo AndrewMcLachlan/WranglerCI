@@ -5,24 +5,24 @@ import { postPullRequests } from "../../../api";
 
 export const usePullRequests = () => {
 
-    const { data: selectedRepositories } = useSelectedRepositories();
-    const { data: authors } = usePrAuthors();
+  const { data: selectedRepositories } = useSelectedRepositories();
+  const { data: authors } = usePrAuthors();
 
-    const repositories = selectedRepositories.map(r => ({ owner: r.owner, name: r.name }));
+  const repositories = selectedRepositories.map(r => ({ owner: r.owner, name: r.name }));
 
-    return useQuery({
-        queryKey: ["pullRequests", repositories, authors],
-        queryFn: async () => {
-            const result = await postPullRequests({
-                body: {
-                    repositories,
-                    authors,
-                },
-            });
-            return result.data;
+  return useQuery({
+    queryKey: ["pullRequests", repositories, authors],
+    queryFn: async () => {
+      const result = await postPullRequests({
+        body: {
+          repositories,
+          authors,
         },
-        enabled: repositories.length > 0 && authors.length > 0,
-        refetchInterval: 2 * 60 * 1000,
-        staleTime: 60 * 1000,
-    });
+      });
+      return result.data;
+    },
+    enabled: repositories.length > 0 && authors.length > 0,
+    refetchInterval: 2 * 60 * 1000,
+    staleTime: 60 * 1000,
+  });
 }

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import svgr from 'vite-plugin-svgr'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
@@ -7,6 +8,18 @@ export default defineConfig({
     tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
+    }),
+    svgr({
+      svgrOptions: {
+        plugins: ["@svgr/plugin-svgo", "@svgr/plugin-jsx"],
+        svgoConfig: {
+          plugins: [{
+            name: "preset-default",
+            params: { overrides: { removeViewBox: false, cleanupIds: false } },
+          }],
+        },
+      },
+      include: "**/*.svg",
     }),
     react()
   ],

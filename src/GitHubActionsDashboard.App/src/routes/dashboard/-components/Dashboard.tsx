@@ -7,18 +7,18 @@ import { useDashboardContext } from "../-providers/DashboardProvider";
 
 export const Dashboard = () => {
 
-    const { data: repositories, isLoading, isError, error } = useWorkflows();
+  const { data: repositories, isLoading, isError, error } = useWorkflows();
 
-    if (isError) {
-        console.error("Error fetching dashboard data:", error);
-        return <p>Error loading build info.</p>;
-    }
+  if (isError) {
+    console.error("Error fetching dashboard data:", error);
+    return <p>Error loading build info.</p>;
+  }
 
-    return (
-        <>
-            {isLoading && <Spinner />}
-            {(!isLoading && (!repositories || repositories.length === 0)) && <p>No workflows found.</p>}
-            {repositories && <RepositoryList repositories={repositories} />}
-        </>
-    );
+  return (
+    <>
+      {isLoading && <Spinner />}
+      {(!isLoading && (!repositories || repositories.length === 0)) && <p>No workflows found.</p>}
+      {repositories && <RepositoryList repositories={repositories} />}
+    </>
+  );
 }

@@ -18,17 +18,17 @@ import { client } from "./api/client.gen.ts"
 library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faListUl, faTimesCircle);
 
 const router = createRouter({
-    routeTree,
-    defaultPreload: "intent",
-    defaultPreloadStaleTime: 0,
-    scrollRestoration: true,
-    defaultPendingComponent: Spinner,
+  routeTree,
+  defaultPreload: "intent",
+  defaultPreloadStaleTime: 0,
+  scrollRestoration: true,
+  defaultPendingComponent: Spinner,
 })
 
 declare module "@tanstack/react-router" {
-    interface Register {
-        router: typeof router
-    }
+  interface Register {
+    router: typeof router
+  }
 }
 
 console.log("config", client.getConfig());
@@ -38,13 +38,13 @@ const queryClient = new QueryClient();
 configureInterceptors();
 
 createRoot(document.getElementById("root")!).render(
-    <StrictMode>
-        <QueryClientProvider client={queryClient}>
-            <ThemeProvider>
-                <LinkProvider LinkComponent={Link} NavLinkComponent={NavLnk}>
-                    <RouterProvider router={router} />
-                </LinkProvider>
-            </ThemeProvider>
-        </QueryClientProvider>
-    </StrictMode>,
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <LinkProvider LinkComponent={Link} NavLinkComponent={NavLnk}>
+          <RouterProvider router={router} />
+        </LinkProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </StrictMode>,
 )

@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as PullRequestsIndexRouteImport } from './routes/pull-requests/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardOverviewRouteImport } from './routes/dashboard/overview'
 import { Route as DashboardListRouteImport } from './routes/dashboard/list'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -41,6 +42,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardOverviewRoute = DashboardOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardListRoute = DashboardListRouteImport.update({
   id: '/list',
   path: '/list',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/list': typeof DashboardListRoute
+  '/dashboard/overview': typeof DashboardOverviewRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/pull-requests/': typeof PullRequestsIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard/list': typeof DashboardListRoute
+  '/dashboard/overview': typeof DashboardOverviewRoute
   '/dashboard': typeof DashboardIndexRoute
   '/pull-requests': typeof PullRequestsIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/list': typeof DashboardListRoute
+  '/dashboard/overview': typeof DashboardOverviewRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/pull-requests/': typeof PullRequestsIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -74,22 +83,30 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/dashboard'
-    | '/dashboard/list'
-    | '/dashboard/'
-    | '/pull-requests/'
-    | '/settings/'
+  | '/'
+  | '/dashboard'
+  | '/dashboard/list'
+  | '/dashboard/overview'
+  | '/dashboard/'
+  | '/pull-requests/'
+  | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard/list' | '/dashboard' | '/pull-requests' | '/settings'
+  to:
+  | '/'
+  | '/dashboard/list'
+  | '/dashboard/overview'
+  | '/dashboard'
+  | '/pull-requests'
+  | '/settings'
   id:
-    | '__root__'
-    | '/'
-    | '/dashboard'
-    | '/dashboard/list'
-    | '/dashboard/'
-    | '/pull-requests/'
-    | '/settings/'
+  | '__root__'
+  | '/'
+  | '/dashboard'
+  | '/dashboard/list'
+  | '/dashboard/overview'
+  | '/dashboard/'
+  | '/pull-requests/'
+  | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -136,6 +153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/overview': {
+      id: '/dashboard/overview'
+      path: '/overview'
+      fullPath: '/dashboard/overview'
+      preLoaderRoute: typeof DashboardOverviewRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/list': {
       id: '/dashboard/list'
       path: '/list'
@@ -148,11 +172,13 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardListRoute: typeof DashboardListRoute
+  DashboardOverviewRoute: typeof DashboardOverviewRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardListRoute: DashboardListRoute,
+  DashboardOverviewRoute: DashboardOverviewRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 

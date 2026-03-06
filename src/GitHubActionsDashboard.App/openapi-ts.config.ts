@@ -1,7 +1,7 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
 export default defineConfig({
-    input: 'http://localhost:5010/openapi/v1.json',
+    input: '../GitHubActionsDashboard.Api/openapi-v1.json',
     output: './src/api',
     plugins: [
         {

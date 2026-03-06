@@ -3,18 +3,17 @@ root = true
 
 ; 4-column space indentation
 [*]
+indent_size = 2
 indent_style = space
-indent_size = 4
 insert_final_newline = true
-
 [*.{config,xml,html,xsd,xsl,xslt,cshtml,html,csproj,sqlproj,sqlprojx,proj,msbuild,vbproj,vstemplate,transform,props,yml,yaml}]
 indent_size = 2
 
-
-[*.json]
+[*.json,*.ts,*.tsx,*.js,*.jsx,*.css,*.scss,*.less]
 indent_size = 2
 
 [*.cs]
+indent_size = 4
 dotnet_style_predefined_type_for_locals_parameters_members = true : warning
 dotnet_style_predefined_type_for_member_access = false : warning
 dotnet_style_require_accessibility_modifiers = for_non_interface_members : warning
@@ -30,7 +29,7 @@ csharp_indent_switch_labels = true
 
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
-[*.cs]
+
 #### Naming styles ####
 
 # Naming rules

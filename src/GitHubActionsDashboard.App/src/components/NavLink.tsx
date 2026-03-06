@@ -3,21 +3,21 @@ import { Link } from "@tanstack/react-router"
 
 export const NavLnk: NavLinkComponent = (props) => {
 
-    let activeClassName: string;
-    let className: string;
-    if (props.className && typeof props.className === "function") {
-        activeClassName = props.className({ isActive: true });
-        className = props.className({ isActive: false });
-    }
-    else {
-        activeClassName = props.className as string;
-        className = props.className as string;
-    }
+  let activeClassName: string;
+  let className: string;
+  if (props.className && typeof props.className === "function") {
+    activeClassName = props.className({ isActive: true });
+    className = props.className({ isActive: false });
+  }
+  else {
+    activeClassName = props.className as string;
+    className = props.className as string;
+  }
 
 
-    return (
-        <Link className={className} activeProps={{className: activeClassName}} to={props.to || props.href}>
-            {props.children}
-        </Link>
-    );
+  return (
+    <Link className={className} activeProps={{ className: activeClassName }} to={props.to || props.href} title={props.title}>
+      {props.children}
+    </Link>
+  );
 }

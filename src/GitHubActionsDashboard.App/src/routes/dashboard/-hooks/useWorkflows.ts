@@ -4,17 +4,17 @@ import { postWorkflows } from "../../../api";
 
 export const useWorkflows = () => {
 
-    const { data: selectedRepositories } = useSelectedRepositories();
+  const { data: selectedRepositories } = useSelectedRepositories();
 
-    return useQuery({
-        queryKey: ["getWorkflows", selectedRepositories],
-        queryFn: async () => {
-            var result = await postWorkflows({
-                body: {
-                    repositories: selectedRepositories
-                }
-            })
-            return result.data;
-        },
-    });
+  return useQuery({
+    queryKey: ["getWorkflows", selectedRepositories],
+    queryFn: async () => {
+      var result = await postWorkflows({
+        body: {
+          repositories: selectedRepositories
+        }
+      })
+      return result.data;
+    },
+  });
 }
