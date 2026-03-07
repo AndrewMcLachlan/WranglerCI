@@ -121,7 +121,7 @@ jobs:
         tags: |
           ghcr.io/andrewmclachlan/Wrangler:${{needs.build.outputs.version}}
           ghcr.io/andrewmclachlan/Wrangler:latest
-        cache-from: type=registry,ref=ghcr.io/andrewmclachlan/Wrangler:latest
+        cache-from: type=registry,ref=ghcr.io/andrewmclachlan/wrangler:latest
         cache-to: type=inline
 
   staging:
