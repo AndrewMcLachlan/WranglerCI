@@ -267,3 +267,4 @@ serviceDependencies.local.json
 *.tsbuildinfo
 
 .tanstack
+/.claude/settings.local.json

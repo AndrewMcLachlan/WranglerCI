@@ -45,6 +45,7 @@ static void AddServices(WebApplicationBuilder builder)
     });
 
     builder.Services.AddHttpContextAccessor();
+    builder.Services.AddHttpClient();
 
     builder.Services.AddScoped<IGitHubClient, GitHubClient>(services =>
     {

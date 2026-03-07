@@ -179,15 +179,7 @@ The host filtering middleware accepts requests with any `Host` header. This can 
 
 **Recommendation:** Set `AllowedHosts` to the specific production domain(s).
 
-### C-2: `HttpClient` Not Disposed in CallbackHandler (Low)
-
-**File:** `CallbackHandler.cs:48`
-
-A new `HttpClient` is created per callback request without disposal. While not a security vulnerability per se, under sustained load this could exhaust socket connections.
-
-**Recommendation:** Use `IHttpClientFactory` to manage `HttpClient` lifecycle.
-
-### C-3: Secure Cookie Prevents Local Development on HTTP (Info)
+### C-2: Secure Cookie Prevents Local Development on HTTP (Info)
 
 The `CookieSecurePolicy.Always` setting means the session cookie is never sent over HTTP. The `http` launch profile (port 5010) cannot create valid sessions. Development requires either the `https` profile or the Vite proxy (which operates same-origin from the browser's perspective, though the backend still sees HTTP).
 
@@ -205,7 +197,6 @@ The `CookieSecurePolicy.Always` setting means the session cookie is never sent o
 | **Medium** | C-1: AllowedHosts wildcard | Restrict to production domain(s) |
 | **Low** | T-3: No input validation limits | Add max-length/max-count constraints to request models |
 | **Low** | T-8: 7-day session timeout | Consider reducing, add absolute expiry |
-| **Low** | C-2: HttpClient not disposed | Use IHttpClientFactory |
 
 ---
 

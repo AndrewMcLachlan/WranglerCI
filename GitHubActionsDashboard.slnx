@@ -9,6 +9,7 @@
     <File Path=".github/workflows/dependabot-automerge.yml" />
   </Folder>
   <Project Path="src/GitHubActionsDashboard.Api/GitHubActionsDashboard.Api.csproj" />
+  <Project Path="src/GitHubActionsDashboard.Tests/GitHubActionsDashboard.Tests.csproj" />
   <Project Path="src/GitHubActionsDashboard.App/GitHubActionsDashboard.App.esproj">
     <Build />
     <Deploy />

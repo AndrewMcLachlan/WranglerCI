@@ -26,19 +26,8 @@ public static class WorkflowRunsHandler
 
         var response = await gitHubService.GetLastRunsAsync(owner, repo, workflowId, 10, branch, cancellationToken);
 
-        var runs = response.Where(wr => MatchBranch(wr, request.BranchFilters));
+        var runs = response.Where(wr => BranchFilter.Match(wr.HeadBranch, request.BranchFilters));
 
         return TypedResults.Ok(runs);
     }
-
-    private static bool MatchBranch(WorkflowRunModel workflowRun, IEnumerable<string> branchFilters)
-{
-    if (!branchFilters.Any()) return true;
-
-    if (branchFilters.Contains(workflowRun.HeadBranch)) return true;
-
-    var startsWith = branchFilters.Where(b => b.EndsWith('*')).Select(b => b.Trim('*'));
-
-    return startsWith.Any(workflowRun.HeadBranch.StartsWith);
-}
 }

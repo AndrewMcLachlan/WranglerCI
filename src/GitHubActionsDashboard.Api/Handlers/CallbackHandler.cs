@@ -17,7 +17,7 @@ public static class CallbackHandler
     /// <param name="configuration">The application configuration.</param>
     /// <returns>A redirect to the application root on success, or a bad request result on failure.</returns>
     /// <exception cref="InvalidOperationException">Thrown when required configuration values are missing.</exception>
-    public static async Task<IResult> Handle(HttpContext http, IConfiguration configuration)
+    public static async Task<IResult> Handle(HttpContext http, IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
         string clientId = configuration.GetValue<string>("ClientId") ?? throw new InvalidOperationException("ClientId is missing");
         string clientSecret = configuration.GetValue<string>("ClientSecret") ?? throw new InvalidOperationException("ClientSecret is missing");
@@ -45,7 +45,7 @@ public static class CallbackHandler
         }
 
         // Exchange code for access token
-        var client = new HttpClient();
+        var client = httpClientFactory.CreateClient();
         var tokenRes = await client.PostAsync("https://github.com/login/oauth/access_token",
             new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -82,7 +82,7 @@ public static class CallbackHandler
         return Results.Redirect("/"); // or wherever your SPA is hosted
     }
 
-    private static Dictionary<string, string> ParseFormEncodedString(string formData)
+    internal static Dictionary<string, string> ParseFormEncodedString(string formData)
     {
         var result = new Dictionary<string, string>();
 

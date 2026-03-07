@@ -48,6 +48,8 @@ jobs:
         cache: npm
         cache-dependency-path: 'src/GitHubActionsDashboard.App/package-lock.json'
         registry-url: "https://npm.pkg.github.com"
+    - name: Test
+      run: dotnet test src/GitHubActionsDashboard.Tests/GitHubActionsDashboard.Tests.csproj --configuration Release --no-restore
     - name: Publish
       run: dotnet publish src/GitHubActionsDashboard.Api/GitHubActionsDashboard.Api.csproj --output ${{ github.workspace }}/publish --configuration Release --p:Version=${{ steps.set-version-number.outputs.version }} --p:FileVersion=${{ steps.set-version-number.outputs.version }} --no-restore
     - name: Install App dependencies

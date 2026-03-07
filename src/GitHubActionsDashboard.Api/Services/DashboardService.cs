@@ -212,7 +212,7 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
                     }), cancellationToken);
 
             return response.WorkflowRuns
-                .Where(wr => MatchBranch(wr, branches))
+                .Where(wr => BranchFilter.Match(wr.HeadBranch, branches))
                 .Select(wr => new WorkflowRunModel()
                 {
                     Id = wr.Id,
@@ -230,16 +230,5 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
                 });
         }
         finally { _gate.Release(); }
-    }
-
-    private static bool MatchBranch(WorkflowRun workflowRun, IEnumerable<string> branchFilters)
-    {
-        if (!branchFilters.Any()) return true;
-
-        if (branchFilters.Contains(workflowRun.HeadBranch)) return true;
-
-        var startsWith = branchFilters.Where(b => b.EndsWith('*')).Select(b => b.Trim('*'));
-
-        return startsWith.Any(workflowRun.HeadBranch.StartsWith);
     }
 }
