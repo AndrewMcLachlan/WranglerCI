@@ -42,11 +42,6 @@
     <PackageReference Include="Octokit.GraphQL" Version="0.4.0-beta" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Wrangler.App\Wrangler.App.esproj">
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="logs\" />
