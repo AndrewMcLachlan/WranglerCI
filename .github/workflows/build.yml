@@ -174,7 +174,7 @@ jobs:
       app-name: Wrangler
       resource-group: Wrangler
       slot-name: staging
-      container-image: ghcr.io/andrewmclachlan/Wrangler:${{needs.build.outputs.version}}
+      container-image: ghcr.io/andrewmclachlan/wrangler:${{needs.build.outputs.version}}
       container-name: main
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
