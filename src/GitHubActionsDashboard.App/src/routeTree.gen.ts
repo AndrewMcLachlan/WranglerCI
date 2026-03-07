@@ -83,30 +83,30 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-  | '/'
-  | '/dashboard'
-  | '/dashboard/list'
-  | '/dashboard/overview'
-  | '/dashboard/'
-  | '/pull-requests/'
-  | '/settings/'
+    | '/'
+    | '/dashboard'
+    | '/dashboard/list'
+    | '/dashboard/overview'
+    | '/dashboard/'
+    | '/pull-requests/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
-  | '/'
-  | '/dashboard/list'
-  | '/dashboard/overview'
-  | '/dashboard'
-  | '/pull-requests'
-  | '/settings'
+    | '/'
+    | '/dashboard/list'
+    | '/dashboard/overview'
+    | '/dashboard'
+    | '/pull-requests'
+    | '/settings'
   id:
-  | '__root__'
-  | '/'
-  | '/dashboard'
-  | '/dashboard/list'
-  | '/dashboard/overview'
-  | '/dashboard/'
-  | '/pull-requests/'
-  | '/settings/'
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/dashboard/list'
+    | '/dashboard/overview'
+    | '/dashboard/'
+    | '/pull-requests/'
+    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {

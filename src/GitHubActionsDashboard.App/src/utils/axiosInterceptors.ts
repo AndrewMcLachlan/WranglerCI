@@ -1,6 +1,22 @@
 import { client } from '../api/client.gen';
 
+function getAntiforgeryToken(): string | undefined {
+  return document.cookie
+    .split('; ')
+    .find(row => row.startsWith('.GitHub.Antiforgery='))
+    ?.split('=')[1];
+}
+
 export const configureInterceptors = () => {
+  // Request interceptor to attach antiforgery token
+  client.instance.interceptors.request.use((config) => {
+    const token = getAntiforgeryToken();
+    if (token) {
+      config.headers['RequestVerificationToken'] = token;
+    }
+    return config;
+  });
+
   // Response interceptor to handle 401 errors globally
   client.instance.interceptors.response.use(
     (response) => {

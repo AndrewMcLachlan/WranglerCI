@@ -131,6 +131,14 @@ static void AddServices(WebApplicationBuilder builder)
         options.IdleTimeout = TimeSpan.FromDays(7);
     });
 
+    builder.Services.AddAntiforgery(options =>
+    {
+        options.HeaderName = "RequestVerificationToken";
+        options.Cookie.Name = ".GitHub.Antiforgery";
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+    });
+
     builder.Services.AddProblemDetails(options =>
     {
         options.CustomizeProblemDetails = (context) =>
@@ -185,6 +193,7 @@ static void AddApp(WebApplication app)
     app.UseExceptionHandler();
 
     app.UseSession();
+    app.UseAntiforgery();
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
@@ -193,34 +202,38 @@ static void AddApp(WebApplication app)
     app.MapGet("/callback/github", CallbackHandler.Handle).ExcludeFromDescription();
     app.MapGet("/login/github", LoginHandler.Handle).ExcludeFromDescription();
 
-    app.MapGet("/admin/session/debug", (ICacheKeyService service, HttpContext context) =>
+    if (app.Environment.IsDevelopment())
     {
-        // Force session to be created/loaded
-        context.Session.SetString("debug-test", DateTime.UtcNow.ToString());
-
-        return Results.Ok(new
+        app.MapGet("/admin/session/debug", (ICacheKeyService service, HttpContext context) =>
         {
-            sessionId = context.Session.Id,
-            expectedSessionKey = String.Format(CultureInfo.InvariantCulture, SessionKeyFormat, app.Environment.EnvironmentName),
-            expectedRedisKey = service.GetCacheKey(String.Empty),
-            cookieName = ".GitHub.Session",
-            sessionAvailable = context.Session.IsAvailable
+            // Force session to be created/loaded
+            context.Session.SetString("debug-test", DateTime.UtcNow.ToString());
+
+            return Results.Ok(new
+            {
+                sessionId = context.Session.Id,
+                expectedSessionKey = String.Format(CultureInfo.InvariantCulture, SessionKeyFormat, app.Environment.EnvironmentName),
+                expectedRedisKey = service.GetCacheKey(String.Empty),
+                cookieName = ".GitHub.Session",
+                sessionAvailable = context.Session.IsAvailable
+            });
         });
-    });
+    }
 
     var api = app.MapGroup(ApiPrefix);
 
     api.MapGet("repositories", RepositoriesHandler.Handle);
     api.MapGet("repositories/grouped", GroupedRepositoriesHandler.Handle);
-    api.MapPost("workflows", WorkflowsHandler.Handle);
+    api.MapPost("workflows", WorkflowsHandler.Handle).DisableAntiforgery();
 
     api.MapPost("repositories/{owner}/{repo}/workflows/", RepositoriesWorkflowsHandler.Handle)
         .Produces<IEnumerable<WorkflowModel>>()
-        .WithNames("Get Workflows for a Repository");
+        .WithNames("Get Workflows for a Repository")
+        .DisableAntiforgery();
 
-    api.MapPost("repositories/{owner}/{repo}/workflows/{workflowId}/runs", WorkflowRunsHandler.Handle);
+    api.MapPost("repositories/{owner}/{repo}/workflows/{workflowId}/runs", WorkflowRunsHandler.Handle).DisableAntiforgery();
 
-    api.MapPost("pull-requests", PullRequestsHandler.Handle);
+    api.MapPost("pull-requests", PullRequestsHandler.Handle).DisableAntiforgery();
     api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
 
     app.UseSecurityHeaders();

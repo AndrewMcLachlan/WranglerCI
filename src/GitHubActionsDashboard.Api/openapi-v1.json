@@ -5,18 +5,6 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/admin/session/debug": {
-      "get": {
-        "tags": [
-          "GitHubActionsDashboard.Api"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/repositories": {
       "get": {
         "tags": [
@@ -1461,9 +1449,6 @@
     }
   },
   "tags": [
-    {
-      "name": "GitHubActionsDashboard.Api"
-    },
     {
       "name": "RepositoriesHandler"
     },
