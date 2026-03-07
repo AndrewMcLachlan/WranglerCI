@@ -126,7 +126,7 @@ jobs:
 
   staging:
     concurrency:
-      group: Wrangler-deploy-group
+      group: wrangler-deploy-group
       cancel-in-progress: true
     needs: [build, test, docker-push]
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
@@ -134,8 +134,8 @@ jobs:
     with:
       environment: Staging
       artifact-name: publish
-      app-name: Wrangler
-      resource-group: Wrangler
+      app-name: GitHubActionsDashboard
+      resource-group: GitHubActionsDashboard
       slot-name: staging
       container-image: ghcr.io/andrewmclachlan/wrangler:${{needs.build.outputs.version}}
       container-name: main
@@ -146,15 +146,15 @@ jobs:
 
   production: 
     concurrency:
-      group: Wrangler-deploy-group
+      group: wrangler-deploy-group
       cancel-in-progress: true
     needs: staging
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
     uses: AndrewMcLachlan/actions/.github/workflows/azure-appservice-swap-slot.yml@v4
     with:
       environment: Production
-      app-name: Wrangler
-      resource-group: Wrangler
+      app-name: GitHubActionsDashboard
+      resource-group: GitHubActionsDashboard
       slot-name: staging
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -163,7 +163,7 @@ jobs:
 
   post-production:
     concurrency:
-      group: Wrangler-deploy-group
+      group: wrangler-deploy-group
       cancel-in-progress: true
     needs: [build, production]
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
@@ -171,8 +171,8 @@ jobs:
     with:
       environment: Post-Production
       artifact-name: publish
-      app-name: Wrangler
-      resource-group: Wrangler
+      app-name: GitHubActionsDashboard
+      resource-group: GitHubActionsDashboard
       slot-name: staging
       container-image: ghcr.io/andrewmclachlan/wrangler:${{needs.build.outputs.version}}
       container-name: main
