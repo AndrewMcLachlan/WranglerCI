@@ -19,7 +19,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Asm.AspNetCore.Api" Version="3.7.6" />
+    <PackageReference Include="Asm.AspNetCore.Api" Version="3.7.12" />
     <PackageReference Include="Azure.Identity" Version="1.18.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
