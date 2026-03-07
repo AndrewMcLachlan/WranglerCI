@@ -1,0 +1,1474 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Asm.Wrangler.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/repositories": {
+      "get": {
+        "tags": [
+          "RepositoriesHandler"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Repository"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repositories/grouped": {
+      "get": {
+        "tags": [
+          "GroupedRepositoriesHandler"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workflows": {
+      "post": {
+        "tags": [
+          "WorkflowsHandler"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RepositoryModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repositories/{owner}/{repo}/workflows": {
+      "post": {
+        "tags": [
+          "RepositoriesWorkflowsHandler"
+        ],
+        "operationId": "get-workflows-for-a-repository",
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BranchFilterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repositories/{owner}/{repo}/workflows/{workflowId}/runs": {
+      "post": {
+        "tags": [
+          "WorkflowRunsHandler"
+        ],
+        "parameters": [
+          {
+            "name": "owner",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "repo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workflowId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowRunsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowRunModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pull-requests": {
+      "post": {
+        "tags": [
+          "PullRequestsHandler"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PullRequestsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PullRequestModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pull-requests/approve": {
+      "post": {
+        "tags": [
+          "ApprovePullRequestsHandler"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovePullRequestsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApprovalResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountModel": {
+        "required": [
+          "login",
+          "avatarUrl",
+          "htmlUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AccountType"
+              }
+            ]
+          },
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettingsRepositoryModel"
+            }
+          }
+        }
+      },
+      "AccountType": {
+        "type": "integer"
+      },
+      "AdvancedSecurity": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ApprovalResult": {
+        "required": [
+          "repositoryOwner",
+          "repositoryName",
+          "pullRequestNumber",
+          "approved",
+          "merged"
+        ],
+        "type": "object",
+        "properties": {
+          "repositoryOwner": {
+            "type": "string"
+          },
+          "repositoryName": {
+            "type": "string"
+          },
+          "pullRequestNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "approved": {
+            "type": "boolean"
+          },
+          "merged": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ApprovePullRequestsRequest": {
+        "type": "object",
+        "properties": {
+          "pullRequests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PullRequestReference"
+            }
+          }
+        }
+      },
+      "BranchFilterRequest": {
+        "type": "object",
+        "properties": {
+          "branchFilters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CheckStatus": {
+        "enum": [
+          "Pending",
+          "Success",
+          "Failure",
+          "Unknown"
+        ]
+      },
+      "DependabotSecurityUpdates": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "LicenseMetadata": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "nodeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "spdxId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "featured": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Plan": {
+        "type": "object",
+        "properties": {
+          "collaborators": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "privateRepos": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "space": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "billingEmail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "filledSeats": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "seats": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PullRequestModel": {
+        "required": [
+          "id",
+          "number",
+          "nodeId",
+          "title",
+          "author",
+          "repositoryOwner",
+          "repositoryName",
+          "htmlUrl",
+          "headSha",
+          "headRef",
+          "createdAt",
+          "updatedAt",
+          "checkStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "nodeId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "repositoryOwner": {
+            "type": "string"
+          },
+          "repositoryName": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          },
+          "headSha": {
+            "type": "string"
+          },
+          "headRef": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "checkStatus": {
+            "$ref": "#/components/schemas/CheckStatus"
+          },
+          "mergeable": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
+      "PullRequestReference": {
+        "required": [
+          "owner",
+          "repo",
+          "number"
+        ],
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "PullRequestsRequest": {
+        "type": "object",
+        "properties": {
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepositoryRequest"
+            }
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RagStatus": {
+        "enum": [
+          "None",
+          "Red",
+          "Amber",
+          "Green"
+        ]
+      },
+      "Repository": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "htmlUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cloneUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "gitUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sshUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "svnUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "mirrorUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "archiveUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "nodeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "owner": {
+            "$ref": "#/components/schemas/User"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fullName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isTemplate": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "homepage": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "language": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "private": {
+            "type": "boolean"
+          },
+          "fork": {
+            "type": "boolean"
+          },
+          "forksCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "stargazersCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "watchersCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "defaultBranch": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openIssuesCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pushedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/RepositoryPermissions"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/Repository"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Repository"
+          },
+          "license": {
+            "$ref": "#/components/schemas/LicenseMetadata"
+          },
+          "hasDiscussions": {
+            "type": "boolean"
+          },
+          "hasIssues": {
+            "type": "boolean"
+          },
+          "hasWiki": {
+            "type": "boolean"
+          },
+          "hasDownloads": {
+            "type": "boolean"
+          },
+          "allowRebaseMerge": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "allowSquashMerge": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "allowMergeCommit": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "hasPages": {
+            "type": "boolean"
+          },
+          "subscribersCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "size": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "topics": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "deleteBranchOnMerge": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "visibility": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RepositoryVisibility"
+              }
+            ]
+          },
+          "allowAutoMerge": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "allowUpdateBranch": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "webCommitSignoffRequired": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "securityAndAnalysis": {
+            "$ref": "#/components/schemas/SecurityAndAnalysis"
+          }
+        }
+      },
+      "RepositoryModel": {
+        "required": [
+          "name",
+          "owner",
+          "nodeId",
+          "htmlUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "overallStatus": {
+            "$ref": "#/components/schemas/RagStatus"
+          },
+          "workflows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowModel"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "nodeId": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "RepositoryPermissions": {
+        "type": "object",
+        "properties": {
+          "admin": {
+            "type": "boolean"
+          },
+          "maintain": {
+            "type": "boolean"
+          },
+          "push": {
+            "type": "boolean"
+          },
+          "triage": {
+            "type": "boolean"
+          },
+          "pull": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RepositoryRequest": {
+        "required": [
+          "owner",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "RepositoryVisibility": {
+        "type": "integer"
+      },
+      "RepositoryWorkflowRequest": {
+        "required": [
+          "owner",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "workflows": {
+            "type": "array",
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "SecretScanning": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SecretScanningPushProtection": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SecretScanningValidityChecks": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "SecurityAndAnalysis": {
+        "type": "object",
+        "properties": {
+          "advancedSecurity": {
+            "$ref": "#/components/schemas/AdvancedSecurity"
+          },
+          "dependabotSecurityUpdates": {
+            "$ref": "#/components/schemas/DependabotSecurityUpdates"
+          },
+          "secretScanning": {
+            "$ref": "#/components/schemas/SecretScanning"
+          },
+          "secretScanningPushProtection": {
+            "$ref": "#/components/schemas/SecretScanningPushProtection"
+          },
+          "secretScanningValidityChecks": {
+            "$ref": "#/components/schemas/SecretScanningValidityChecks"
+          }
+        }
+      },
+      "SettingsRepositoryModel": {
+        "required": [
+          "fullName",
+          "name",
+          "owner",
+          "nodeId",
+          "htmlUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "workflows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowBase"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "nodeId": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "StringEnumOfWorkflowRunConclusion": {
+        "type": "string"
+      },
+      "StringEnumOfWorkflowRunStatus": {
+        "type": "string"
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "$ref": "#/components/schemas/RepositoryPermissions"
+          },
+          "siteAdmin": {
+            "type": "boolean"
+          },
+          "suspendedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "suspended": {
+            "type": "boolean"
+          },
+          "ldapDistinguishedName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "avatarUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "bio": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "blog": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "collaborators": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "company": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "diskUsage": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "followers": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "following": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "hireable": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "htmlUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "nodeId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "login": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AccountType"
+              }
+            ]
+          },
+          "ownedPrivateRepos": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/Plan"
+          },
+          "privateGists": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "publicGists": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "publicRepos": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalPrivateRepos": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "WorkflowBase": {
+        "required": [
+          "nodeId",
+          "name",
+          "htmlUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "nodeId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkflowModel": {
+        "required": [
+          "nodeId",
+          "name",
+          "htmlUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowRunModel"
+            }
+          },
+          "runStatus": {
+            "$ref": "#/components/schemas/RagStatus"
+          },
+          "overallStatus": {
+            "$ref": "#/components/schemas/RagStatus"
+          },
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "nodeId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkflowRunModel": {
+        "required": [
+          "id",
+          "workflowId",
+          "nodeId",
+          "conclusion",
+          "headBranch",
+          "event",
+          "runNumber",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "htmlUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "workflowId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "nodeId": {
+            "type": "string"
+          },
+          "conclusion": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StringEnumOfWorkflowRunConclusion"
+              }
+            ]
+          },
+          "headBranch": {
+            "type": "string"
+          },
+          "event": {
+            "type": "string"
+          },
+          "runNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "triggeringActor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/StringEnumOfWorkflowRunStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "htmlUrl": {
+            "type": "string"
+          },
+          "ragStatus": {
+            "$ref": "#/components/schemas/RagStatus"
+          }
+        }
+      },
+      "WorkflowRunsRequest": {
+        "type": "object",
+        "properties": {
+          "branchFilters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "WorkflowsRequest": {
+        "type": "object",
+        "properties": {
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepositoryWorkflowRequest"
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "RepositoriesHandler"
+    },
+    {
+      "name": "GroupedRepositoriesHandler"
+    },
+    {
+      "name": "WorkflowsHandler"
+    },
+    {
+      "name": "RepositoriesWorkflowsHandler"
+    },
+    {
+      "name": "WorkflowRunsHandler"
+    },
+    {
+      "name": "PullRequestsHandler"
+    },
+    {
+      "name": "ApprovePullRequestsHandler"
+    }
+  ]
+}

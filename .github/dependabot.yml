@@ -11,7 +11,7 @@ registries:
 
 updates:
   - package-ecosystem: "npm"
-    directory: "/src/GitHubActionsDashboard.App"
+    directory: "/src/Wrangler.App"
     schedule:
       interval: "weekly"
       timezone: Australia/Brisbane

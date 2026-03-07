@@ -37,31 +37,31 @@ jobs:
       id: set-version-number
       uses: andrewmclachlan/actions/set-version-number@v4
       with:
-        project: 'src/GitHubActionsDashboard.Api'
+        project: 'src/Wrangler.Api'
         version-property-name: 'Version'
     - name: Restore dependencies
-      run: dotnet restore GitHubActionsDashboard.slnx
+      run: dotnet restore Wrangler.slnx
     - name: Setup node and npm
       uses: actions/setup-node@v6
       with:
         node-version: 22
         cache: npm
-        cache-dependency-path: 'src/GitHubActionsDashboard.App/package-lock.json'
+        cache-dependency-path: 'src/Wrangler.App/package-lock.json'
         registry-url: "https://npm.pkg.github.com"
     - name: Test
-      run: dotnet test src/GitHubActionsDashboard.Tests/GitHubActionsDashboard.Tests.csproj --configuration Release --no-restore
+      run: dotnet test src/Wrangler.Tests/Wrangler.Tests.csproj --configuration Release --no-restore
     - name: Publish
-      run: dotnet publish src/GitHubActionsDashboard.Api/GitHubActionsDashboard.Api.csproj --output ${{ github.workspace }}/publish --configuration Release --p:Version=${{ steps.set-version-number.outputs.version }} --p:FileVersion=${{ steps.set-version-number.outputs.version }} --no-restore
+      run: dotnet publish src/Wrangler.Api/Wrangler.Api.csproj --output ${{ github.workspace }}/publish --configuration Release --p:Version=${{ steps.set-version-number.outputs.version }} --p:FileVersion=${{ steps.set-version-number.outputs.version }} --no-restore
     - name: Install App dependencies
       env:
         NODE_AUTH_TOKEN: ${{ secrets.CROSS_REPO_PACKAGE_TOKEN }}
-      run: npm ci --prefix src/GitHubActionsDashboard.App --force
+      run: npm ci --prefix src/Wrangler.App --force
     - name: Version App
-      run: npm version ${{ steps.set-version-number.outputs.version }} --prefix src/GitHubActionsDashboard.App --force
+      run: npm version ${{ steps.set-version-number.outputs.version }} --prefix src/Wrangler.App --force
     - name: Build App
-      run: npm run build --prefix src/GitHubActionsDashboard.App
+      run: npm run build --prefix src/Wrangler.App
     - name: Copy App
-      run: cp -r src/GitHubActionsDashboard.App/dist ${{ github.workspace }}/publish/wwwroot
+      run: cp -r src/Wrangler.App/dist ${{ github.workspace }}/publish/wwwroot
     - name: Upload Artifact
       uses: actions/upload-artifact@v7
       with:
@@ -71,11 +71,11 @@ jobs:
       uses: docker/build-push-action@v7
       with:
         context: .
-        file: ./src/GitHubActionsDashboard.Api/Dockerfile
+        file: ./src/Wrangler.Api/Dockerfile
         push: false
         tags: |
-          ghcr.io/andrewmclachlan/githubactionsdashboard:${{steps.set-version-number.outputs.version}}
-          ghcr.io/andrewmclachlan/githubactionsdashboard:latest
+          ghcr.io/andrewmclachlan/Wrangler:${{steps.set-version-number.outputs.version}}
+          ghcr.io/andrewmclachlan/Wrangler:latest
 
   docker-push:
     runs-on: ubuntu-latest
@@ -101,17 +101,17 @@ jobs:
       uses: docker/build-push-action@v7
       with:
         context: .
-        file: ./src/GitHubActionsDashboard.Api/Dockerfile
+        file: ./src/Wrangler.Api/Dockerfile
         push: true
         tags: |
-          ghcr.io/andrewmclachlan/githubactionsdashboard:${{needs.build.outputs.version}}
-          ghcr.io/andrewmclachlan/githubactionsdashboard:latest
-        cache-from: type=registry,ref=ghcr.io/andrewmclachlan/githubactionsdashboard:latest
+          ghcr.io/andrewmclachlan/Wrangler:${{needs.build.outputs.version}}
+          ghcr.io/andrewmclachlan/Wrangler:latest
+        cache-from: type=registry,ref=ghcr.io/andrewmclachlan/Wrangler:latest
         cache-to: type=inline
 
   staging:
     concurrency:
-      group: githubactionsdashboard-deploy-group
+      group: Wrangler-deploy-group
       cancel-in-progress: true
     needs: [build, docker-push]
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
@@ -119,10 +119,10 @@ jobs:
     with:
       environment: Staging
       artifact-name: publish
-      app-name: githubactionsdashboard
-      resource-group: GitHubActionsDashboard
+      app-name: Wrangler
+      resource-group: Wrangler
       slot-name: staging
-      container-image: ghcr.io/andrewmclachlan/githubactionsdashboard:${{needs.build.outputs.version}}
+      container-image: ghcr.io/andrewmclachlan/Wrangler:${{needs.build.outputs.version}}
       container-name: main
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -131,15 +131,15 @@ jobs:
 
   production: 
     concurrency:
-      group: githubactionsdashboard-deploy-group
+      group: Wrangler-deploy-group
       cancel-in-progress: true
     needs: staging
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
     uses: AndrewMcLachlan/actions/.github/workflows/azure-appservice-swap-slot.yml@v4
     with:
       environment: Production
-      app-name: githubactionsdashboard
-      resource-group: GithubActionsDashboard
+      app-name: Wrangler
+      resource-group: Wrangler
       slot-name: staging
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -148,7 +148,7 @@ jobs:
 
   post-production:
     concurrency:
-      group: githubactionsdashboard-deploy-group
+      group: Wrangler-deploy-group
       cancel-in-progress: true
     needs: [build, production]
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
@@ -156,10 +156,10 @@ jobs:
     with:
       environment: Post-Production
       artifact-name: publish
-      app-name: githubactionsdashboard
-      resource-group: GithubActionsDashboard
+      app-name: Wrangler
+      resource-group: Wrangler
       slot-name: staging
-      container-image: ghcr.io/andrewmclachlan/githubactionsdashboard:${{needs.build.outputs.version}}
+      container-image: ghcr.io/andrewmclachlan/Wrangler:${{needs.build.outputs.version}}
       container-name: main
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}

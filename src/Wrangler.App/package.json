@@ -1,0 +1,51 @@
+{
+  "name": "wrangler",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "generate": "openapi-ts",
+    "update-moo": "npm install @andrewmclachlan/moo-app@latest @andrewmclachlan/moo-ds@latest @andrewmclachlan/moo-icons@latest"
+  },
+  "dependencies": {
+    "@andrewmclachlan/moo-app": "^5.0.68",
+    "@andrewmclachlan/moo-ds": "^5.0.68",
+    "@andrewmclachlan/moo-icons": "^5.0.68",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-router": "^1.166.2",
+    "@tanstack/react-router-devtools": "^1.166.2",
+    "@types/luxon": "^3.7.1",
+    "axios": "^1.13.6",
+    "luxon": "^3.7.2",
+    "oauth4webapi": "^3.8.5",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "use-debounce": "^10.0.5"
+  },
+  "overrides": {
+    "eslint": "$eslint"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@hey-api/client-axios": "^0.9.1",
+    "@hey-api/openapi-ts": "^0.94.0",
+    "@svgr/plugin-svgo": "^8.1.0",
+    "@tanstack/router-plugin": "^1.166.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react-swc": "^4.2.3",
+    "eslint": "^10.0.3",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.56.1",
+    "vite": "^7.3.1",
+    "vite-plugin-svgr": "^4.5.0"
+  }
+}
