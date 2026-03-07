@@ -72,8 +72,8 @@ jobs:
         file: ./src/Wrangler.Api/Dockerfile
         push: false
         tags: |
-          ghcr.io/andrewmclachlan/Wrangler:${{steps.set-version-number.outputs.version}}
-          ghcr.io/andrewmclachlan/Wrangler:latest
+          ghcr.io/andrewmclachlan/wrangler:${{steps.set-version-number.outputs.version}}
+          ghcr.io/andrewmclachlan/wrangler:latest
 
   test:
     runs-on: ubuntu-latest
@@ -119,8 +119,8 @@ jobs:
         file: ./src/Wrangler.Api/Dockerfile
         push: true
         tags: |
-          ghcr.io/andrewmclachlan/Wrangler:${{needs.build.outputs.version}}
-          ghcr.io/andrewmclachlan/Wrangler:latest
+          ghcr.io/andrewmclachlan/wrangler:${{needs.build.outputs.version}}
+          ghcr.io/andrewmclachlan/wrangler:latest
         cache-from: type=registry,ref=ghcr.io/andrewmclachlan/wrangler:latest
         cache-to: type=inline
 
@@ -137,7 +137,7 @@ jobs:
       app-name: Wrangler
       resource-group: Wrangler
       slot-name: staging
-      container-image: ghcr.io/andrewmclachlan/Wrangler:${{needs.build.outputs.version}}
+      container-image: ghcr.io/andrewmclachlan/wrangler:${{needs.build.outputs.version}}
       container-name: main
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
