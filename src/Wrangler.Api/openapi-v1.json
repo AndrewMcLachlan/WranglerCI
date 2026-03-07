@@ -603,14 +603,6 @@
           }
         }
       },
-      "RagStatus": {
-        "enum": [
-          "None",
-          "Red",
-          "Amber",
-          "Green"
-        ]
-      },
       "Repository": {
         "type": "object",
         "properties": {
@@ -893,7 +885,7 @@
         "type": "object",
         "properties": {
           "overallStatus": {
-            "$ref": "#/components/schemas/RagStatus"
+            "$ref": "#/components/schemas/WorkflowStatus"
           },
           "workflows": {
             "type": "array",
@@ -1316,10 +1308,10 @@
             }
           },
           "runStatus": {
-            "$ref": "#/components/schemas/RagStatus"
+            "$ref": "#/components/schemas/WorkflowStatus"
           },
           "overallStatus": {
-            "$ref": "#/components/schemas/RagStatus"
+            "$ref": "#/components/schemas/WorkflowStatus"
           },
           "id": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
@@ -1419,8 +1411,8 @@
           "htmlUrl": {
             "type": "string"
           },
-          "ragStatus": {
-            "$ref": "#/components/schemas/RagStatus"
+          "workflowStatus": {
+            "$ref": "#/components/schemas/WorkflowStatus"
           }
         }
       },
@@ -1445,6 +1437,16 @@
             }
           }
         }
+      },
+      "WorkflowStatus": {
+        "enum": [
+          "None",
+          "Red",
+          "Amber",
+          "Green",
+          "Running",
+          "Waiting"
+        ]
       }
     }
   },

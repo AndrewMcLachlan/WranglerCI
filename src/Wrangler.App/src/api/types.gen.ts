@@ -88,8 +88,6 @@ export type PullRequestsRequest = {
     authors?: Array<string>;
 };
 
-export type RagStatus = 'None' | 'Red' | 'Amber' | 'Green';
-
 export type Repository = {
     url?: null | string;
     htmlUrl?: null | string;
@@ -143,7 +141,7 @@ export type Repository = {
 };
 
 export type RepositoryModel = {
-    overallStatus?: RagStatus;
+    overallStatus?: WorkflowStatus;
     workflows?: Array<WorkflowModel>;
     name: string;
     owner: string;
@@ -248,8 +246,8 @@ export type WorkflowBase = {
 
 export type WorkflowModel = {
     runs?: Array<WorkflowRunModel>;
-    runStatus?: RagStatus;
-    overallStatus?: RagStatus;
+    runStatus?: WorkflowStatus;
+    overallStatus?: WorkflowStatus;
     id?: number | string;
     nodeId: string;
     name: string;
@@ -269,7 +267,7 @@ export type WorkflowRunModel = {
     createdAt: string;
     updatedAt: string;
     htmlUrl: string;
-    ragStatus?: RagStatus;
+    workflowStatus?: WorkflowStatus;
 };
 
 export type WorkflowRunsRequest = {
@@ -279,6 +277,8 @@ export type WorkflowRunsRequest = {
 export type WorkflowsRequest = {
     repositories?: Array<RepositoryWorkflowRequest>;
 };
+
+export type WorkflowStatus = 'None' | 'Red' | 'Amber' | 'Green' | 'Running' | 'Waiting';
 
 export type GetRepositoriesData = {
     body?: never;
