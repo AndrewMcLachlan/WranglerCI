@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Wrangler.Api\Wrangler.Api.csproj" />
+    <ProjectReference Include="..\..\src\Wrangler.Api\Wrangler.Api.csproj" />
   </ItemGroup>
 
 </Project>

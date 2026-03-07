@@ -13,5 +13,5 @@
     <Build />
     <Deploy />
   </Project>
-  <Project Path="src/Wrangler.Tests/Wrangler.Tests.csproj" />
+  <Project Path="tests/Wrangler.Tests/Wrangler.Tests.csproj" />
 </Solution>

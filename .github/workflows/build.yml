@@ -90,7 +90,7 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{secrets.CROSS_REPO_PACKAGE_TOKEN}}
     - name: Test
-      run: dotnet test src/Wrangler.Tests/Wrangler.Tests.csproj --configuration Release
+      run: dotnet test tests/Wrangler.Tests/Wrangler.Tests.csproj --configuration Release
 
   docker-push:
     runs-on: ubuntu-latest
