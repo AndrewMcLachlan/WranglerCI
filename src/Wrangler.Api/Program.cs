@@ -183,7 +183,7 @@ static void AddServices(WebApplicationBuilder builder)
 
     builder.Services.Configure<JsonOptions>(options =>
     {
-        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<RagStatus>());
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<WorkflowStatus>());
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.PullRequests.CheckStatus>());
     });
 }

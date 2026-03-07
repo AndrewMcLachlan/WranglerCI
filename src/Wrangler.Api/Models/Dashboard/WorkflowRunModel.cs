@@ -70,7 +70,7 @@ public record WorkflowRunModel
     /// <summary>
     /// The computed RAG status derived from the workflow run conclusion.
     /// </summary>
-    public RagStatus RagStatus
+    public WorkflowStatus WorkflowStatus
     {
         get
         {
@@ -78,22 +78,32 @@ public record WorkflowRunModel
                 Conclusion == WorkflowRunConclusion.StartupFailure ||
                 Conclusion == WorkflowRunConclusion.TimedOut)
             {
-                return RagStatus.Red;
+                return WorkflowStatus.Red;
             }
 
             if (Conclusion == WorkflowRunConclusion.ActionRequired ||
                 Conclusion == WorkflowRunConclusion.Cancelled ||
                 Conclusion == WorkflowRunConclusion.Skipped)
             {
-                return RagStatus.Amber;
+                return WorkflowStatus.Amber;
             }
 
             if (Conclusion == WorkflowRunConclusion.Success)
             {
-                return RagStatus.Green;
+                return WorkflowStatus.Green;
             }
 
-            return RagStatus.None;
+            if (Status == WorkflowRunStatus.InProgress)
+            {
+                return WorkflowStatus.Running;
+            }
+
+            if (Status == WorkflowRunStatus.Waiting)
+            {
+                return WorkflowStatus.Waiting;
+            }
+
+            return WorkflowStatus.None;
         }
     }
 }

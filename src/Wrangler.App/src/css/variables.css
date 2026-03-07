@@ -2,6 +2,8 @@
     --red: red;
     --green: chartreuse;
     --amber: rgb(255, 191, 0);
+    --status-waiting: orange;
+    --status-running: cornflowerblue;
 
     --card-bg: #3a3a4a;
     --primary: #646cff;

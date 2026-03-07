@@ -10,32 +10,19 @@ public record RepositoryModel : Models.RepositoryBase
     /// <summary>
     /// The overall RAG status computed from the most recent run of each workflow branch.
     /// </summary>
-    public RagStatus OverallStatus
+    public WorkflowStatus OverallStatus
     {
         get
         {
-            var conclusions = Workflows.SelectMany(w => w.Runs.GroupBy(r => r.HeadBranch).Select(rg => rg.OrderByDescending(r => r.UpdatedAt).First())).Select(r => r.Conclusion);
+            var statuses = Workflows.SelectMany(w => w.Runs.GroupBy(r => r.HeadBranch).Select(rg => rg.OrderByDescending(r => r.UpdatedAt).First())).Select(r => r.WorkflowStatus);
 
-            if (conclusions.Contains(WorkflowRunConclusion.Failure) ||
-                conclusions.Contains(WorkflowRunConclusion.StartupFailure) ||
-                conclusions.Contains(WorkflowRunConclusion.TimedOut))
-            {
-                return RagStatus.Red;
-            }
+            if (statuses.Contains(WorkflowStatus.Red)) return WorkflowStatus.Red;
+            if (statuses.Contains(WorkflowStatus.Amber)) return WorkflowStatus.Amber;
+            if (statuses.Contains(WorkflowStatus.Waiting)) return WorkflowStatus.Waiting;
+            if (statuses.Contains(WorkflowStatus.Running)) return WorkflowStatus.Running;
+            if (statuses.Contains(WorkflowStatus.Green)) return WorkflowStatus.Green;
 
-            if (conclusions.Contains(WorkflowRunConclusion.ActionRequired) ||
-                conclusions.Contains(WorkflowRunConclusion.Cancelled) ||
-                conclusions.Contains(WorkflowRunConclusion.Skipped))
-            {
-                return RagStatus.Amber;
-            }
-
-            if (conclusions.Contains(WorkflowRunConclusion.Success))
-            {
-                return RagStatus.Green;
-            }
-
-            return RagStatus.None;
+            return WorkflowStatus.None;
         }
     }
 

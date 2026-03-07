@@ -15,4 +15,14 @@
         background-color: hsl(from var(--amber) h calc(s / 4) calc(l / 1.5));
         color: hsl(from var(--amber) h s calc(l * 1.5));
     }
+
+    &.waiting {
+        background-color: hsl(from var(--status-waiting) h calc(s / 4) calc(l / 1.5));
+        color: hsl(from var(--status-waiting) h s calc(l * 1.5));
+    }
+
+    &.running {
+        background-color: hsl(from var(--status-running) h calc(s / 4) calc(l / 1.5));
+        color: hsl(from var(--status-running) h s calc(l * 1.5));
+    }
 }

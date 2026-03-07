@@ -9,7 +9,8 @@ public class RepositoryOverallStatusTests
     private static WorkflowRunModel CreateRun(
         WorkflowRunConclusion? conclusion,
         string branch = "main",
-        DateTimeOffset? updatedAt = null) => new()
+        DateTimeOffset? updatedAt = null,
+        WorkflowRunStatus status = WorkflowRunStatus.Completed) => new()
     {
         Id = Random.Shared.Next(),
         WorkflowId = 1,
@@ -18,7 +19,7 @@ public class RepositoryOverallStatusTests
         HeadBranch = branch,
         Event = "push",
         RunNumber = 1,
-        Status = new StringEnum<WorkflowRunStatus>(WorkflowRunStatus.Completed),
+        Status = new StringEnum<WorkflowRunStatus>(status),
         CreatedAt = DateTimeOffset.UtcNow,
         UpdatedAt = updatedAt ?? DateTimeOffset.UtcNow,
         HtmlUrl = "https://github.com",
@@ -45,7 +46,7 @@ public class RepositoryOverallStatusTests
     public void NoWorkflows_ReturnsNone()
     {
         var repo = CreateRepo();
-        Assert.Equal(RagStatus.None, repo.OverallStatus);
+        Assert.Equal(WorkflowStatus.None, repo.OverallStatus);
     }
 
     [Fact]
@@ -55,7 +56,7 @@ public class RepositoryOverallStatusTests
             CreateWorkflow(CreateRun(WorkflowRunConclusion.Success, "main")),
             CreateWorkflow(CreateRun(WorkflowRunConclusion.Success, "main")));
 
-        Assert.Equal(RagStatus.Green, repo.OverallStatus);
+        Assert.Equal(WorkflowStatus.Green, repo.OverallStatus);
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public class RepositoryOverallStatusTests
             CreateWorkflow(CreateRun(WorkflowRunConclusion.Success, "main")),
             CreateWorkflow(CreateRun(WorkflowRunConclusion.Failure, "main")));
 
-        Assert.Equal(RagStatus.Red, repo.OverallStatus);
+        Assert.Equal(WorkflowStatus.Red, repo.OverallStatus);
     }
 
     [Fact]
@@ -81,7 +82,7 @@ public class RepositoryOverallStatusTests
             CreateWorkflow(
                 CreateRun(WorkflowRunConclusion.Success, "main")));
 
-        Assert.Equal(RagStatus.Amber, repo.OverallStatus);
+        Assert.Equal(WorkflowStatus.Amber, repo.OverallStatus);
     }
 
     [Fact]
@@ -92,6 +93,26 @@ public class RepositoryOverallStatusTests
                 CreateRun(WorkflowRunConclusion.Failure, "main", DateTimeOffset.UtcNow.AddHours(-1)),
                 CreateRun(WorkflowRunConclusion.Success, "main", DateTimeOffset.UtcNow)));
 
-        Assert.Equal(RagStatus.Green, repo.OverallStatus);
+        Assert.Equal(WorkflowStatus.Green, repo.OverallStatus);
+    }
+
+    [Fact]
+    public void RunningInOneWorkflow_ReturnsRunning()
+    {
+        var repo = CreateRepo(
+            CreateWorkflow(CreateRun(WorkflowRunConclusion.Success, "main")),
+            CreateWorkflow(CreateRun(null, "main", status: WorkflowRunStatus.InProgress)));
+
+        Assert.Equal(WorkflowStatus.Running, repo.OverallStatus);
+    }
+
+    [Fact]
+    public void WaitingTakesPrecedenceOverGreen()
+    {
+        var repo = CreateRepo(
+            CreateWorkflow(CreateRun(WorkflowRunConclusion.Success, "main")),
+            CreateWorkflow(CreateRun(null, "main", status: WorkflowRunStatus.Waiting)));
+
+        Assert.Equal(WorkflowStatus.Waiting, repo.OverallStatus);
     }
 }

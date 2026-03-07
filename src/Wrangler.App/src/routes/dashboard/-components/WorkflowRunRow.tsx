@@ -11,7 +11,7 @@ export const WorkflowRunRow: React.FC<WorkflowRunRowProps> = ({ repository, work
 
     return (
         <tr key={`${repository.owner}|${repository.name}`}>
-            <td><Badge className={run.ragStatus?.toLowerCase()}>{run.conclusion}</Badge></td>
+            <td><Badge className={run.workflowStatus?.toLowerCase()}>{run.conclusion || run.status}</Badge></td>
             <td>{workflow.name}</td>
             <td><Badge>{run.headBranch}</Badge></td>
             <td title={DateTime.fromISO(run.updatedAt!).toFormat('yyyy-MM-dd HH:mm:ss')}>{timeAgo}</td>

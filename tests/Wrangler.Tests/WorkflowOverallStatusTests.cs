@@ -9,7 +9,8 @@ public class WorkflowOverallStatusTests
     private static WorkflowRunModel CreateRun(
         WorkflowRunConclusion? conclusion,
         string branch = "main",
-        DateTimeOffset? updatedAt = null) => new()
+        DateTimeOffset? updatedAt = null,
+        WorkflowRunStatus status = WorkflowRunStatus.Completed) => new()
     {
         Id = Random.Shared.Next(),
         WorkflowId = 1,
@@ -18,7 +19,7 @@ public class WorkflowOverallStatusTests
         HeadBranch = branch,
         Event = "push",
         RunNumber = 1,
-        Status = new StringEnum<WorkflowRunStatus>(WorkflowRunStatus.Completed),
+        Status = new StringEnum<WorkflowRunStatus>(status),
         CreatedAt = DateTimeOffset.UtcNow,
         UpdatedAt = updatedAt ?? DateTimeOffset.UtcNow,
         HtmlUrl = "https://github.com",
@@ -36,7 +37,7 @@ public class WorkflowOverallStatusTests
     public void NoRuns_ReturnsNone()
     {
         var workflow = CreateWorkflow();
-        Assert.Equal(RagStatus.None, workflow.OverallStatus);
+        Assert.Equal(WorkflowStatus.None, workflow.OverallStatus);
     }
 
     [Fact]
@@ -46,7 +47,7 @@ public class WorkflowOverallStatusTests
             CreateRun(WorkflowRunConclusion.Success, "main"),
             CreateRun(WorkflowRunConclusion.Success, "develop"));
 
-        Assert.Equal(RagStatus.Green, workflow.OverallStatus);
+        Assert.Equal(WorkflowStatus.Green, workflow.OverallStatus);
     }
 
     [Fact]
@@ -56,7 +57,7 @@ public class WorkflowOverallStatusTests
             CreateRun(WorkflowRunConclusion.Success, "main"),
             CreateRun(WorkflowRunConclusion.Failure, "develop"));
 
-        Assert.Equal(RagStatus.Red, workflow.OverallStatus);
+        Assert.Equal(WorkflowStatus.Red, workflow.OverallStatus);
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public class WorkflowOverallStatusTests
             CreateRun(WorkflowRunConclusion.Success, "main"),
             CreateRun(WorkflowRunConclusion.Cancelled, "develop"));
 
-        Assert.Equal(RagStatus.Amber, workflow.OverallStatus);
+        Assert.Equal(WorkflowStatus.Amber, workflow.OverallStatus);
     }
 
     [Fact]
@@ -76,7 +77,7 @@ public class WorkflowOverallStatusTests
             CreateRun(WorkflowRunConclusion.Cancelled, "main"),
             CreateRun(WorkflowRunConclusion.Failure, "develop"));
 
-        Assert.Equal(RagStatus.Red, workflow.OverallStatus);
+        Assert.Equal(WorkflowStatus.Red, workflow.OverallStatus);
     }
 
     [Fact]
@@ -87,7 +88,7 @@ public class WorkflowOverallStatusTests
             CreateRun(WorkflowRunConclusion.Failure, "main", DateTimeOffset.UtcNow.AddHours(-1)),
             CreateRun(WorkflowRunConclusion.Success, "main", DateTimeOffset.UtcNow));
 
-        Assert.Equal(RagStatus.Green, workflow.OverallStatus);
+        Assert.Equal(WorkflowStatus.Green, workflow.OverallStatus);
     }
 
     [Fact]
@@ -97,6 +98,46 @@ public class WorkflowOverallStatusTests
             CreateRun(WorkflowRunConclusion.Success, "main", DateTimeOffset.UtcNow.AddHours(-1)),
             CreateRun(WorkflowRunConclusion.Failure, "main", DateTimeOffset.UtcNow));
 
-        Assert.Equal(RagStatus.Red, workflow.OverallStatus);
+        Assert.Equal(WorkflowStatus.Red, workflow.OverallStatus);
+    }
+
+    [Fact]
+    public void RunningOnOneBranch_ReturnsRunning()
+    {
+        var workflow = CreateWorkflow(
+            CreateRun(WorkflowRunConclusion.Success, "main"),
+            CreateRun(null, "develop", status: WorkflowRunStatus.InProgress));
+
+        Assert.Equal(WorkflowStatus.Running, workflow.OverallStatus);
+    }
+
+    [Fact]
+    public void WaitingOnOneBranch_ReturnsWaiting()
+    {
+        var workflow = CreateWorkflow(
+            CreateRun(WorkflowRunConclusion.Success, "main"),
+            CreateRun(null, "develop", status: WorkflowRunStatus.Waiting));
+
+        Assert.Equal(WorkflowStatus.Waiting, workflow.OverallStatus);
+    }
+
+    [Fact]
+    public void RedTakesPrecedenceOverRunning()
+    {
+        var workflow = CreateWorkflow(
+            CreateRun(WorkflowRunConclusion.Failure, "main"),
+            CreateRun(null, "develop", status: WorkflowRunStatus.InProgress));
+
+        Assert.Equal(WorkflowStatus.Red, workflow.OverallStatus);
+    }
+
+    [Fact]
+    public void WaitingTakesPrecedenceOverRunning()
+    {
+        var workflow = CreateWorkflow(
+            CreateRun(null, "main", status: WorkflowRunStatus.Waiting),
+            CreateRun(null, "develop", status: WorkflowRunStatus.InProgress));
+
+        Assert.Equal(WorkflowStatus.Waiting, workflow.OverallStatus);
     }
 }

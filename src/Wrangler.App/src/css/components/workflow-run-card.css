@@ -11,4 +11,16 @@
         width: 5rem;
     }
 
+    .run-status.waiting {
+        color: var(--status-waiting);
+    }
+
+    .run-status.in_progress {
+        color: var(--status-running);
+    }
+
+    .run-status.running {
+        color: var(--status-running);
+    }
+
 }

@@ -1,4 +1,4 @@
-@scope (.rag-status)
+@scope (.status-indicator)
 {
     background-color: aliceblue;
     display: block;
@@ -16,5 +16,13 @@
 
     &.amber {
         background-color: var(--amber);
+    }
+
+    &.waiting {
+        background-color: var(--status-waiting);
+    }
+
+    &.running {
+        background-color: var(--status-running);
     }
 }
