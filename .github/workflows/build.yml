@@ -48,8 +48,6 @@ jobs:
         cache: npm
         cache-dependency-path: 'src/Wrangler.App/package-lock.json'
         registry-url: "https://npm.pkg.github.com"
-    - name: Test
-      run: dotnet test src/Wrangler.Tests/Wrangler.Tests.csproj --configuration Release --no-restore
     - name: Publish
       run: dotnet publish src/Wrangler.Api/Wrangler.Api.csproj --output ${{ github.workspace }}/publish --configuration Release --p:Version=${{ steps.set-version-number.outputs.version }} --p:FileVersion=${{ steps.set-version-number.outputs.version }} --no-restore
     - name: Install App dependencies
@@ -77,9 +75,26 @@ jobs:
           ghcr.io/andrewmclachlan/Wrangler:${{steps.set-version-number.outputs.version}}
           ghcr.io/andrewmclachlan/Wrangler:latest
 
-  docker-push:
+  test:
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      packages: read
+    steps:
+    - uses: actions/checkout@v6
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 10.x
+        source-url: https://nuget.pkg.github.com/AndrewMcLachlan/index.json
+      env:
+        NUGET_AUTH_TOKEN: ${{secrets.CROSS_REPO_PACKAGE_TOKEN}}
+    - name: Test
+      run: dotnet test src/Wrangler.Tests/Wrangler.Tests.csproj --configuration Release
+
+  docker-push:
+    runs-on: ubuntu-latest
+    needs: [build, test]
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
     permissions:
       packages: write
@@ -113,7 +128,7 @@ jobs:
     concurrency:
       group: Wrangler-deploy-group
       cancel-in-progress: true
-    needs: [build, docker-push]
+    needs: [build, test, docker-push]
     if: (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.ref == 'refs/heads/main')
     uses: AndrewMcLachlan/actions/.github/workflows/deploy-azure.yml@v4
     with:
