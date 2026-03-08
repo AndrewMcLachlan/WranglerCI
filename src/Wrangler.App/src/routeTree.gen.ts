@@ -14,7 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as PullRequestsIndexRouteImport } from './routes/pull-requests/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as DashboardOverviewRouteImport } from './routes/dashboard/overview'
+import { Route as DashboardNestedRouteImport } from './routes/dashboard/nested'
 import { Route as DashboardListRouteImport } from './routes/dashboard/list'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -42,9 +42,9 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardOverviewRoute = DashboardOverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
+const DashboardNestedRoute = DashboardNestedRouteImport.update({
+  id: '/nested',
+  path: '/nested',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardListRoute = DashboardListRouteImport.update({
@@ -57,7 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/list': typeof DashboardListRoute
-  '/dashboard/overview': typeof DashboardOverviewRoute
+  '/dashboard/nested': typeof DashboardNestedRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/pull-requests/': typeof PullRequestsIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -65,7 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard/list': typeof DashboardListRoute
-  '/dashboard/overview': typeof DashboardOverviewRoute
+  '/dashboard/nested': typeof DashboardNestedRoute
   '/dashboard': typeof DashboardIndexRoute
   '/pull-requests': typeof PullRequestsIndexRoute
   '/settings': typeof SettingsIndexRoute
@@ -75,7 +75,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/list': typeof DashboardListRoute
-  '/dashboard/overview': typeof DashboardOverviewRoute
+  '/dashboard/nested': typeof DashboardNestedRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/pull-requests/': typeof PullRequestsIndexRoute
   '/settings/': typeof SettingsIndexRoute
@@ -86,7 +86,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/dashboard/list'
-    | '/dashboard/overview'
+    | '/dashboard/nested'
     | '/dashboard/'
     | '/pull-requests/'
     | '/settings/'
@@ -94,7 +94,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard/list'
-    | '/dashboard/overview'
+    | '/dashboard/nested'
     | '/dashboard'
     | '/pull-requests'
     | '/settings'
@@ -103,7 +103,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/dashboard/list'
-    | '/dashboard/overview'
+    | '/dashboard/nested'
     | '/dashboard/'
     | '/pull-requests/'
     | '/settings/'
@@ -153,11 +153,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/overview': {
-      id: '/dashboard/overview'
-      path: '/overview'
-      fullPath: '/dashboard/overview'
-      preLoaderRoute: typeof DashboardOverviewRouteImport
+    '/dashboard/nested': {
+      id: '/dashboard/nested'
+      path: '/nested'
+      fullPath: '/dashboard/nested'
+      preLoaderRoute: typeof DashboardNestedRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/list': {
@@ -172,13 +172,13 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardListRoute: typeof DashboardListRoute
-  DashboardOverviewRoute: typeof DashboardOverviewRoute
+  DashboardNestedRoute: typeof DashboardNestedRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardListRoute: DashboardListRoute,
-  DashboardOverviewRoute: DashboardOverviewRoute,
+  DashboardNestedRoute: DashboardNestedRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 

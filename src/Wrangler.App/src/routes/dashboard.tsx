@@ -13,8 +13,8 @@ export const Route = createFileRoute("/dashboard")({
                 <section className="controls">
                     <Filters />
                     <div className="views">
-                        <Link to="/dashboard/overview"><Icon icon={Dashboard} title="Card view" /></Link>
-                        <Link to="/dashboard"><Icon icon={NestedList} title="Nested list view" /></Link>
+                        <Link to="/dashboard"><Icon icon={Dashboard} title="Card view" /></Link>
+                        <Link to="/dashboard/nested"><Icon icon={NestedList} title="Nested list view" /></Link>
                         <Link to="/dashboard/list"><Icon icon={List} title="List view" /></Link>
                     </div>
                 </section>
