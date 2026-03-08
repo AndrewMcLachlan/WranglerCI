@@ -15,7 +15,7 @@ public class WorkflowOverallStatusTests
         Id = Random.Shared.Next(),
         WorkflowId = 1,
         NodeId = "node1",
-        Conclusion = conclusion.HasValue ? new StringEnum<WorkflowRunConclusion>(conclusion.Value) : null,
+        Conclusion = conclusion.HasValue ? new StringEnum<WorkflowRunConclusion>(conclusion.Value) : (StringEnum<WorkflowRunConclusion>?)null,
         HeadBranch = branch,
         Event = "push",
         RunNumber = 1,
