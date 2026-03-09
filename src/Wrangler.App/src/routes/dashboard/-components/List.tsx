@@ -1,62 +1,88 @@
+import { DataGrid, createColumnHelper } from "@andrewmclachlan/moo-ds";
+import { DateTime } from "luxon";
+import type { ColumnDef } from "@tanstack/react-table";
+import type { RepositoryModel, WorkflowModel, WorkflowRunModel } from "../../../api";
 import { useWorkflows } from "../-hooks/useWorkflows";
-import { useDashboardContext } from "../-providers/DashboardProvider";
-import { Spinner } from "../../../components/Spinner";
-import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
-import { WorkflowRunRow } from "./WorkflowRunRow";
+import { Badge } from "./Badge";
+
+interface WorkflowRunItem {
+  repo: RepositoryModel;
+  workflow: WorkflowModel;
+  run: WorkflowRunModel;
+}
+
+const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
+
+const columnHelper = createColumnHelper<WorkflowRunItem>();
+
+const columns: ColumnDef<WorkflowRunItem, any>[] = [
+  columnHelper.accessor(item => item.run.workflowStatus, {
+    id: "status",
+    header: "Status",
+    cell: ({ row }) => <Badge className={row.original.run.workflowStatus?.toLowerCase()}>{row.original.run.conclusion || row.original.run.status}</Badge>,
+    enableSorting: true,
+  }),
+  columnHelper.accessor(item => item.workflow.name, {
+    id: "workflow",
+    header: "Workflow",
+    enableSorting: true,
+  }),
+  columnHelper.accessor(item => item.run.headBranch, {
+    id: "branch",
+    header: "Branch",
+    cell: ({ getValue }) => <Badge>{getValue()}</Badge>,
+    enableSorting: true,
+  }),
+  columnHelper.accessor(item => item.run.updatedAt, {
+    id: "run",
+    header: "Run",
+    cell: ({ getValue }) => {
+      const updatedAt = DateTime.fromISO(getValue()!);
+      const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
+      return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
+    },
+    enableSorting: true,
+  }),
+  columnHelper.accessor(item => item.repo.owner, {
+    id: "owner",
+    header: "Owner",
+    enableSorting: true,
+  }),
+  columnHelper.accessor(item => item.repo.name, {
+    id: "repository",
+    header: "Repository",
+    cell: ({ row }) => <a href={row.original.repo.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.original.repo.name}</a>,
+    enableSorting: true,
+  }),
+  columnHelper.display({
+    id: "actions",
+    header: "",
+    cell: ({ row }) => <a href={row.original.run.htmlUrl} target="_blank" rel="noopener noreferrer">View Run</a>,
+  }),
+];
 
 export const List = () => {
 
-  const { data: selectedRepositories } = useSelectedRepositories();
+  const { data: repositories, isLoading } = useWorkflows();
 
-  const request = selectedRepositories.reduce((acc, repo) => {
-    const key = repo.owner;
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(repo.name);
-    return acc;
-  }, {} as Record<string, string[]>);
-
-  const { data: repositories, isLoading, isError, error } = useWorkflows();
-
-  const list = repositories?.flatMap(repo => repo.workflows?.flatMap(workflow => workflow.runs?.flatMap(run => ({
-    repo: repo,
-    workflow: workflow,
-    run: run,
-  })))) ?? [];
-
-  list?.sort((a, b) => {
-    return a!.run.updatedAt! > b!.run.updatedAt! ? -1 : 1;
-  });
+  const list: WorkflowRunItem[] = repositories?.flatMap(repo =>
+    repo.workflows?.flatMap(workflow =>
+      workflow.runs?.map(run => ({
+        repo,
+        workflow,
+        run,
+      })) ?? []
+    ) ?? []
+  ) ?? [];
 
   return (
-    <table className="workflow-run-table">
-      <thead>
-        <tr>
-          <th>Status</th>
-          <th>Workflow</th>
-          <th>Branch</th>
-          <th>Run</th>
-          <th>Owner</th>
-          <th>Repository</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {isLoading && <Spinner />}
-        {isError && <tr><td colSpan={6}>Error loading build info: {error.message}</td></tr>}
-        {(!isLoading && (!repositories || repositories.length === 0)) && <tr><td colSpan={6}>No workflows found.</td></tr>}
-        {list.map((item) => (
-          <WorkflowRunRow
-            key={item!.run.id}
-            repository={item!.repo}
-            workflow={item!.workflow}
-            run={item!.run}
-          />
-        ))}
-      </tbody>
-    </table>
-  )
-
-
-}
+    <DataGrid
+      className="workflow-run-table"
+      data={list}
+      columns={columns}
+      sortable
+      loading={isLoading}
+      emptyMessage="No workflows found."
+    />
+  );
+};

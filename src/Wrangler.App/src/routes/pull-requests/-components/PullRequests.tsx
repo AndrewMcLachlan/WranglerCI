@@ -1,12 +1,21 @@
-import { useState } from "react";
-import { Alert, CloseBadge } from "@andrewmclachlan/moo-ds";
+import { useMemo, useState } from "react";
+import { Alert, DataGrid, createColumnHelper } from "@andrewmclachlan/moo-ds";
+import { CloseBadge } from "@andrewmclachlan/moo-ds";
+import { DateTime } from "luxon";
 import { toast } from "react-toastify";
+import type { ColumnDef } from "@tanstack/react-table";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
-import { PullRequestRow, canApprove } from "./PullRequestRow";
-import { Spinner } from "../../../components/Spinner";
+import { CheckStatusBadge } from "./CheckStatusBadge";
+import { Badge } from "../../dashboard/-components/Badge";
 import type { ApprovalResult, PullRequestModel } from "../../../api";
+
+export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
+
+const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
+
+const columnHelper = createColumnHelper<PullRequestModel>();
 
 export const PullRequests = () => {
 
@@ -83,6 +92,48 @@ export const PullRequests = () => {
     updateAuthors(authors.filter(a => a !== author));
   };
 
+  const columns: ColumnDef<PullRequestModel, any>[] = useMemo(() => [
+    columnHelper.display({
+      id: "select",
+      header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0} />,
+      cell: ({ row }) => <input type="checkbox" checked={selected.has(row.original.number)} onChange={() => toggleSelection(row.original)} disabled={!canApprove(row.original)} />,
+      enableSorting: false,
+    }),
+    columnHelper.accessor(pr => `${pr.repositoryOwner}/${pr.repositoryName}`, {
+      id: "repository",
+      header: "Repository",
+      enableSorting: true,
+    }),
+    columnHelper.accessor("title", {
+      header: "Title",
+      cell: ({ row }) => <a href={row.original.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.original.title}</a>,
+      enableSorting: true,
+    }),
+    columnHelper.accessor("author", {
+      header: "Author",
+      enableSorting: true,
+    }),
+    columnHelper.accessor("checkStatus", {
+      header: "Status",
+      cell: ({ row }) => (
+        <>
+          <CheckStatusBadge status={row.original.checkStatus} />
+          {row.original.mergeable === false && <Badge className="red">Conflict</Badge>}
+        </>
+      ),
+      enableSorting: true,
+    }),
+    columnHelper.accessor("updatedAt", {
+      header: "Updated",
+      cell: ({ getValue }) => {
+        const updatedAt = DateTime.fromISO(getValue()!);
+        const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
+        return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
+      },
+      enableSorting: true,
+    }),
+  ], [selected, allSelected, approvable.length]);
+
   return (
     <article className="pull-requests">
       <h2>Pull Requests</h2>
@@ -116,31 +167,14 @@ export const PullRequests = () => {
         </Alert>
       ))}
 
-      <table className="pull-request-table">
-        <thead>
-          <tr>
-            <th><input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0} /></th>
-            <th>Repository</th>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Status</th>
-            <th>Updated</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading && <tr><td colSpan={6}><Spinner /></td></tr>}
-          {isError && <tr><td colSpan={6}>Error loading pull requests: {error.message}</td></tr>}
-          {(!isLoading && (!pullRequests || pullRequests.length === 0)) && <tr><td colSpan={6}>No open pull requests found.</td></tr>}
-          {pullRequests?.map(pr => (
-            <PullRequestRow
-              key={`${pr.repositoryOwner}/${pr.repositoryName}#${pr.number}`}
-              pr={pr}
-              selected={selected.has(pr.number)}
-              onToggle={toggleSelection}
-            />
-          ))}
-        </tbody>
-      </table>
+      <DataGrid
+        className="pull-request-table"
+        data={pullRequests ?? []}
+        columns={columns}
+        sortable
+        loading={isLoading}
+        emptyMessage="No open pull requests found."
+      />
     </article>
   );
 };
