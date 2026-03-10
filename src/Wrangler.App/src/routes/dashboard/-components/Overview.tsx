@@ -7,6 +7,7 @@ import { Spinner } from "../../../components/Spinner";
 import StatusIndicator from "./StatusIndicator";
 import { Badge } from "./Badge";
 
+
 const statusPriority: Record<string, number> = {
   Red: 0,
   Amber: 1,
@@ -37,20 +38,22 @@ const WorkflowRow: React.FC<{ workflow: WorkflowModel }> = ({ workflow }) => {
   return (
     <div className="workflow-row">
       <StatusIndicator status={workflow.overallStatus} />
-      <span className="workflow-name">{workflow.name}</span>
-      {run && <Badge>{run.headBranch}</Badge>}
-      {timeAgo && (
-        <span className="workflow-time" title={run ? DateTime.fromISO(run.updatedAt).toFormat("yyyy-MM-dd HH:mm:ss") : undefined}>
-          {timeAgo}
-        </span>
-      )}
+      <a className="workflow-name" href={workflow.htmlUrl?.replace("blob/main/.github", "actions")} target="_blank" rel="noopener noreferrer">{workflow.name}</a>
+      {run && <a className="workflow-run-info" href={run.htmlUrl} target="_blank" rel="noopener noreferrer">
+        <Badge>{run.headBranch}</Badge>
+        {timeAgo && (
+          <span className="workflow-time" title={DateTime.fromISO(run.updatedAt).toFormat("yyyy-MM-dd HH:mm:ss")}>
+            {timeAgo}
+          </span>
+        )}
+      </a>}
     </div>
   );
 };
 
 const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel }> = ({ repository }) => {
   const [expanded, setExpanded] = useState(false);
-  const workflows = [...(repository.workflows ?? [])].sort(sortByStatus);
+  const workflows = [...(repository.workflows ?? [])].sort((a, b) => a.name.localeCompare(b.name));
   const attentionWorkflows = workflows.filter(isAttentionNeeded);
   const passingWorkflows = workflows.filter((w) => !isAttentionNeeded(w));
   const hasCollapsible = attentionWorkflows.length > 0 && passingWorkflows.length > 0;
@@ -59,7 +62,7 @@ const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel }> = ({ rep
     <div className="overview-card">
       <div className="overview-card-header">
         <StatusIndicator status={repository.overallStatus} />
-        <h3>{repository.owner}/{repository.name}</h3>
+        <h3>{repository.name}</h3>
         <a href={`${repository.htmlUrl}/actions`} target="_blank" rel="noopener noreferrer">
           <Icon icon="arrow-up-right-from-square" />
         </a>
@@ -83,6 +86,80 @@ const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel }> = ({ rep
   );
 };
 
+const WorkflowOverviewCard: React.FC<{ workflow: WorkflowModel }> = ({ workflow }) => {
+  const run = latestRun(workflow);
+  const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
+  const timeAgo = run
+    ? DateTime.fromISO(run.updatedAt).toRelative({ style: "long" }) || formatter.format(0, "seconds")
+    : undefined;
+
+  return (
+    <div className="overview-card">
+      <a className="overview-card-header" href={workflow.htmlUrl?.replace("blob/main/.github", "actions")} target="_blank" rel="noopener noreferrer">
+        <StatusIndicator status={workflow.overallStatus} />
+        <h3>{workflow.name}</h3>
+      </a>
+      {run && (
+        <a className="overview-card-body" href={run.htmlUrl} target="_blank" rel="noopener noreferrer">
+          <Badge>{run.headBranch}</Badge>
+          <span className="workflow-time" title={DateTime.fromISO(run.updatedAt).toFormat("yyyy-MM-dd HH:mm:ss")}>
+            {timeAgo}
+          </span>
+        </a>
+      )}
+    </div>
+  );
+};
+
+const RepositoryWorkflowsExpanded: React.FC<{ repository: RepositoryModel }> = ({ repository }) => {
+  const workflows = [...(repository.workflows ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+
+  return (
+    <div className="repo-expanded">
+      <div className="repo-header-bar">
+        <StatusIndicator status={repository.overallStatus} />
+        <h3>{repository.name}</h3>
+        <a href={`${repository.htmlUrl}/actions`} target="_blank" rel="noopener noreferrer">
+          <Icon icon="arrow-up-right-from-square" />
+        </a>
+      </div>
+      <div className="repo-expanded-grid">
+        {workflows.map((w) => (
+          <WorkflowOverviewCard key={w.id} workflow={w} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ExpandedWorkflowThreshold = 5;
+
+const AccountSection: React.FC<{ owner: string; repositories: RepositoryModel[] }> = ({ owner, repositories }) => {
+  return (
+    <section className="account-section">
+      <div className="account-section-header">
+        <h2>{owner}</h2>
+      </div>
+      <div className="account-section-body">
+        {repositories.map((repo) =>
+          (repo.workflows?.length ?? 0) > ExpandedWorkflowThreshold ? (
+            <RepositoryWorkflowsExpanded key={repo.nodeId} repository={repo} />
+          ) : (
+            <RepositoryOverviewCard key={repo.nodeId} repository={repo} />
+          )
+        )}
+      </div>
+    </section>
+  );
+};
+
+const worstStatus = (repositories: RepositoryModel[]): WorkflowStatus =>
+  repositories.reduce<WorkflowStatus>((worst, repo) => {
+    const repoPriority = statusPriority[repo.overallStatus ?? "None"] ?? 4;
+    const worstPriority = statusPriority[worst] ?? 4;
+    return repoPriority < worstPriority ? (repo.overallStatus ?? "None") : worst;
+  }, "None");
+
 export const Overview = () => {
   const { data: repositories, isLoading, isError, error } = useWorkflows();
 
@@ -91,14 +168,16 @@ export const Overview = () => {
     return <p>Error loading build info.</p>;
   }
 
-  const sorted = [...(repositories ?? [])].sort(sortByStatus);
+  const sorted = [...(repositories ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+  const grouped = Map.groupBy(sorted, (repo) => repo.owner);
+  const sortedGroups = [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="overview">
       {isLoading && <Spinner />}
       {!isLoading && (!repositories || repositories.length === 0) && <p>No workflows found.</p>}
-      {sorted.map((repo) => (
-        <RepositoryOverviewCard key={repo.nodeId} repository={repo} />
+      {sortedGroups.map(([owner, repos]) => (
+        <AccountSection key={owner} owner={owner} repositories={repos} />
       ))}
     </div>
   );
