@@ -4,6 +4,7 @@ import { postWorkflows } from "../../../api";
 import type { RepositoryModel, WorkflowModel } from "../../../api";
 
 // TODO: Remove this fake data - temporary for testing issue #76
+const includeFakeData = import.meta.env.DEV;
 const generateFakeWorkflows = (count: number): WorkflowModel[] =>
   Array.from({ length: count }, (_, i) => {
     const statuses = ["Green", "Red", "Amber", "Running", "Waiting"] as const;
@@ -56,7 +57,8 @@ export const useWorkflows = () => {
           repositories: selectedRepositories
         }
       })
-      return [...(result.data ?? []), fakeRepo]; // TODO: Remove fakeRepo
+      const data = result.data ?? [];
+      return includeFakeData ? [...data, fakeRepo] : data;
     },
   });
 }
