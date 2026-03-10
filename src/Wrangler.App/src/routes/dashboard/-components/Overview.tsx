@@ -169,8 +169,11 @@ export const Overview = () => {
   }
 
   const sorted = [...(repositories ?? [])].sort((a, b) => a.name.localeCompare(b.name));
-  const grouped = Map.groupBy(sorted, (repo) => repo.owner);
-  const sortedGroups = [...grouped.entries()].sort(([a], [b]) => a.localeCompare(b));
+  const grouped = sorted.reduce<Record<string, RepositoryModel[]>>((acc, repo) => {
+    (acc[repo.owner] ??= []).push(repo);
+    return acc;
+  }, {});
+  const sortedGroups = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="overview">
