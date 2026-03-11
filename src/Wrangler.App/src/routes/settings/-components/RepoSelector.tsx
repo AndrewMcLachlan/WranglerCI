@@ -1,20 +1,31 @@
-import { NavItemList, type NavItem } from "@andrewmclachlan/moo-ds";
+import { Nav } from "@andrewmclachlan/moo-ds";
 import type { AccountModel, SettingsRepositoryModel } from "../../../api";
 import { useState } from "react";
 import { WorkflowSelector } from "./WorkflowSelector";
 
 export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> = ({ account }) => {
 
-  const [selectedRepo, setSelectedRepo] = useState<SettingsRepositoryModel | undefined>(undefined);
-
-  const navList: NavItem[] = account.repositories?.map(repo => ({ id: repo.name, text: repo.name, onClick: () => { }, disabled: repo?.workflows?.length === 0 })) || [];
+  const firstAvailable = account.repositories?.find(r => (r.workflows?.length ?? 0) > 0);
+  const [selectedRepo, setSelectedRepo] = useState<SettingsRepositoryModel | undefined>(firstAvailable);
 
   return (
     <>
       <div className="sidebar">
-        <div className="nav">
-          <NavItemList navItems={navList} onClick={(_e, navItem) => setSelectedRepo(account?.repositories?.find(r => r.name === navItem.id))} />
-        </div>
+        <Nav>
+          {account.repositories?.map(repo => {
+            const disabled = (repo.workflows?.length ?? 0) === 0;
+            return (
+              <Nav.Link
+                key={repo.name}
+                active={selectedRepo?.name === repo.name}
+                disabled={disabled}
+                onClick={() => !disabled && setSelectedRepo(repo)}
+              >
+                {repo.name}
+              </Nav.Link>
+            );
+          })}
+        </Nav>
       </div>
       <div className="section-content">
         {selectedRepo && (

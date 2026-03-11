@@ -14,7 +14,7 @@ export const Settings = () => {
       ) : accounts.isError ? (
         <p>Error loading repositories: {accounts.error.message}</p>
       ) : (
-        <Tabs activeKey={accounts.data?.[0]?.login}>
+        <Tabs defaultActiveKey={accounts.data?.[0]?.login}>
           {accounts.data?.map(account => (
             <Tab className="repo-selector" key={account.login} eventKey={account.login} title={account.login}>
               <RepoSelector account={account} />
