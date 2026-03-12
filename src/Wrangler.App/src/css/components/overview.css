@@ -10,7 +10,7 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.5rem 1rem;
-        background-color: color-mix(in srgb, var(--card-bg) 60%, transparent);
+        background-color: lab(from var(--card-bg) l a b / 0.5 );
         border-radius: 8px 8px 0 0;
         border-bottom: 2px solid color-mix(in srgb, currentColor 15%, transparent);
 
@@ -36,7 +36,7 @@
 
     .repo-expanded-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
         gap: 1rem;
     }
 
@@ -45,7 +45,7 @@
         align-items: center;
         gap: 0.75rem;
         padding: 0.75rem 1rem;
-        background-color: var(--card-bg);
+        background-color: lab(from var(--card-bg) l a b / 0.75 );
         border-radius: 8px;
 
         h3 {

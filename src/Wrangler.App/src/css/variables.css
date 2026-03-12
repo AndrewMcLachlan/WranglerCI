@@ -16,6 +16,7 @@
 .dark, [data-theme="dark"] {
     --primary: #646cff;
     --primary-rgb: 100, 108, 255;
+    --primary-dark: #444ccf;
     --link-color-rgb: var(--primary-rgb);
     --link-hover-color-rgb: 150, 166, 255;
     --green: green;
