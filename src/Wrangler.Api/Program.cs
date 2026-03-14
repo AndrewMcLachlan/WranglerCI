@@ -9,6 +9,7 @@ using Asm.Wrangler.Api.OpenApi;
 using Asm.Wrangler.Api.Serialisation;
 using Asm.Wrangler.Api.Services;
 using Azure.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi;
@@ -120,6 +121,17 @@ static void AddServices(WebApplicationBuilder builder)
     else
     {
         builder.Services.AddDistributedMemoryCache();
+    }
+
+    var dataProtectionConnectionString = builder.Configuration["DataProtection:StorageConnectionString"];
+    if (!String.IsNullOrEmpty(dataProtectionConnectionString))
+    {
+        builder.Services.AddDataProtection()
+            .SetApplicationName("Wrangler")
+            .PersistKeysToAzureBlobStorage(dataProtectionConnectionString, "dataprotection", "wrangler-keys.xml")
+            .ProtectKeysWithAzureKeyVault(
+                new Uri(builder.Configuration["DataProtection:KeyVaultKeyUri"]!),
+                new DefaultAzureCredential());
     }
 
     builder.Services.AddSession(options =>

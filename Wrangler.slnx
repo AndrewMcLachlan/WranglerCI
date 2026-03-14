@@ -8,6 +8,19 @@
     <File Path=".github/workflows/dependabot-autoapprove.yml" />
     <File Path=".github/workflows/dependabot-automerge.yml" />
   </Folder>
+  <Folder Name="/Config/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path=".npmrc" />
+    <File Path="CLAUDE.md" />
+    <File Path="NuGet.config" />
+  </Folder>
+  <Folder Name="/Documentation/">
+    <File Path="docs/threat-model.md" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+    <File Path="SECURITY.md" />
+  </Folder>
   <Project Path="src/Wrangler.Api/Wrangler.Api.csproj" />
   <Project Path="src/Wrangler.App/Wrangler.App.esproj">
     <Build />
