@@ -7,8 +7,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
+import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { CheckStatusBadge } from "./CheckStatusBadge";
 import { Badge } from "../../dashboard/-components/Badge";
+import { NoRepositories } from "../../../components/NoRepositories";
 import type { ApprovalResult, PullRequestModel } from "../../../api";
 
 export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
@@ -19,6 +21,7 @@ const columnHelper = createColumnHelper<PullRequestModel>();
 
 export const PullRequests = () => {
 
+  const { data: selectedRepositories } = useSelectedRepositories();
   const { data: authors } = usePrAuthors();
   const { mutate: updateAuthors } = useUpdatePrAuthors();
   const { data: pullRequests, isLoading, isError, error } = usePullRequests();
@@ -133,6 +136,10 @@ export const PullRequests = () => {
       enableSorting: true,
     }),
   ], [selected, allSelected, approvable.length]);
+
+  if (!selectedRepositories || selectedRepositories.length === 0) {
+    return <NoRepositories />;
+  }
 
   return (
     <article className="pull-requests">

@@ -23,6 +23,9 @@ export default defineConfig({
     }),
     react()
   ],
+  build: {
+    cssMinify: "esbuild",
+  },
   server: {
     port: 3010,
     proxy: {
