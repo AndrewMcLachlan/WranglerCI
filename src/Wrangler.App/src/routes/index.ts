@@ -1,14 +1,6 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import { Home } from "./-components/Home";
 
-export const Route = createFileRoute('/')({
-  component: RouteComponent,
-})
-
-function RouteComponent() {
-  const navigate = useNavigate()
-
-  // Redirect to the table view route
-  navigate({ to: "/dashboard" })
-
-  return null // This component does not render anything
-}
+export const Route = createFileRoute("/")({
+  component: Home,
+});
