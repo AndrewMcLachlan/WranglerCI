@@ -16,7 +16,7 @@ export const Settings = () => {
       ) : (
         <Tabs defaultActiveKey={accounts.data?.[0]?.login}>
           {accounts.data?.map(account => (
-            <Tab className="repo-selector" key={account.login} eventKey={account.login} title={account.login}>
+            <Tab className="repo-selector" key={account.login} eventKey={account.login} title={account.name ?? account.login}>
               <RepoSelector account={account} />
             </Tab>
           ))}

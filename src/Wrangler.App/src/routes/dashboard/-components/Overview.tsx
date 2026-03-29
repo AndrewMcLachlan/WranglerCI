@@ -40,7 +40,7 @@ const WorkflowRow: React.FC<{ workflow: WorkflowModel }> = ({ workflow }) => {
       <StatusIndicator status={workflow.overallStatus} />
       <a className="workflow-name" href={workflow.htmlUrl?.replace("blob/main/.github", "actions")} target="_blank" rel="noopener noreferrer">{workflow.name}</a>
       {run && <a className="workflow-run-info" href={run.htmlUrl} target="_blank" rel="noopener noreferrer">
-        <Badge>{run.headBranch}</Badge>
+        <Badge className="branch">{run.headBranch}</Badge>
         {timeAgo && (
           <span className="workflow-time" title={DateTime.fromISO(run.updatedAt).toFormat("yyyy-MM-dd HH:mm:ss")}>
             {timeAgo}
@@ -101,7 +101,7 @@ const WorkflowOverviewCard: React.FC<{ workflow: WorkflowModel }> = ({ workflow 
       </a>
       {run && (
         <a className="overview-card-body" href={run.htmlUrl} target="_blank" rel="noopener noreferrer">
-          <Badge>{run.headBranch}</Badge>
+          <Badge className="branch">{run.headBranch}</Badge>
           <span className="workflow-time" title={DateTime.fromISO(run.updatedAt).toFormat("yyyy-MM-dd HH:mm:ss")}>
             {timeAgo}
           </span>

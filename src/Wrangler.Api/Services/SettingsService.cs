@@ -43,13 +43,25 @@ internal class SettingsService(IGitHubClient gitHubClient, IDistributedCache cac
 
             var repos = await OctoCall(() => gitHubClient.Repository.GetAllForCurrent(), cancellationToken);
 
-            repos.GroupBy(r => r.Owner, new OwnerEqualityComparer())
-            .ToList()
-            .ForEach(g =>
+            var ownerGroups = repos.GroupBy(r => r.Owner, new OwnerEqualityComparer()).ToList();
+
+            // Look up display names for each distinct owner
+            var nameTasks = ownerGroups.ToDictionary(
+                g => g.Key.Login,
+                g => g.Key.Type == Octokit.AccountType.Organization
+                    ? OctoCall(() => gitHubClient.Organization.Get(g.Key.Login), cancellationToken).ContinueWith(t => t.Result.Name, cancellationToken)
+                    : OctoCall(() => gitHubClient.User.Get(g.Key.Login), cancellationToken).ContinueWith(t => t.Result.Name, cancellationToken));
+
+            await Task.WhenAll(nameTasks.Values);
+
+            foreach (var g in ownerGroups)
             {
+                var displayName = await nameTasks[g.Key.Login];
+
                 results.Add(new AccountModel()
                 {
                     Login = g.Key.Login,
+                    Name = displayName,
                     Type = g.Key.Type,
                     AvatarUrl = g.Key.AvatarUrl,
                     HtmlUrl = g.Key.HtmlUrl,
@@ -62,7 +74,7 @@ internal class SettingsService(IGitHubClient gitHubClient, IDistributedCache cac
                         HtmlUrl = r.HtmlUrl,
                     })],
                 });
-            });
+            }
 
             Dictionary<string, Task<WorkflowsResponse>> workflowTasks = [];
 

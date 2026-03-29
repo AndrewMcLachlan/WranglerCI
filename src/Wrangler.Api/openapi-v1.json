@@ -273,6 +273,12 @@
           "login": {
             "type": "string"
           },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
           "avatarUrl": {
             "type": "string"
           },

@@ -2,12 +2,15 @@
 {
     background-color: aliceblue;
     display: block;
-    border-radius: 8px;
-    height: 16px;
-    width: 16px;
+    border-radius: 4px;
+    height: 14px;
+    width: 14px;
+    flex-shrink: 0;
+    transition: box-shadow 0.2s;
 
     &.red {
         background-color: var(--red);
+        box-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
     }
 
     &.green {
@@ -16,6 +19,7 @@
 
     &.amber {
         background-color: var(--amber);
+        box-shadow: 0 0 8px rgba(255, 191, 0, 0.25);
     }
 
     &.waiting {
@@ -24,5 +28,12 @@
 
     &.running {
         background-color: var(--status-running);
+        box-shadow: 0 0 8px rgba(100, 149, 237, 0.3);
+        animation: status-pulse 2s ease-in-out infinite;
     }
+}
+
+@keyframes status-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }

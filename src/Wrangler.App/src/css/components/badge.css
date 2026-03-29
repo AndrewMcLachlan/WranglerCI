@@ -1,28 +1,35 @@
 @scope (.badge) {
-    background-color: cornflowerblue;
+  background-color: rgba(100, 149, 237, 0.15);
+  --badge-colour: #000;
+  font-size: 0.7rem;
+  letter-spacing: 0.02em;
 
-    &.red {
-        background-color: hsl(from var(--red) h calc(s / 4) calc(l / 1.5));
-        color: hsl(from var(--red) h s calc(l *  1.5));
-    }
+  &.red {
+    background-color: rgba(255, 0, 0, 0.12);
+    color: #ff6b6b;
+  }
 
-    &.green {
-        background-color: hsl(from var(--green) h calc(s / 4) calc(l / 1.5));
-        color: hsl(from var(--green) h s calc(l * 1.5));
-    }
+  &.green {
+    background-color: rgba(0, 128, 0, 0.12);
+    color: #6bcc6b;
+  }
 
-    &.amber {
-        background-color: hsl(from var(--amber) h calc(s / 4) calc(l / 1.5));
-        color: hsl(from var(--amber) h s calc(l * 1.5));
-    }
+  &.amber {
+    background-color: rgba(255, 191, 0, 0.12);
+    color: #e8c44a;
+  }
 
-    &.waiting {
-        background-color: hsl(from var(--status-waiting) h calc(s / 4) calc(l / 1.5));
-        color: hsl(from var(--status-waiting) h s calc(l * 1.5));
-    }
+  &.waiting {
+    background-color: rgba(255, 165, 0, 0.12);
+    color: #e8a44a;
+  }
 
-    &.running {
-        background-color: hsl(from var(--status-running) h calc(s / 4) calc(l / 1.5));
-        color: hsl(from var(--status-running) h s calc(l * 1.5));
-    }
+  &.running {
+    background-color: rgba(100, 149, 237, 0.12);
+    color: cornflowerblue;
+  }
+
+  &.branch {
+    color: cornflowerblue;
+  }
 }

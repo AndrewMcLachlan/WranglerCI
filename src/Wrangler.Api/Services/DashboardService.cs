@@ -74,9 +74,18 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
 
         var repositories = await Task.WhenAll(repoTasks);
 
+        // Look up display names for each distinct owner
+        var distinctOwners = repositories.Select(r => r.Owner).DistinctBy(o => o.Login);
+        var ownerNameTasks = distinctOwners.ToDictionary(
+            o => o.Login,
+            o => o.Type == Octokit.AccountType.Organization
+                ? OctoCall(() => gitHubClient.Organization.Get(o.Login), cancellationToken).ContinueWith(t => t.Result.Name, cancellationToken)
+                : OctoCall(() => gitHubClient.User.Get(o.Login), cancellationToken).ContinueWith(t => t.Result.Name, cancellationToken));
+        await Task.WhenAll(ownerNameTasks.Values);
+
         foreach (var repo in repositories)
         {
-            workflowTasks.Add(repo, GetWorkflowsAsync(repo.Owner.Name ?? repo.Owner.Login, repo.Name, cancellationToken));
+            workflowTasks.Add(repo, GetWorkflowsAsync(repo.Owner.Login, repo.Name, cancellationToken));
         }
 
         await Task.WhenAll(workflowTasks.Values);
@@ -107,7 +116,7 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
             results.Add(new RepositoryModel
             {
                 Name = workflowRepo.Key.Name,
-                Owner = workflowRepo.Key.Owner.Name ?? workflowRepo.Key.Owner.Login,
+                Owner = (await ownerNameTasks[workflowRepo.Key.Owner.Login]) ?? workflowRepo.Key.Owner.Login,
                 NodeId = workflowRepo.Key.NodeId,
                 HtmlUrl = workflowRepo.Key.HtmlUrl,
                 Workflows = workflowRepo.Value.Select(workflow => workflow with { Runs = [.. workflowRuns.Where(run => run.WorkflowId == workflow.Id)] }).OrderBy(workflow => workflow.Name),

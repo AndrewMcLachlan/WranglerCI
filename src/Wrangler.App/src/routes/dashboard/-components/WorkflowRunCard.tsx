@@ -15,7 +15,7 @@ export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun })
     <section className="workflow-run-card">
       <StatusIndicator status={workflowRun.workflowStatus} />
       <span className="conclusion">{workflowRun.conclusion}</span>
-      <Badge>{workflowRun.headBranch}</Badge>
+      <Badge className="branch">{workflowRun.headBranch}</Badge>
       <span>{workflowRun.event}</span>
       <span>{workflowRun.runNumber}</span>
       <span>{workflowRun.triggeringActor}</span>

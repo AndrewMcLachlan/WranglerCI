@@ -13,8 +13,8 @@
   :root {
     color-scheme: light dark;
     color: rgba(255, 255, 255, 0.87);
-    --nav-link-color: var(--primary);
-
+    --nav-link-colour: var(--primary);
+    --body-bg: #0D1117;
 
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -23,7 +23,7 @@
   }
 
   h1 {
-    font-size: 3.2em;
+    font-size: 1.5rem;
     line-height: 1.1;
 
     a {
@@ -34,6 +34,10 @@
         color: currentColor;
       }
     }
+  }
+
+  .light, .dark {
+    --body-bg: #0D1117;
   }
 
   .section-content {
