@@ -5,8 +5,9 @@
     --status-waiting: orange;
     --status-running: cornflowerblue;
 
-    --card-bg: #3a3a4a;
-    --primary: #646cff;
+    --card-bg: #1a1a24;
+    --primary: #d4a24e;
+    --primary-dark: #b8893f;
 
     --h2-size: 2rem;
 
@@ -14,26 +15,36 @@
 }
 
 .dark, [data-theme="dark"] {
-    --primary: #646cff;
-    --primary-rgb: 100, 108, 255;
-    --primary-dark: #444ccf;
-    --link-color-rgb: var(--primary-rgb);
-    --link-hover-color-rgb: 150, 166, 255;
+    --primary: #d4a24e;
+    --primary-rgb: 212, 162, 78;
+    --primary-dark: #b8893f;
+    --link-colour-rgb: var(--primary-rgb);
+    --link-hover-colour-rgb: 228, 186, 120;
     --green: green;
-    --bs-border-color: #3a3a4a;
-    --bs-heading-color: rgba(255, 255, 255, 0.87);
-    --bs-body-color: rgba(255, 255, 255, 0.87);
-    color: rgba(255, 255, 255, 0.87);
+    --bs-border-colour: #3a3a4a;
+    --bs-heading-colour: rgba(255, 255, 255, 0.87);
+    --bs-body-colour: rgba(255, 255, 255, 0.87);
+    colour: rgba(255, 255, 255, 0.87);
+
+    .btn-primary {
+        --btn-colour: #0c0c12;
+        --btn-hover-colour: #0c0c12;
+        --btn-disabled-colour: #0c0c12;
+    }
 }
 
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-colour-scheme: dark) {
     :root {
-        --primary: #646cff;
+        --primary: #d4a24e;
+        --primary-rgb: 212, 162, 78;
+        --primary-dark: #b8893f;
+        --link-colour-rgb: var(--primary-rgb);
+        --link-hover-colour-rgb: 228, 186, 120;
         --green: green;
-        --bs-border-color: #3a3a4a;
-        --bs-heading-color: rgba(255, 255, 255, 0.87);
-        --bs-body-color: rgba(255, 255, 255, 0.87);
-        color: rgba(255, 255, 255, 0.87);
+        --bs-border-colour: #3a3a4a;
+        --bs-heading-colour: rgba(255, 255, 255, 0.87);
+        --bs-body-colour: rgba(255, 255, 255, 0.87);
+        colour: rgba(255, 255, 255, 0.87);
     }
 }

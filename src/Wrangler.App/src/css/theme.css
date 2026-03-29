@@ -1,13 +1,14 @@
 h1 {
-    padding-left: 1r;
+    padding-left: 0;
 }
 
 h2 {
     font-weight: 500;
-    letter-spacing: normal;
+    letter-spacing: -0.01em;
+    font-size: var(--h2-size);
 }
 
 h3 {
-    font-weight: 300;
-    letter-spacing: normal;
+    font-weight: 400;
+    letter-spacing: -0.01em;
 }

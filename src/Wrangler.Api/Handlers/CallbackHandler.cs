@@ -27,7 +27,7 @@ public static class CallbackHandler
 
         // GitHub App installation callback — no OAuth exchange needed, just redirect home.
         if (!String.IsNullOrEmpty(request.Query["installation_id"]))
-            return Results.Redirect("/");
+            return Results.Redirect("/dashboard");
 
         var code = request.Query["code"];
         var state = request.Query["state"];
@@ -79,7 +79,7 @@ public static class CallbackHandler
         http.Session.SetString("github_access_token", accessToken);
         http.Session.SetString("github_user", login ?? "unknown");
 
-        return Results.Redirect("/"); // or wherever your SPA is hosted
+        return Results.Redirect("/dashboard");
     }
 
     internal static Dictionary<string, string> ParseFormEncodedString(string formData)

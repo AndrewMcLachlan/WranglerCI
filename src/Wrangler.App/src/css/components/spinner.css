@@ -9,41 +9,13 @@
 
 .spinner-container {
   pointer-events: none;
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
 }
-
 
 .loading-spinner-3d {
   animation: rotate3d 2s linear infinite;
   transform-style: preserve-3d;
   transform-origin: center center;
-}
-
-/* Optional: Add a subtle scaling effect for more depth */
-@keyframes rotate3dWithScale {
-  0% {
-    transform: perspective(1000px) rotateY(0deg) scale(1);
-  }
-  50% {
-    transform: perspective(1000px) rotateY(180deg) scale(0.8);
-  }
-  100% {
-    transform: perspective(1000px) rotateY(360deg) scale(1);
-  }
-}
-
-.loading-spinner-3d-scale {
-  animation: rotate3dWithScale 2s ease-in-out infinite;
-  transform-style: preserve-3d;
-}
-
-@media (prefers-color-scheme: dark) {
-  .loading-spinner-3d svg {
-    fill: #FFF;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  .loading-spinner-3d svg {
-    fill: #000;
-  }
 }

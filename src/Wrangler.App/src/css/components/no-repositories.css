@@ -14,7 +14,7 @@
     width: 10rem;
     height: 8rem;
     margin-bottom: 1rem;
-    color: var(--bs-body-color, rgba(255, 255, 255, 0.87));
+    color: var(--bs-body-colour, rgba(255, 255, 255, 0.87));
   }
 
   h3 {

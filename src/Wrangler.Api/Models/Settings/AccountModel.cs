@@ -11,6 +11,11 @@ public record AccountModel
     public required string Login { get; init; }
 
     /// <summary>
+    /// The account display name, if available.
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
     /// The URL of the account's avatar image.
     /// </summary>
     public required string AvatarUrl { get; init; }

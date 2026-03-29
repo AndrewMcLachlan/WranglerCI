@@ -6,6 +6,7 @@ export type ClientOptions = {
 
 export type AccountModel = {
     login: string;
+    name?: null | string;
     avatarUrl: string;
     htmlUrl: string;
     type?: null | AccountType;
