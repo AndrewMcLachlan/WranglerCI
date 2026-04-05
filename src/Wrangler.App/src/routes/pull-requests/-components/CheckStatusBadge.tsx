@@ -1,4 +1,4 @@
-import { Badge } from "../../dashboard/-components/Badge";
+import { Badge } from "../../dashboard/-components/shared/Badge";
 
 const statusMap: Record<string, { label: string; className: string }> = {
   Success: { label: "Success", className: "green" },

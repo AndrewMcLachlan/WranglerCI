@@ -1,7 +1,7 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import type { WorkflowRunModel } from "../../../api";
-import { Badge } from "./Badge";
-import StatusIndicator from "./StatusIndicator";
+import type { WorkflowRunModel } from "../../../../api";
+import { Badge } from "../shared/Badge";
+import StatusIndicator from "../shared/StatusIndicator";
 import { DateTime } from "luxon";
 
 export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun }) => {

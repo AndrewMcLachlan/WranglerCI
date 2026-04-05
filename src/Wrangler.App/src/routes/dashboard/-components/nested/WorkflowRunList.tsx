@@ -1,4 +1,4 @@
-import type { WorkflowRunModel } from "../../../api";
+import type { WorkflowRunModel } from "../../../../api";
 import { WorkflowRunCard } from "./WorkflowRunCard";
 
 export const WorkflowRunList: React.FC<WorkflowRunListProps> = ({ runs }) => (

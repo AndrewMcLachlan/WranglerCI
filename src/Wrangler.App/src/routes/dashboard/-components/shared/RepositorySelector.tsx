@@ -1,5 +1,5 @@
 import { ComboBox } from "@andrewmclachlan/moo-ds";
-import { useRepositories } from "../../../hooks/useRepositories";
+import { useRepositories } from "../../../../hooks/useRepositories";
 
 export const RepositorySelector = () => {
   const { data: repositories, isLoading } = useRepositories();

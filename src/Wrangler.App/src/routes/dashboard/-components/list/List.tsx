@@ -1,9 +1,9 @@
 import { DataGrid, createColumnHelper } from "@andrewmclachlan/moo-ds";
 import { DateTime } from "luxon";
 import type { ColumnDef } from "@tanstack/react-table";
-import type { RepositoryModel, WorkflowModel, WorkflowRunModel } from "../../../api";
-import { useWorkflows } from "../-hooks/useWorkflows";
-import { Badge } from "./Badge";
+import type { RepositoryModel, WorkflowModel, WorkflowRunModel } from "../../../../api";
+import { useWorkflows } from "../../-hooks/useWorkflows";
+import { Badge } from "../shared/Badge";
 
 interface WorkflowRunItem {
   repo: RepositoryModel;

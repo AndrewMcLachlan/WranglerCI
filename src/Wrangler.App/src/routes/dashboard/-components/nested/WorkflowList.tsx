@@ -1,5 +1,5 @@
 
-import type { WorkflowModel } from "../../../api";
+import type { WorkflowModel } from "../../../../api";
 import { WorkflowCard } from "./WorkflowCard";
 
 export const WorkflowList: React.FC<WorkflowListProps> = ({ workflows }) => {

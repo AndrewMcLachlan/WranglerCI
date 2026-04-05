@@ -1,9 +1,6 @@
-import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { RepositoryList } from "./RepositoryList";
-import { useWorkflowRuns } from "../-hooks/useWorkflowRuns";
-import { useWorkflows } from "../-hooks/useWorkflows";
-import { Spinner } from "../../../components/Spinner";
-import { useDashboardContext } from "../-providers/DashboardProvider";
+import { useWorkflows } from "../../-hooks/useWorkflows";
+import { Spinner } from "../../../../components/Spinner";
 
 export const Dashboard = () => {
 

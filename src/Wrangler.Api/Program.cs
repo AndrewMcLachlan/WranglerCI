@@ -112,7 +112,7 @@ static void AddServices(WebApplicationBuilder builder)
 
                 await configurationOptions.ConfigureForAzureWithTokenCredentialAsync(new DefaultAzureCredential());
 
-                return await ConnectionMultiplexer.ConnectAsync(configurationOptions); ;
+                return await ConnectionMultiplexer.ConnectAsync(configurationOptions);
             };
 
             options.InstanceName = String.Format(CultureInfo.InvariantCulture, SessionKeyFormat, builder.Environment.EnvironmentName);
@@ -229,7 +229,7 @@ static void AddApp(WebApplication app)
                 cookieName = ".GitHub.Session",
                 sessionAvailable = context.Session.IsAvailable
             });
-        });
+        }).AllowAnonymous();
     }
 
     var api = app.MapGroup(ApiPrefix);

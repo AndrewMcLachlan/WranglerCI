@@ -21,10 +21,10 @@
     --link-colour-rgb: var(--primary-rgb);
     --link-hover-colour-rgb: 228, 186, 120;
     --green: green;
-    --bs-border-colour: #3a3a4a;
-    --bs-heading-colour: rgba(255, 255, 255, 0.87);
-    --bs-body-colour: rgba(255, 255, 255, 0.87);
-    colour: rgba(255, 255, 255, 0.87);
+    --border-colour: #3a3a4a;
+    --heading-colour: rgba(255, 255, 255, 0.87);
+    --body-colour: rgba(255, 255, 255, 0.87);
+    color: rgba(255, 255, 255, 0.87);
 
     .btn-primary {
         --btn-colour: #0c0c12;
@@ -42,9 +42,9 @@
         --link-colour-rgb: var(--primary-rgb);
         --link-hover-colour-rgb: 228, 186, 120;
         --green: green;
-        --bs-border-colour: #3a3a4a;
-        --bs-heading-colour: rgba(255, 255, 255, 0.87);
-        --bs-body-colour: rgba(255, 255, 255, 0.87);
-        colour: rgba(255, 255, 255, 0.87);
+        --border-colour: #3a3a4a;
+        --heading-colour: rgba(255, 255, 255, 0.87);
+        --body-colour: rgba(255, 255, 255, 0.87);
+        color: rgba(255, 255, 255, 0.87);
     }
 }

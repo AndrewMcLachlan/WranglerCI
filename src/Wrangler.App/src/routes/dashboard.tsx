@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { DashboardProvider } from "./dashboard/-providers/DashboardProvider";
-import { Filters } from "./dashboard/-components/Filters";
+import { Filters } from "./dashboard/-components/shared/Filters";
 import { Icon } from "@andrewmclachlan/moo-ds";
 import { Dashboard as b } from "@andrewmclachlan/moo-icons";
 import { Dashboard, NestedList, List } from "../assets";

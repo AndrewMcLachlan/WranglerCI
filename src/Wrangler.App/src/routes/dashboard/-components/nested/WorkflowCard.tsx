@@ -1,7 +1,7 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import type { WorkflowModel } from "../../../api";
-import { Collapsible } from "./Collapsible";
-import StatusIndicator from "./StatusIndicator";
+import type { WorkflowModel } from "../../../../api";
+import { Collapsible } from "../shared/Collapsible";
+import StatusIndicator from "../shared/StatusIndicator";
 import { WorkflowRunList } from "./WorkflowRunList";
 
 export const WorkflowCard: React.FC<WorkflowCardProps> = ({ workflow }) => {

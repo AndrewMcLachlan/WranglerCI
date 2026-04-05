@@ -3,7 +3,7 @@
 /// <summary>
 /// Request to retrieve workflows and their latest runs for the specified repositories.
 /// </summary>
-public record WorkflowsRequest
+public record WorkflowsRequest : BranchFilterRequest
 {
     /// <summary>
     /// A repository with the specific workflow IDs to include.
