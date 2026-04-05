@@ -9,11 +9,11 @@ export const WorkflowRow: React.FC<{ workflow: WorkflowModel }> = ({ workflow })
     <div className="workflow-row">
       <StatusIndicator status={workflow.overallStatus} />
       <a className="workflow-name" href={workflow.htmlUrl?.replace("blob/main/.github", "actions")} target="_blank" rel="noopener noreferrer">{workflow.name}</a>
-      {runs.length === 1 && <RunInfo run={runs[0]} />}
+      {runs.length === 1 && <RunInfo run={runs[0]} orientation="right" />}
       {runs.length > 1 && (
         <div className="workflow-runs">
           {runs.map((run) => (
-            <RunInfo key={run.id} run={run} />
+            <RunInfo key={run.id} run={run} orientation="right" />
           ))}
         </div>
       )}
