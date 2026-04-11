@@ -1,7 +1,7 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import type { RepositoryModel } from "../../../api";
-import { Collapsible } from "./Collapsible";
-import StatusIndicator from "./StatusIndicator";
+import type { RepositoryModel } from "../../../../api";
+import { Collapsible } from "../shared/Collapsible";
+import StatusIndicator from "../shared/StatusIndicator";
 import { WorkflowList } from "./WorkflowList";
 
 export const RepositoryCard: React.FC<RepositoryCardProps> = ({ repository }) => {

@@ -1,5 +1,5 @@
 import { CloseBadge } from "@andrewmclachlan/moo-ds";
-import { useDashboardContext } from "../-providers/DashboardProvider";
+import { useDashboardContext } from "../../-providers/DashboardProvider";
 
 export const Filters = () => {
 
@@ -21,9 +21,6 @@ export const Filters = () => {
 
     }
   }
-
-  // TODO: Branch filters are changing.
-  return null;
 
   return (
     <div className="filters">

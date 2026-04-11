@@ -1,4 +1,4 @@
-import type { WorkflowStatus } from "../../../api";
+import type { WorkflowStatus } from "../../../../api";
 
 const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status }) => {
 

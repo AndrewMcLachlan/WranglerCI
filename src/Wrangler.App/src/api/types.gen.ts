@@ -277,6 +277,7 @@ export type WorkflowRunsRequest = {
 
 export type WorkflowsRequest = {
     repositories?: Array<RepositoryWorkflowRequest>;
+    branchFilters?: Array<string>;
 };
 
 export type WorkflowStatus = 'None' | 'Red' | 'Amber' | 'Green' | 'Running' | 'Waiting';

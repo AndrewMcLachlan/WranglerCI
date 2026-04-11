@@ -5,9 +5,9 @@
     align-items: center;
 
     .badge {
-        --bs-badge-font-size: 0.85rem;
-        --bs-badge-padding-x: 0.6rem;
-        --bs-badge-padding-y: 0.4rem;
+        --badge-font-size: 0.85rem;
+        --badge-padding-x: 0.6rem;
+        --badge-padding-y: 0.4rem;
     }
 
     .views {

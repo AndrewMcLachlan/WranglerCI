@@ -9,7 +9,7 @@ import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { CheckStatusBadge } from "./CheckStatusBadge";
-import { Badge } from "../../dashboard/-components/Badge";
+import { Badge } from "../../dashboard/-components/shared/Badge";
 import { NoRepositories } from "../../../components/NoRepositories";
 import type { ApprovalResult, PullRequestModel } from "../../../api";
 

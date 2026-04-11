@@ -5,8 +5,8 @@
     --status-waiting: orange;
     --status-running: cornflowerblue;
 
-    --card-bg: #1a1a24;
-    --primary: #d4a24e;
+    --card-bg: #222230;
+    --primary: #060505;
     --primary-dark: #b8893f;
 
     --h2-size: 2rem;
@@ -21,15 +21,17 @@
     --link-colour-rgb: var(--primary-rgb);
     --link-hover-colour-rgb: 228, 186, 120;
     --green: green;
-    --bs-border-colour: #3a3a4a;
-    --bs-heading-colour: rgba(255, 255, 255, 0.87);
-    --bs-body-colour: rgba(255, 255, 255, 0.87);
-    colour: rgba(255, 255, 255, 0.87);
+    --border-colour: #3a3a4a;
+    --heading-colour: rgba(255, 255, 255, 0.87);
+    --body-colour: rgba(255, 255, 255, 0.87);
+    color: rgba(255, 255, 255, 0.87);
 
     .btn-primary {
         --btn-colour: #0c0c12;
         --btn-hover-colour: #0c0c12;
-        --btn-disabled-colour: #0c0c12;
+        --btn-disabled-colour: lab(from #0c0c12 l a b / 0.5);
+        --btn-disabled-bg: lab(from #d4a24e calc(l * 0.8) a b);
+        --btn-disabled-border-colour: var(--btn-disabled-bg);
     }
 }
 
@@ -42,9 +44,9 @@
         --link-colour-rgb: var(--primary-rgb);
         --link-hover-colour-rgb: 228, 186, 120;
         --green: green;
-        --bs-border-colour: #3a3a4a;
-        --bs-heading-colour: rgba(255, 255, 255, 0.87);
-        --bs-body-colour: rgba(255, 255, 255, 0.87);
-        colour: rgba(255, 255, 255, 0.87);
+        --border-colour: #3a3a4a;
+        --heading-colour: rgba(255, 255, 255, 0.87);
+        --body-colour: rgba(255, 255, 255, 0.87);
+        color: rgba(255, 255, 255, 0.87);
     }
 }

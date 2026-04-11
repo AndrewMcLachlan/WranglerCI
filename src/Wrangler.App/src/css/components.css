@@ -2,18 +2,21 @@
 @import "./components/collapsible.css";
 @import "./components/controls.css";
 @import "./components/filters.css";
-@import "./components/overview.css";
 @import "./components/status-indicator.css";
-@import "./components/repository-card.css";
-@import "./components/repository-list.css";
-@import "./components/repository-select-list.css";
-@import "./components/settings.css";
 @import "./components/spinner.css";
-@import "./components/workflow-card.css";
-@import "./components/workflow-list.css";
-@import "./components/workflow-run-card.css";
-@import "./components/workflow-run-list.css";
-@import "./components/workflow-run-table.css";
+@import "./components/no-repositories.css";
+
+/* Dashboard views */
+@import "./components/overview/overview.css";
+@import "./components/nested/repository-card.css";
+@import "./components/nested/repository-list.css";
+@import "./components/nested/workflow-card.css";
+@import "./components/nested/workflow-list.css";
+@import "./components/nested/workflow-run-card.css";
+@import "./components/nested/workflow-run-list.css";
+@import "./components/list/workflow-run-table.css";
+
 @import "./components/pull-request-table.css";
 @import "./components/pull-requests.css";
-@import "./components/no-repositories.css";
+@import "./components/settings.css";
+@import "./components/repository-select-list.css";

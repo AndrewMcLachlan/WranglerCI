@@ -1,4 +1,4 @@
-import type { RepositoryModel } from "../../../api";
+import type { RepositoryModel } from "../../../../api";
 import { RepositoryCard } from "./RepositoryCard";
 
 export const RepositoryList: React.FC<RepositoryListProps> = ({ repositories }) => {

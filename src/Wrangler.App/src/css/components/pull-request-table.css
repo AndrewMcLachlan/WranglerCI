@@ -4,7 +4,7 @@
     th, td {
         padding: 0.5rem;
         text-align: left;
-        border-bottom: 1px solid var(--bs-border-colour);
+        border-bottom: 1px solid var(--border-colour);
     }
 
     th:first-child,

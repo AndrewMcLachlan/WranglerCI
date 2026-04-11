@@ -95,12 +95,20 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
             workflows.Add(task.Key, [.. task.Value.Result.Where(wf => workflowIds.Any(id => id == wf.Id)).OrderBy(w => w.Name)]);
         }
 
+        var hasBranchFilters = request.BranchFilters.Any();
+
         foreach (var repo in repositories)
         {
-            //foreach (var workflow in repo.Workflows[repo].Select(w => w.Id))
             foreach (var workflow in workflows[repo])
             {
-                runsTasks.Add(GetLastRunsAsync(repo.Owner.Login, repo.Name, workflow.Id, 1, repo.DefaultBranch, cancellationToken));
+                if (hasBranchFilters)
+                {
+                    runsTasks.Add(GetLastRunsAsync(repo.Owner.Login, repo.Name, workflow.Id, 1, request.BranchFilters, cancellationToken));
+                }
+                else
+                {
+                    runsTasks.Add(GetLastRunsAsync(repo.Owner.Login, repo.Name, workflow.Id, 1, repo.DefaultBranch, cancellationToken));
+                }
             }
         }
 
@@ -196,48 +204,34 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
 
     public async Task<IEnumerable<WorkflowRunModel>> GetLastRunsAsync(string owner, string repo, long workflowId, int perPage, IEnumerable<string> branches, CancellationToken cancellationToken)
     {
-        await _gate.WaitAsync(cancellationToken);
-        try
+        // Resolve glob patterns to actual branch names
+        var exactBranches = branches.Where(b => !b.Contains('*')).ToList();
+        var globPatterns = branches.Where(b => b.Contains('*')).ToList();
+
+        if (globPatterns.Count > 0)
         {
-            string? branch = null;
-            if (branches.Count() == 1 && !branches.First().Contains('*'))
+            await _gate.WaitAsync(cancellationToken);
+            try
             {
-                branch = branches.First();
+                var repoBranches = await OctoCall(() => gitHubClient.Repository.Branch.GetAll(owner, repo), cancellationToken);
+                var matchedBranches = repoBranches
+                    .Where(b => BranchFilter.Match(b.Name, globPatterns))
+                    .Select(b => b.Name);
+                exactBranches.AddRange(matchedBranches);
             }
-
-            await Jitter(cancellationToken);
-            var req = new Octokit.WorkflowRunsRequest
-            {
-                Branch = branch,
-            };
-
-            var response = await OctoCall(() =>
-                gitHubClient.Actions.Workflows.Runs.ListByWorkflow(owner, repo, workflowId, req,
-                    new ApiOptions
-                    {
-                        PageCount = 1,
-                        PageSize = perPage,
-                        StartPage = 1,
-                    }), cancellationToken);
-
-            return response.WorkflowRuns
-                .Where(wr => BranchFilter.Match(wr.HeadBranch, branches))
-                .Select(wr => new WorkflowRunModel()
-                {
-                    Id = wr.Id,
-                    WorkflowId = wr.WorkflowId,
-                    NodeId = wr.NodeId,
-                    Conclusion = wr.Conclusion,
-                    CreatedAt = wr.CreatedAt,
-                    Event = wr.Event,
-                    HeadBranch = wr.HeadBranch,
-                    HtmlUrl = wr.HtmlUrl,
-                    RunNumber = wr.RunNumber,
-                    Status = wr.Status,
-                    TriggeringActor = wr.TriggeringActor?.Name ?? wr.TriggeringActor?.Login,
-                    UpdatedAt = wr.UpdatedAt,
-                });
+            finally { _gate.Release(); }
         }
-        finally { _gate.Release(); }
+
+        var targetBranches = exactBranches.Distinct().ToList();
+
+        // Fetch runs for each resolved branch sequentially to avoid gate exhaustion
+        List<WorkflowRunModel> results = [];
+        foreach (var branch in targetBranches)
+        {
+            var runs = await GetLastRunsAsync(owner, repo, workflowId, perPage, branch, cancellationToken);
+            results.AddRange(runs);
+        }
+
+        return results;
     }
 }
