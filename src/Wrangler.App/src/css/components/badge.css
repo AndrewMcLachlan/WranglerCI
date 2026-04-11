@@ -1,35 +1,38 @@
 @scope (.badge) {
   background-color: rgba(100, 149, 237, 0.15);
-  --badge-colour: #000;
   font-size: 0.7rem;
   letter-spacing: 0.02em;
 
+  &.bg-primary {
+    --badge-colour: #000;
+  }
+
   &.red {
     background-color: rgba(255, 0, 0, 0.12);
-    color: #ff6b6b;
+    --badge-colour: #ff6b6b;
   }
 
   &.green {
     background-color: rgba(0, 128, 0, 0.12);
-    color: #6bcc6b;
+    --badge-colour: #6bcc6b;
   }
 
   &.amber {
     background-color: rgba(255, 191, 0, 0.12);
-    color: #e8c44a;
+    --badge-colour: #e8c44a;
   }
 
   &.waiting {
     background-color: rgba(255, 165, 0, 0.12);
-    color: #e8a44a;
+    --badge-colour: #e8a44a;
   }
 
   &.running {
     background-color: rgba(100, 149, 237, 0.12);
-    color: cornflowerblue;
+    --badge-colour: cornflowerblue;
   }
 
   &.branch {
-    color: cornflowerblue;
+    --badge-colour: cornflowerblue;
   }
 }
