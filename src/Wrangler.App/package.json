@@ -33,19 +33,19 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@hey-api/client-axios": "^0.9.1",
-    "@hey-api/openapi-ts": "^0.96.0",
+    "@hey-api/openapi-ts": "^0.96.1",
     "@svgr/plugin-svgo": "^8.1.0",
-    "@tanstack/router-plugin": "^1.167.21",
+    "@tanstack/router-plugin": "^1.167.22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react-swc": "^4.3.0",
     "esbuild": "^0.28.0",
-    "eslint": "^10.2.0",
-    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.0.8",
+    "typescript": "~6.0.3",
+    "vite": "^8.0.9",
     "vite-plugin-svgr": "^5.2.0"
   }
 }
