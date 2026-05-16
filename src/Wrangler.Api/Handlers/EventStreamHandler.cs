@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Asm.Wrangler.Api.Webhooks;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Asm.Wrangler.Api.Handlers;
 
@@ -13,8 +14,15 @@ public static class EventStreamHandler
 
     public static async Task Handle(HttpContext http, IEventBroadcaster broadcaster, CancellationToken cancellationToken)
     {
+        // Kestrel-level buffering defence; X-Accel-Buffering only signals the
+        // reverse proxy (App Service front-end / nginx) and won't stop Kestrel
+        // from holding writes itself.
+        http.Features.Get<IHttpResponseBodyFeature>()?.DisableBuffering();
+
         http.Response.Headers["Content-Type"] = "text/event-stream";
-        http.Response.Headers["Cache-Control"] = "no-cache";
+        // no-transform asks intermediaries (App Service front door, any CDN) not
+        // to recompress or rechunk the stream.
+        http.Response.Headers["Cache-Control"] = "no-cache, no-transform";
         http.Response.Headers["X-Accel-Buffering"] = "no";
         http.Response.Headers.Connection = "keep-alive";
 
