@@ -16,8 +16,8 @@ public static class BranchFilter
 
         if (branchFilters.Contains(branchName)) return true;
 
-        var startsWith = branchFilters.Where(b => b.EndsWith('*')).Select(b => b.Trim('*'));
+        var prefixes = branchFilters.Where(b => b.EndsWith('*')).Select(b => b.TrimEnd('*'));
 
-        return startsWith.Any(branchName.StartsWith);
+        return prefixes.Any(branchName.StartsWith);
     }
 }

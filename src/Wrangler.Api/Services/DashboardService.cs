@@ -204,6 +204,14 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
 
     public async Task<IEnumerable<WorkflowRunModel>> GetLastRunsAsync(string owner, string repo, long workflowId, int perPage, IEnumerable<string> branches, CancellationToken cancellationToken)
     {
+        // No filters: fall back to the repository's default branch so callers
+        // get a sensible result instead of an empty list.
+        if (!branches.Any())
+        {
+            var repository = await OctoCall(() => gitHubClient.Repository.Get(owner, repo), cancellationToken);
+            return await GetLastRunsAsync(owner, repo, workflowId, perPage, repository.DefaultBranch, cancellationToken);
+        }
+
         // Resolve glob patterns to actual branch names
         var exactBranches = branches.Where(b => !b.Contains('*')).ToList();
         var globPatterns = branches.Where(b => b.Contains('*')).ToList();
