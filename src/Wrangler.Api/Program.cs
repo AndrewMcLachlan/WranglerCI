@@ -5,6 +5,8 @@ using Asm.Wrangler.Api.Exceptions;
 using Asm.Wrangler.Api.Handlers;
 using Asm.Wrangler.Api.Models;
 using Asm.Wrangler.Api.Models.Dashboard;
+using Asm.Wrangler.Api.Webhooks;
+using Octokit.Webhooks.AspNetCore;
 using Asm.Wrangler.Api.OpenApi;
 using Asm.Wrangler.Api.Serialisation;
 using Asm.Wrangler.Api.Services;
@@ -64,11 +66,17 @@ static void AddServices(WebApplicationBuilder builder)
         return new GitHubClient(connection);
     });
 
+    builder.Services.Configure<GitHubAppOptions>(builder.Configuration.GetSection(GitHubAppOptions.SectionName));
+
     builder.Services.AddScoped<IDashboardService, DashboardService>();
     builder.Services.AddScoped<ISettingsService, SettingsService>();
     builder.Services.AddScoped<IPullRequestService, PullRequestService>();
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
+    builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
+    builder.Services.AddSingleton<IRepoVersionService, RepoVersionService>();
+    builder.Services.AddSingleton<IEventBroadcaster, EventBroadcaster>();
+    builder.Services.AddSingleton<Octokit.Webhooks.WebhookEventProcessor, GitHubWebhookEventProcessor>();
 
     builder.Services.AddOpenApi("v1", options =>
     {
@@ -214,6 +222,9 @@ static void AddApp(WebApplication app)
     app.MapGet("/callback/github", CallbackHandler.Handle).ExcludeFromDescription();
     app.MapGet("/login/github", LoginHandler.Handle).ExcludeFromDescription();
 
+    var webhookSecret = app.Configuration.GetSection(GitHubAppOptions.SectionName)[nameof(GitHubAppOptions.WebhookSecret)];
+    app.MapGitHubWebhooks("/webhooks/github", webhookSecret).AllowAnonymous().ExcludeFromDescription().DisableAntiforgery();
+
     if (app.Environment.IsDevelopment())
     {
         app.MapGet("/admin/session/debug", (ICacheKeyService service, HttpContext context) =>
@@ -247,6 +258,8 @@ static void AddApp(WebApplication app)
 
     api.MapPost("pull-requests", PullRequestsHandler.Handle).DisableAntiforgery();
     api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
+
+    api.MapGet("events/stream", EventStreamHandler.Handle).ExcludeFromDescription();
 
     app.UseSecurityHeaders();
 

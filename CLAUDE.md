@@ -23,9 +23,9 @@ The frontend API client (`src/GitHubActionsDashboard.App/src/api/`) is auto-gene
 
 To regenerate after backend model/endpoint changes:
 
-1. Start the backend (it must be running on http://localhost:5010):
+1. Start the backend (it must be reachable on http://localhost:5010):
    ```bash
-   cd src/GitHubActionsDashboard.Api && dotnet run --launch-profile http
+   cd src/GitHubActionsDashboard.Api && dotnet run --launch-profile "Full App"
    ```
 2. In a separate shell, regenerate the client:
    ```bash
@@ -33,7 +33,7 @@ To regenerate after backend model/endpoint changes:
    ```
 3. Stop the backend process.
 
-The `http` launch profile runs on port 5010 without HTTPS, which matches the openapi-ts config.
+The `Full App` launch profile listens on both http://localhost:5010 and https://localhost:7010; the http URL matches the openapi-ts config.
 
 ## Key Conventions
 

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Asm.Wrangler.Api.Webhooks;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
 using Octokit.Caching;
@@ -9,12 +10,12 @@ namespace Asm.Wrangler.Api.Services;
 /// <summary>
 /// An Octokit response cache backed by <see cref="IDistributedCache"/>.
 /// </summary>
-public class DistributedResponseCache(IDistributedCache cache, ICacheKeyService cacheKeyService, ILogger<DistributedResponseCache> logger) : IResponseCache
+public class DistributedResponseCache(IDistributedCache cache, ICacheKeyService cacheKeyService, IRepoVersionService repoVersions, ILogger<DistributedResponseCache> logger) : IResponseCache
 {
     /// <inheritdoc />
     public async Task<CachedResponse.V1?> GetAsync(IRequest request)
     {
-        var cacheKey = GetCacheKey(request);
+        var cacheKey = await GetCacheKeyAsync(request);
 
         try
         {
@@ -51,7 +52,7 @@ public class DistributedResponseCache(IDistributedCache cache, ICacheKeyService 
     {
         try
         {
-            var cacheKey = GetCacheKey(request);
+            var cacheKey = await GetCacheKeyAsync(request);
 
             var json = JsonConvert.SerializeObject(cachedResponse);
             await cache.SetStringAsync(cacheKey, json, new DistributedCacheEntryOptions
@@ -67,7 +68,7 @@ public class DistributedResponseCache(IDistributedCache cache, ICacheKeyService 
         }
     }
 
-    private string GetCacheKey(IRequest request)
+    private async Task<string> GetCacheKeyAsync(IRequest request)
     {
         // Create a cache key from the request URL and parameters
         var keyBuilder = new StringBuilder();
@@ -85,6 +86,15 @@ public class DistributedResponseCache(IDistributedCache cache, ICacheKeyService 
                 keyBuilder.Append(param.Value);
                 keyBuilder.Append('&');
             }
+        }
+
+        // Fold in the per-repo version stamp so webhook bumps orphan stale
+        // entries naturally on the next read.
+        if (EndpointKindMapper.TryMap(request.Endpoint.ToString(), out var owner, out var repo, out var kind))
+        {
+            var version = await repoVersions.GetVersionAsync(owner, repo, kind, CancellationToken.None);
+            keyBuilder.Append(":v");
+            keyBuilder.Append(version);
         }
 
         return cacheKeyService.GetCacheKey($"gh:{keyBuilder.ToString().TrimEnd('&')}");
