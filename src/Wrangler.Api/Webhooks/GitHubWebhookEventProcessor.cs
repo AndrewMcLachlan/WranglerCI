@@ -1,3 +1,4 @@
+using Asm.Wrangler.Api.Models;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events;
 using Octokit.Webhooks.Events.CheckRun;
@@ -17,6 +18,7 @@ namespace Asm.Wrangler.Api.Webhooks;
 internal sealed class GitHubWebhookEventProcessor(
     IInstallationRegistry registry,
     IRepoVersionService versions,
+    IEventBroadcaster broadcaster,
     ILogger<GitHubWebhookEventProcessor> logger) : WebhookEventProcessor
 {
     // pull_request actions that change check status or PR list visibility;
@@ -38,6 +40,7 @@ internal sealed class GitHubWebhookEventProcessor(
         logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", action, owner, repo, workflowRunEvent.WorkflowRun.Id);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.Workflows, cancellationToken);
+        Broadcast("workflow_run", owner, repo, headers, workflowId: (long)workflowRunEvent.WorkflowRun.WorkflowId, runId: (long)workflowRunEvent.WorkflowRun.Id);
     }
 
     protected override async ValueTask ProcessPullRequestWebhookAsync(WebhookHeaders headers, PullRequestEvent pullRequestEvent, PullRequestAction action, CancellationToken cancellationToken = default)
@@ -48,6 +51,7 @@ internal sealed class GitHubWebhookEventProcessor(
         if (InvalidatingPullRequestActions.Contains(action))
         {
             await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
+            Broadcast("pull_request", owner, repo, headers, pullRequestNumber: (int)pullRequestEvent.PullRequest.Number);
         }
     }
 
@@ -58,6 +62,7 @@ internal sealed class GitHubWebhookEventProcessor(
         logger.LogInformation("check_run.{Action} {Owner}/{Repo} name={Name}", action, owner, repo, checkRunEvent.CheckRun.Name);
         await BumpAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
+        Broadcast("check_run", owner, repo, headers);
     }
 
     protected override async ValueTask ProcessCheckSuiteWebhookAsync(WebhookHeaders headers, CheckSuiteEvent checkSuiteEvent, CheckSuiteAction action, CancellationToken cancellationToken = default)
@@ -67,6 +72,22 @@ internal sealed class GitHubWebhookEventProcessor(
         logger.LogInformation("check_suite.{Action} {Owner}/{Repo} id={Id}", action, owner, repo, checkSuiteEvent.CheckSuite.Id);
         await BumpAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
+        Broadcast("check_suite", owner, repo, headers);
+    }
+
+    private void Broadcast(string type, string? owner, string? repo, WebhookHeaders headers, long? workflowId = null, long? runId = null, int? pullRequestNumber = null)
+    {
+        if (String.IsNullOrEmpty(owner) || String.IsNullOrEmpty(repo)) return;
+        broadcaster.Publish(new GitHubEvent
+        {
+            Type = type,
+            Owner = owner,
+            Repo = repo,
+            WorkflowId = workflowId,
+            RunId = runId,
+            PullRequestNumber = pullRequestNumber,
+            DeliveryId = headers.Delivery,
+        });
     }
 
     private async ValueTask BumpAsync(string? owner, string? repo, RepoDataKind kind, CancellationToken cancellationToken)

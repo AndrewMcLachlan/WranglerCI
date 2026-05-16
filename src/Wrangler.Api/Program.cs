@@ -75,6 +75,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
     builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
     builder.Services.AddSingleton<IRepoVersionService, RepoVersionService>();
+    builder.Services.AddSingleton<IEventBroadcaster, EventBroadcaster>();
     builder.Services.AddSingleton<Octokit.Webhooks.WebhookEventProcessor, GitHubWebhookEventProcessor>();
 
     builder.Services.AddOpenApi("v1", options =>
@@ -257,6 +258,8 @@ static void AddApp(WebApplication app)
 
     api.MapPost("pull-requests", PullRequestsHandler.Handle).DisableAntiforgery();
     api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
+
+    api.MapGet("events/stream", EventStreamHandler.Handle).ExcludeFromDescription();
 
     app.UseSecurityHeaders();
 

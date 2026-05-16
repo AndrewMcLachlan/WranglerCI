@@ -22,7 +22,8 @@ export const usePullRequests = () => {
       return result.data;
     },
     enabled: repositories.length > 0 && authors.length > 0,
-    refetchInterval: 2 * 60 * 1000,
-    staleTime: 60 * 1000,
+    // SSE drives freshness; polling is a safety net for missed events.
+    refetchInterval: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
   });
 }

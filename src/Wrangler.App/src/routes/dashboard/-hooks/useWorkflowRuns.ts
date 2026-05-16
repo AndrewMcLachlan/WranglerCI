@@ -18,7 +18,8 @@ export const useWorkflowRuns = (owner: string, repo: string, workflowId: number,
       return result.data;
     },
     refetchOnWindowFocus: false,
-    refetchInterval: 1000 * 60 * 2, // 2 minutes
-    staleTime: 1000 * 60, // 1 minute
+    // SSE drives freshness; polling is a safety net for missed events.
+    refetchInterval: 1000 * 60 * 10, // 10 minutes
+    staleTime: 1000 * 60 * 10,
   });
 }
