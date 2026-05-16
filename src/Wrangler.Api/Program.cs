@@ -74,6 +74,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
     builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
+    builder.Services.AddSingleton<IRepoVersionService, RepoVersionService>();
     builder.Services.AddSingleton<Octokit.Webhooks.WebhookEventProcessor, GitHubWebhookEventProcessor>();
 
     builder.Services.AddOpenApi("v1", options =>

@@ -16,31 +16,67 @@ namespace Asm.Wrangler.Api.Webhooks;
 /// </summary>
 internal sealed class GitHubWebhookEventProcessor(
     IInstallationRegistry registry,
+    IRepoVersionService versions,
     ILogger<GitHubWebhookEventProcessor> logger) : WebhookEventProcessor
 {
+    // pull_request actions that change check status or PR list visibility;
+    // anything else (label/assign/review_requested/...) is noise for our UI.
+    private static readonly HashSet<PullRequestAction> InvalidatingPullRequestActions =
+    [
+        PullRequestAction.Opened,
+        PullRequestAction.Closed,
+        PullRequestAction.Reopened,
+        PullRequestAction.Synchronize,
+        PullRequestAction.Edited,
+        PullRequestAction.ReadyForReview,
+    ];
+
     protected override async ValueTask ProcessWorkflowRunWebhookAsync(WebhookHeaders headers, WorkflowRunEvent workflowRunEvent, WorkflowRunAction action, CancellationToken cancellationToken = default)
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
-        logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", action, workflowRunEvent.Repository?.Owner.Login, workflowRunEvent.Repository?.Name, workflowRunEvent.WorkflowRun.Id);
+        var (owner, repo) = RepoOf(workflowRunEvent.Repository);
+        logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", action, owner, repo, workflowRunEvent.WorkflowRun.Id);
+        await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
+        await BumpAsync(owner, repo, RepoDataKind.Workflows, cancellationToken);
     }
 
     protected override async ValueTask ProcessPullRequestWebhookAsync(WebhookHeaders headers, PullRequestEvent pullRequestEvent, PullRequestAction action, CancellationToken cancellationToken = default)
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
-        logger.LogInformation("pull_request.{Action} {Owner}/{Repo} #{Number}", action, pullRequestEvent.Repository?.Owner.Login, pullRequestEvent.Repository?.Name, pullRequestEvent.PullRequest.Number);
+        var (owner, repo) = RepoOf(pullRequestEvent.Repository);
+        logger.LogInformation("pull_request.{Action} {Owner}/{Repo} #{Number}", action, owner, repo, pullRequestEvent.PullRequest.Number);
+        if (InvalidatingPullRequestActions.Contains(action))
+        {
+            await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
+        }
     }
 
     protected override async ValueTask ProcessCheckRunWebhookAsync(WebhookHeaders headers, CheckRunEvent checkRunEvent, CheckRunAction action, CancellationToken cancellationToken = default)
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
-        logger.LogInformation("check_run.{Action} {Owner}/{Repo} name={Name}", action, checkRunEvent.Repository?.Owner.Login, checkRunEvent.Repository?.Name, checkRunEvent.CheckRun.Name);
+        var (owner, repo) = RepoOf(checkRunEvent.Repository);
+        logger.LogInformation("check_run.{Action} {Owner}/{Repo} name={Name}", action, owner, repo, checkRunEvent.CheckRun.Name);
+        await BumpAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
+        await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
     }
 
     protected override async ValueTask ProcessCheckSuiteWebhookAsync(WebhookHeaders headers, CheckSuiteEvent checkSuiteEvent, CheckSuiteAction action, CancellationToken cancellationToken = default)
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
-        logger.LogInformation("check_suite.{Action} {Owner}/{Repo} id={Id}", action, checkSuiteEvent.Repository?.Owner.Login, checkSuiteEvent.Repository?.Name, checkSuiteEvent.CheckSuite.Id);
+        var (owner, repo) = RepoOf(checkSuiteEvent.Repository);
+        logger.LogInformation("check_suite.{Action} {Owner}/{Repo} id={Id}", action, owner, repo, checkSuiteEvent.CheckSuite.Id);
+        await BumpAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
+        await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
     }
+
+    private async ValueTask BumpAsync(string? owner, string? repo, RepoDataKind kind, CancellationToken cancellationToken)
+    {
+        if (String.IsNullOrEmpty(owner) || String.IsNullOrEmpty(repo)) return;
+        await versions.BumpAsync(owner, repo, kind, cancellationToken);
+    }
+
+    private static (string? Owner, string? Repo) RepoOf(Octokit.Webhooks.Models.Repository? repository) =>
+        (repository?.Owner.Login, repository?.Name);
 
     protected override async ValueTask ProcessInstallationWebhookAsync(WebhookHeaders headers, InstallationEvent installationEvent, InstallationAction action, CancellationToken cancellationToken = default)
     {
