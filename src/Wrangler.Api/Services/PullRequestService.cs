@@ -52,15 +52,79 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         var repoTasks = repoGroups.Select(async group =>
         {
             var results = new List<ApprovalResult>();
+
+            PullRequestMergeMethod? mergeMethod;
+            try
+            {
+                mergeMethod = await GetPreferredMergeMethodAsync(group.Key.Owner, group.Key.Repo, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                foreach (var pr in group)
+                {
+                    results.Add(new ApprovalResult
+                    {
+                        RepositoryOwner = pr.Owner,
+                        RepositoryName = pr.Repo,
+                        PullRequestNumber = pr.Number,
+                        Approved = false,
+                        Merged = false,
+                        Error = $"Could not determine allowed merge methods: {ex.Message}",
+                    });
+                }
+                return results;
+            }
+
+            if (mergeMethod is null)
+            {
+                foreach (var pr in group)
+                {
+                    results.Add(new ApprovalResult
+                    {
+                        RepositoryOwner = pr.Owner,
+                        RepositoryName = pr.Repo,
+                        PullRequestNumber = pr.Number,
+                        Approved = false,
+                        Merged = false,
+                        Error = "Repository does not allow any merge method.",
+                    });
+                }
+                return results;
+            }
+
             foreach (var pr in group)
             {
-                results.Add(await ApproveAndMergeAsync(pr.Owner, pr.Repo, pr.Number, cancellationToken));
+                results.Add(await ApproveAndMergeAsync(pr.Owner, pr.Repo, pr.Number, mergeMethod.Value, cancellationToken));
             }
             return results;
         });
 
         var allResults = await Task.WhenAll(repoTasks);
         return allResults.SelectMany(r => r);
+    }
+
+    private async Task<PullRequestMergeMethod?> GetPreferredMergeMethodAsync(string owner, string repo, CancellationToken cancellationToken)
+    {
+        await _gate.WaitAsync(cancellationToken);
+        Repository repository;
+        try
+        {
+            await Jitter(cancellationToken);
+            repository = await OctoCall(() => gitHubClient.Repository.Get(owner, repo), cancellationToken);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+
+        // Preference order per issue #130: Merge → Squash → Rebase.
+        // Octokit returns null when the field is not present; treat that as allowed
+        // so we still attempt a sensible default rather than failing outright.
+        if (repository.AllowMergeCommit ?? true) return PullRequestMergeMethod.Merge;
+        if (repository.AllowSquashMerge ?? false) return PullRequestMergeMethod.Squash;
+        if (repository.AllowRebaseMerge ?? false) return PullRequestMergeMethod.Rebase;
+
+        return null;
     }
 
     private async Task<IEnumerable<PullRequestModel>> GetRepoPullRequestsAsync(string owner, string repo, IReadOnlyList<string> authors, CancellationToken cancellationToken)
@@ -160,7 +224,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         }
     }
 
-    private async Task<ApprovalResult> ApproveAndMergeAsync(string owner, string repo, int number, CancellationToken cancellationToken)
+    private async Task<ApprovalResult> ApproveAndMergeAsync(string owner, string repo, int number, PullRequestMergeMethod mergeMethod, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken);
         try
@@ -189,7 +253,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
 
             try
             {
-                await OctoCall(() => gitHubClient.PullRequest.Merge(owner, repo, number, new MergePullRequest()), cancellationToken);
+                await OctoCall(() => gitHubClient.PullRequest.Merge(owner, repo, number, new MergePullRequest { MergeMethod = mergeMethod }), cancellationToken);
             }
             catch (Exception ex)
             {
