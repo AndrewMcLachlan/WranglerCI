@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Link } from "@tanstack/react-router";
 import "./home.css";
 
 const GitHubIcon = () => (
@@ -205,6 +206,9 @@ export const Home = () => (
         <img src="/logo-white.svg" alt="" />
       </div>
       <p>&copy; {new Date().getFullYear()} Wrangler CI</p>
+      <nav className="footer-nav">
+        <Link to="/privacy">Privacy</Link>
+      </nav>
     </footer>
   </div>
 );

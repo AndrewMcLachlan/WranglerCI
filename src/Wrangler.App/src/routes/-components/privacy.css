@@ -1,0 +1,89 @@
+@scope (.privacy) {
+  :scope {
+    min-height: 100vh;
+    background: #0c0c12;
+    color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .privacy-header {
+    padding: 1rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .privacy-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: currentColor;
+    text-decoration: none;
+    font-weight: 500;
+
+    img {
+      height: 1.75rem;
+      width: 1.75rem;
+    }
+  }
+
+  .privacy-content {
+    max-width: 48rem;
+    padding: 3rem 2rem;
+    margin: 0 auto;
+    line-height: 1.6;
+    flex: 1;
+
+    h1 {
+      font-size: 2.25rem;
+      margin: 0 0 0.5rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      margin: 2.5rem 0 0.75rem;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .privacy-lede {
+      font-size: 1.125rem;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 0;
+    }
+
+    p {
+      margin: 0.75rem 0;
+    }
+
+    ul {
+      margin: 0.5rem 0 0.75rem 1.25rem;
+      padding: 0;
+
+      li {
+        margin: 0.25rem 0;
+      }
+    }
+
+    code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.875rem;
+    }
+
+    a {
+      color: var(--primary, #d4a24e);
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .privacy-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.875rem;
+    text-align: center;
+  }
+}
