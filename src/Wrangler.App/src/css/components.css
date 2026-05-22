@@ -5,6 +5,7 @@
 @import "./components/status-indicator.css";
 @import "./components/spinner.css";
 @import "./components/no-repositories.css";
+@import "./components/user-menu.css";
 
 /* Dashboard views */
 @import "./components/overview/overview.css";
