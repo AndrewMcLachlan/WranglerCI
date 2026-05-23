@@ -1,7 +1,6 @@
 @scope (.user-menu) {
   :scope {
     position: relative;
-    margin-left: 0.75rem;
   }
 
   .user-menu-toggle {

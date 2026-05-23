@@ -17,14 +17,16 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
             Wrangler CI
           </Link>
         </h1>
-        <nav className="top-nav">
-          <ul>
-            <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
-            <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
-            <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
-          </ul>
-        </nav>
-        <UserMenu />
+        <div className="header-end">
+          <nav className="top-nav">
+            <ul>
+              <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
+              <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
+              <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
+            </ul>
+          </nav>
+          <UserMenu />
+        </div>
       </header>
       <main>
         {children}
