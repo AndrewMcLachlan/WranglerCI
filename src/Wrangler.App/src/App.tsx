@@ -7,11 +7,11 @@ import { useGitHubEventStream } from './hooks/useGitHubEventStream'
 function App() {
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === "/";
+  const isStandalone = pathname === "/" || pathname === "/privacy";
 
-  useGitHubEventStream(!isHome);
+  useGitHubEventStream(!isStandalone);
 
-  if (isHome) {
+  if (isStandalone) {
     return (
       <>
         <Outlet />
