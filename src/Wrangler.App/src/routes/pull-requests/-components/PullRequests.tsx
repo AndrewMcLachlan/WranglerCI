@@ -1,9 +1,8 @@
 import { useMemo, useState } from "react";
-import { Alert, DataGrid, createColumnHelper } from "@andrewmclachlan/moo-ds";
+import { Alert, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { CloseBadge } from "@andrewmclachlan/moo-ds";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
-import type { ColumnDef } from "@tanstack/react-table";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
@@ -16,8 +15,6 @@ import type { ApprovalResult, PullRequestModel } from "../../../api";
 export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
-
-const columnHelper = createColumnHelper<PullRequestModel>();
 
 export const PullRequests = () => {
 
@@ -95,28 +92,33 @@ export const PullRequests = () => {
     updateAuthors(authors.filter(a => a !== author));
   };
 
-  const columns: ColumnDef<PullRequestModel, any>[] = useMemo(() => [
-    columnHelper.display({
+  const columns: ColumnDef<PullRequestModel>[] = useMemo(() => [
+    {
+      field: () => null,
       id: "select",
       header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0} />,
       cell: ({ row }) => <input type="checkbox" checked={selected.has(row.original.number)} onChange={() => toggleSelection(row.original)} disabled={!canApprove(row.original)} />,
       enableSorting: false,
-    }),
-    columnHelper.accessor(pr => `${pr.repositoryOwner}/${pr.repositoryName}`, {
+    },
+    {
+      field: (pr: PullRequestModel) => `${pr.repositoryOwner}/${pr.repositoryName}`,
       id: "repository",
       header: "Repository",
       enableSorting: true,
-    }),
-    columnHelper.accessor("title", {
+    },
+    {
+      field: "title",
       header: "Title",
       cell: ({ row }) => <a href={row.original.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.original.title}</a>,
       enableSorting: true,
-    }),
-    columnHelper.accessor("author", {
+    },
+    {
+      field: "author",
       header: "Author",
       enableSorting: true,
-    }),
-    columnHelper.accessor("checkStatus", {
+    },
+    {
+      field: "checkStatus",
       header: "Status",
       cell: ({ row }) => (
         <>
@@ -125,16 +127,17 @@ export const PullRequests = () => {
         </>
       ),
       enableSorting: true,
-    }),
-    columnHelper.accessor("updatedAt", {
+    },
+    {
+      field: "updatedAt",
       header: "Updated",
       cell: ({ getValue }) => {
-        const updatedAt = DateTime.fromISO(getValue()!);
+        const updatedAt = DateTime.fromISO(getValue() as string);
         const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
         return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
       },
       enableSorting: true,
-    }),
+    },
   ], [selected, allSelected, approvable.length]);
 
   if (!selectedRepositories || selectedRepositories.length === 0) {
