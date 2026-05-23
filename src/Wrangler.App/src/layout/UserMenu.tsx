@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Icon } from "@andrewmclachlan/moo-ds";
-import { User } from "@andrewmclachlan/moo-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 
@@ -34,9 +32,12 @@ export const UserMenu = () => {
 
   return (
     <div className="user-menu" ref={containerRef}>
-      <button type="button" className="user-menu-toggle" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open}>
-        <Icon icon={User} />
-        <span className="user-menu-login">{user.login}</span>
+      <button type="button" className="user-menu-toggle" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`Signed in as ${user.login}`}>
+        {user.avatarUrl ? (
+          <img src={user.avatarUrl} alt="" className="user-menu-avatar" />
+        ) : (
+          <span className="user-menu-avatar user-menu-avatar-fallback" aria-hidden="true">{user.login.charAt(0).toUpperCase()}</span>
+        )}
       </button>
       {open && (
         <ul className="user-menu-dropdown" role="menu">

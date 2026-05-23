@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export interface CurrentUser {
   login: string;
+  avatarUrl?: string;
 }
 
 export const useCurrentUser = () =>

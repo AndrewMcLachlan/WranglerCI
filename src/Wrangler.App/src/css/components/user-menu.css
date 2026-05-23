@@ -7,21 +7,35 @@
   .user-menu-toggle {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.75);
-    padding: 0.25rem 0.625rem;
-    border-radius: 6px;
+    border: 1px solid transparent;
+    padding: 0;
+    border-radius: 50%;
     cursor: pointer;
-    font-size: 0.875rem;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s;
 
     &:hover, &[aria-expanded="true"] {
-      background: rgba(255, 255, 255, 0.06);
-      color: rgba(255, 255, 255, 0.95);
-      border-color: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
     }
+  }
+
+  .user-menu-avatar {
+    display: block;
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .user-menu-avatar-fallback {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.875rem;
+    text-align: center;
   }
 
   .user-menu-dropdown {

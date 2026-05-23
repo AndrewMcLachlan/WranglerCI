@@ -9,6 +9,9 @@ public record CurrentUserModel
 {
     /// <summary>The user's GitHub login (username).</summary>
     public required string Login { get; init; }
+
+    /// <summary>The URL of the user's GitHub avatar image.</summary>
+    public string? AvatarUrl { get; init; }
 }
 
 /// <summary>
@@ -20,6 +23,10 @@ public static class MeHandler
     {
         var login = http.Session.GetString("github_user");
         if (String.IsNullOrEmpty(login)) return TypedResults.Unauthorized();
-        return TypedResults.Ok(new CurrentUserModel { Login = login });
+        return TypedResults.Ok(new CurrentUserModel
+        {
+            Login = login,
+            AvatarUrl = http.Session.GetString("github_avatar_url"),
+        });
     }
 }
