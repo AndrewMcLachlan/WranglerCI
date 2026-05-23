@@ -412,6 +412,12 @@
         "properties": {
           "login": {
             "type": "string"
+          },
+          "avatarUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
