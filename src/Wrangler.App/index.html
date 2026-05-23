@@ -2,6 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Skip the marketing home page in installed PWAs — redirect to OAuth
+      // before any bundles load so the marketing page never paints.
+      (function () {
+        if (location.pathname !== "/") return;
+        var mq = window.matchMedia && window.matchMedia("(display-mode: standalone)");
+        var standalone = (mq && mq.matches) || window.navigator.standalone === true;
+        if (standalone) location.replace("/login/github");
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="/logo-white.svg" media="(prefers-color-scheme: dark)" />
     <link rel="apple-touch-icon" href="/logo-white.svg" />
