@@ -14,8 +14,11 @@ import { Spinner } from "./components/Spinner"
 import { LinkProvider, ThemeProvider } from "@andrewmclachlan/moo-ds"
 import { NavLnk } from "./components/NavLink"
 import { client } from "./api/client.gen.ts"
+import { registerServiceWorker } from "./pwa/registerServiceWorker"
 
 library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faListUl, faLongArrowDown, faLongArrowUp, faTimesCircle);
+
+registerServiceWorker();
 
 const router = createRouter({
   routeTree,

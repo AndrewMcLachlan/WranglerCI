@@ -2,10 +2,26 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Skip the marketing home page in installed PWAs — redirect to OAuth
+      // before any bundles load so the marketing page never paints.
+      (function () {
+        if (location.pathname !== "/") return;
+        var mq = window.matchMedia && window.matchMedia("(display-mode: standalone)");
+        var standalone = (mq && mq.matches) || window.navigator.standalone === true;
+        if (standalone) location.replace("/login/github");
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/logo.svg" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/svg+xml" href="/logo-white.svg" media="(prefers-color-scheme: dark)" />
+    <link rel="apple-touch-icon" href="/logo-white.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#0c0c12" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Wrangler" />
+    <meta name="description" content="GitHub Actions dashboard across all your repositories." />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />

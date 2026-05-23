@@ -1,0 +1,25 @@
+{
+  "name": "Wrangler CI",
+  "short_name": "Wrangler",
+  "description": "GitHub Actions dashboard across all your repositories.",
+  "scope": "/",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#06060a",
+  "theme_color": "#0c0c12",
+  "icons": [
+    {
+      "src": "/logo-white.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-white.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -215,7 +215,13 @@ static void AddApp(WebApplication app)
     app.UseSession();
     app.UseAntiforgery();
     app.UseDefaultFiles();
-    app.UseStaticFiles();
+
+    // FileExtensionContentTypeProvider's defaults don't include .webmanifest,
+    // so without this it would be served as application/octet-stream and
+    // browsers would silently reject the PWA manifest.
+    var contentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+    contentTypeProvider.Mappings[".webmanifest"] = "application/manifest+json";
+    app.UseStaticFiles(new StaticFileOptions { ContentTypeProvider = contentTypeProvider });
 
     app.MapOpenApi();
 
