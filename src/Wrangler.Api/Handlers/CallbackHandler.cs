@@ -74,10 +74,12 @@ public static class CallbackHandler
 
         var user = JsonSerializer.Deserialize<JsonElement>(userJson);
         var login = user.GetProperty("login").GetString();
+        var avatarUrl = user.TryGetProperty("avatar_url", out var avatarProp) ? avatarProp.GetString() : null;
 
         // Store in session
         http.Session.SetString("github_access_token", accessToken);
         http.Session.SetString("github_user", login ?? "unknown");
+        if (!String.IsNullOrEmpty(avatarUrl)) http.Session.SetString("github_avatar_url", avatarUrl);
 
         return Results.Redirect("/dashboard");
     }

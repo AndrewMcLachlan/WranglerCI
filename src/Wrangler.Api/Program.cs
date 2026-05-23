@@ -227,6 +227,7 @@ static void AddApp(WebApplication app)
 
     app.MapGet("/callback/github", CallbackHandler.Handle).ExcludeFromDescription();
     app.MapGet("/login/github", LoginHandler.Handle).ExcludeFromDescription();
+    app.MapPost("/logout", (Delegate)LogoutHandler.Handle).ExcludeFromDescription().DisableAntiforgery().AllowAnonymous();
 
     var webhookSecret = app.Configuration.GetSection(GitHubAppOptions.SectionName)[nameof(GitHubAppOptions.WebhookSecret)];
     app.MapGitHubWebhooks("/webhooks/github", webhookSecret).AllowAnonymous().ExcludeFromDescription().DisableAntiforgery();
@@ -251,6 +252,7 @@ static void AddApp(WebApplication app)
 
     var api = app.MapGroup(ApiPrefix);
 
+    api.MapGet("me", MeHandler.Handle);
     api.MapGet("repositories", RepositoriesHandler.Handle);
     api.MapGet("repositories/grouped", GroupedRepositoriesHandler.Handle);
     api.MapPost("workflows", WorkflowsHandler.Handle).DisableAntiforgery();

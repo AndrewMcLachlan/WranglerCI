@@ -2,6 +2,7 @@ import { Icon } from "@andrewmclachlan/moo-ds";
 import { Cog, Dashboard, PullRequest } from "@andrewmclachlan/moo-icons";
 import { Link } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
+import { UserMenu } from "./UserMenu";
 
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
@@ -16,13 +17,16 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
             Wrangler CI
           </Link>
         </h1>
-        <nav className="top-nav">
-          <ul>
-            <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
-            <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
-            <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
-          </ul>
-        </nav>
+        <div className="header-end">
+          <nav className="top-nav">
+            <ul>
+              <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
+              <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
+              <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
+            </ul>
+          </nav>
+          <UserMenu />
+        </div>
       </header>
       <main>
         {children}

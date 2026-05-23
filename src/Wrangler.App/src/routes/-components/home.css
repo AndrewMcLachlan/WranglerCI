@@ -520,6 +520,16 @@
   margin: 0;
 }
 
+.footer-nav a {
+  color: var(--home-text-dim);
+  text-decoration: none;
+  letter-spacing: 0.12em;
+}
+
+.footer-nav a:hover {
+  color: var(--home-text, rgba(255, 255, 255, 0.87));
+}
+
 /* ---- Responsive ---- */
 
 @media (max-width: 900px) {

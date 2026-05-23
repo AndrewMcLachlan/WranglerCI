@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
@@ -17,6 +18,11 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardNestedRouteImport } from './routes/dashboard/nested'
 import { Route as DashboardListRouteImport } from './routes/dashboard/list'
 
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -56,6 +62,7 @@ const DashboardListRoute = DashboardListRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/nested': typeof DashboardNestedRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/privacy': typeof PrivacyRoute
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/nested': typeof DashboardNestedRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -74,6 +82,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/nested': typeof DashboardNestedRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -85,6 +94,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/privacy'
     | '/dashboard/list'
     | '/dashboard/nested'
     | '/dashboard/'
@@ -93,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/privacy'
     | '/dashboard/list'
     | '/dashboard/nested'
     | '/dashboard'
@@ -102,6 +113,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/privacy'
     | '/dashboard/list'
     | '/dashboard/nested'
     | '/dashboard/'
@@ -112,12 +124,20 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   PullRequestsIndexRoute: typeof PullRequestsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -189,6 +209,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   PullRequestsIndexRoute: PullRequestsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
