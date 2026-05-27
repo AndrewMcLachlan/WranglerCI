@@ -162,6 +162,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     UpdatedAt = pr.UpdatedAt,
                     CheckStatus = checkStatusTask.Result,
                     Mergeable = detailTask.Result.Mergeable,
+                    Labels = [.. pr.Labels.Select(l => new PullRequestLabel { Name = l.Name, Color = l.Color })],
                 });
             }
 

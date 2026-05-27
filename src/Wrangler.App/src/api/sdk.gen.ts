@@ -2,9 +2,9 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
+import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
 
-export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
+export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
      * You can provide a client instance returned by `createClient()` instead of
      * individual options. This might be also useful if you want to implement a
@@ -17,6 +17,12 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
      */
     meta?: Record<string, unknown>;
 };
+
+export const getMe = <ThrowOnError extends boolean = false>(options?: Options<GetMeData, ThrowOnError>) => (options?.client ?? client).get<GetMeResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/me',
+    ...options
+});
 
 export const getRepositories = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesData, ThrowOnError>) => (options?.client ?? client).get<GetRepositoriesResponses, unknown, ThrowOnError>({
     responseType: 'json',

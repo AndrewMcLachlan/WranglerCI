@@ -1,38 +1,44 @@
 @scope (.badge) {
-  background-color: rgba(100, 149, 237, 0.15);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
+  /* moo-ds now drives backgrounds through CSS custom properties — overriding
+     --badge-bg/--badge-fg cooperates with the design system instead of being
+     overridden by its `background: var(--badge-bg)` declaration. */
+  :scope {
+    --badge-bg: rgba(100, 149, 237, 0.15);
+    --badge-fg: cornflowerblue;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+  }
 
   &.bg-primary {
-    --badge-colour: #000;
+    --badge-fg: #000;
   }
 
   &.red {
-    background-color: rgba(255, 0, 0, 0.12);
-    --badge-colour: #ff6b6b;
+    --badge-bg: rgba(255, 0, 0, 0.12);
+    --badge-fg: #ff6b6b;
   }
 
   &.green {
-    background-color: rgba(0, 128, 0, 0.12);
-    --badge-colour: #6bcc6b;
+    --badge-bg: rgba(0, 128, 0, 0.12);
+    --badge-fg: #6bcc6b;
   }
 
   &.amber {
-    background-color: rgba(255, 191, 0, 0.12);
-    --badge-colour: #e8c44a;
+    --badge-bg: rgba(255, 191, 0, 0.12);
+    --badge-fg: #e8c44a;
   }
 
   &.waiting {
-    background-color: rgba(255, 165, 0, 0.12);
-    --badge-colour: #e8a44a;
+    --badge-bg: rgba(255, 165, 0, 0.12);
+    --badge-fg: #e8a44a;
   }
 
   &.running {
-    background-color: rgba(100, 149, 237, 0.12);
-    --badge-colour: cornflowerblue;
+    --badge-bg: rgba(100, 149, 237, 0.12);
+    --badge-fg: cornflowerblue;
   }
 
   &.branch {
-    --badge-colour: cornflowerblue;
+    --badge-fg: cornflowerblue;
   }
 }

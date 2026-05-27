@@ -38,6 +38,11 @@ export type BranchFilterRequest = {
 
 export type CheckStatus = 'Pending' | 'Success' | 'Failure' | 'Unknown';
 
+export type CurrentUserModel = {
+    login: string;
+    avatarUrl?: null | string;
+};
+
 export type DependabotSecurityUpdates = {
     status?: null | string;
 };
@@ -61,6 +66,11 @@ export type Plan = {
     seats?: number | string;
 };
 
+export type PullRequestLabel = {
+    name: string;
+    color: string;
+};
+
 export type PullRequestModel = {
     id: number | string;
     number: number | string;
@@ -76,6 +86,7 @@ export type PullRequestModel = {
     updatedAt: string;
     checkStatus: CheckStatus;
     mergeable?: null | boolean;
+    labels?: Array<PullRequestLabel>;
 };
 
 export type PullRequestReference = {
@@ -281,6 +292,22 @@ export type WorkflowsRequest = {
 };
 
 export type WorkflowStatus = 'None' | 'Red' | 'Amber' | 'Green' | 'Running' | 'Waiting';
+
+export type GetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/me';
+};
+
+export type GetMeResponses = {
+    /**
+     * OK
+     */
+    200: CurrentUserModel;
+};
+
+export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
 
 export type GetRepositoriesData = {
     body?: never;

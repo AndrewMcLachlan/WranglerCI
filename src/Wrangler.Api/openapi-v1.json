@@ -527,6 +527,21 @@
           }
         }
       },
+      "PullRequestLabel": {
+        "required": [
+          "name",
+          "color"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          }
+        }
+      },
       "PullRequestModel": {
         "required": [
           "id",
@@ -601,6 +616,12 @@
               "null",
               "boolean"
             ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PullRequestLabel"
+            }
           }
         }
       },

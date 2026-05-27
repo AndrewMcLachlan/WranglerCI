@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions, useQuery } fr
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
-import type { GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
+import { getMe, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
+import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -39,6 +39,23 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
     }
     return [params];
 };
+
+export const getMeQueryKey = (options?: Options<GetMeData>) => createQueryKey('getMe', options);
+
+export const getMeOptions = (options?: Options<GetMeData>) => queryOptions<GetMeResponse, AxiosError<DefaultError>, GetMeResponse, ReturnType<typeof getMeQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getMe({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getMeQueryKey(options)
+});
+
+export const useGetMeQuery = (options?: Options<GetMeData>) => useQuery(getMeOptions(options));
 
 export const getRepositoriesQueryKey = (options?: Options<GetRepositoriesData>) => createQueryKey('getRepositories', options);
 
