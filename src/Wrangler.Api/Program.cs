@@ -71,6 +71,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IDashboardService, DashboardService>();
     builder.Services.AddScoped<ISettingsService, SettingsService>();
     builder.Services.AddScoped<IPullRequestService, PullRequestService>();
+    builder.Services.AddScoped<IAttentionService, AttentionService>();
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
     builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
@@ -205,6 +206,7 @@ static void AddServices(WebApplicationBuilder builder)
     {
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<WorkflowStatus>());
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.PullRequests.CheckStatus>());
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.Attention.AttentionItemType>());
     });
 }
 
@@ -266,6 +268,8 @@ static void AddApp(WebApplication app)
 
     api.MapPost("pull-requests", PullRequestsHandler.Handle).DisableAntiforgery();
     api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
+
+    api.MapPost("attention", AttentionHandler.Handle).DisableAntiforgery();
 
     api.MapGet("events/stream", EventStreamHandler.Handle).ExcludeFromDescription();
 

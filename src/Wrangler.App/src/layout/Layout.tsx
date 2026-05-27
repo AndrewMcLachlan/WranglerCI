@@ -1,5 +1,5 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import { Cog, Dashboard, PullRequest } from "@andrewmclachlan/moo-icons";
+import { Cog, Dashboard, PullRequest, Stack } from "@andrewmclachlan/moo-icons";
 import { Link } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
 import { UserMenu } from "./UserMenu";
@@ -20,6 +20,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
         <div className="header-end">
           <nav className="top-nav">
             <ul>
+              <li><Link to="/attention" title="Needs your attention"><Icon icon={Stack} /></Link></li>
               <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
               <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
               <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
