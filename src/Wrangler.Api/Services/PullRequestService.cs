@@ -135,18 +135,24 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             await Jitter(cancellationToken);
             var prs = await OctoCall(() => gitHubClient.PullRequest.GetAllForRepository(owner, repo, new PullRequestRequest { State = ItemStateFilter.Open }), cancellationToken);
 
-            var filtered = prs.Where(pr => authors.Any(a => String.Equals(a, pr.User.Login, StringComparison.OrdinalIgnoreCase)));
+            var filtered = prs.Where(pr => authors.Any(a => String.Equals(a, pr.User.Login, StringComparison.OrdinalIgnoreCase))).ToList();
 
-            var models = new List<PullRequestModel>();
-
-            foreach (var pr in filtered)
+            // Fan out the per-PR API calls. Each task makes up to three calls
+            // (combined commit status, check runs, PR detail) in parallel. The
+            // previous loop awaited each PR before starting the next, so wall
+            // clock was O(N * round-trip); now it's bounded by the slowest
+            // single PR. OctoCall already retries on abuse / secondary rate
+            // limits, so we don't add a second throttle here.
+            var modelTasks = filtered.Select(async pr =>
             {
+                await Jitter(cancellationToken);
+
                 var checkStatusTask = GetCheckStatusAsync(owner, repo, pr.Head.Sha, cancellationToken);
                 var detailTask = OctoCall(() => gitHubClient.PullRequest.Get(owner, repo, pr.Number), cancellationToken);
 
                 await Task.WhenAll(checkStatusTask, detailTask);
 
-                models.Add(new PullRequestModel
+                return new PullRequestModel
                 {
                     Id = pr.Id,
                     Number = pr.Number,
@@ -162,10 +168,10 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     UpdatedAt = pr.UpdatedAt,
                     CheckStatus = checkStatusTask.Result,
                     Mergeable = detailTask.Result.Mergeable,
-                });
-            }
+                };
+            });
 
-            return models;
+            return await Task.WhenAll(modelTasks);
         }
         finally
         {
