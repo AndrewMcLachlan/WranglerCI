@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Alert, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { CloseBadge } from "@andrewmclachlan/moo-ds";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
@@ -222,6 +223,24 @@ export const PullRequests = () => {
         return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
       },
       enableSorting: true,
+    },
+    {
+      field: () => null,
+      id: "open",
+      header: "",
+      cell: ({ row }) => (
+        <a
+          className="pr-open-link"
+          href={row.original.htmlUrl!}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open on GitHub"
+          aria-label="Open pull request on GitHub"
+        >
+          <FontAwesomeIcon icon="arrow-up-right-from-square" />
+        </a>
+      ),
+      enableSorting: false,
     },
   ], [selected, allSelected, approvable.length, isApproving]);
 

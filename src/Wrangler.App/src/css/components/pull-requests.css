@@ -99,11 +99,31 @@
         height: 8px;
         border-radius: 50%;
         flex-shrink: 0;
+        /* Dim alongside the chip when the status isn't selected. */
+        opacity: 0.35;
+        transition: opacity 0.15s;
 
         &.green { background: #6bcc6b; }
         &.red { background: #ff6b6b; }
         &.amber { background: #e8c44a; }
         &.grey { background: rgba(255, 255, 255, 0.4); }
+    }
+
+    .status-chip:hover .status-dot {
+        opacity: 0.7;
+    }
+
+    .status-chip.active .status-dot {
+        opacity: 1;
+    }
+
+    .pr-open-link {
+        color: rgba(255, 255, 255, 0.45);
+        transition: color 0.15s;
+
+        &:hover {
+            color: var(--primary);
+        }
     }
 
     .pr-title-cell {
