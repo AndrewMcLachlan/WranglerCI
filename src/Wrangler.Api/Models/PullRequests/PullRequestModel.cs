@@ -1,6 +1,18 @@
 namespace Asm.Wrangler.Api.Models.PullRequests;
 
 /// <summary>
+/// A label applied to a pull request, with the colour GitHub stores against it.
+/// </summary>
+public record PullRequestLabel
+{
+    /// <summary>The label name.</summary>
+    public required string Name { get; init; }
+
+    /// <summary>The label colour as a six-character hex string, no leading "#".</summary>
+    public required string Color { get; init; }
+}
+
+/// <summary>
 /// Represents an open pull request with its aggregated check status.
 /// </summary>
 public record PullRequestModel
@@ -75,4 +87,9 @@ public record PullRequestModel
     /// <c>null</c> when GitHub has not yet computed mergeability.
     /// </summary>
     public bool? Mergeable { get; init; }
+
+    /// <summary>
+    /// The labels applied to the pull request, in the order GitHub returns them.
+    /// </summary>
+    public IReadOnlyList<PullRequestLabel> Labels { get; init; } = [];
 }

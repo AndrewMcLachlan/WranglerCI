@@ -86,6 +86,11 @@ export type Plan = {
     seats?: number | string;
 };
 
+export type PullRequestLabel = {
+    name: string;
+    color: string;
+};
+
 export type PullRequestModel = {
     id: number | string;
     number: number | string;
@@ -101,6 +106,7 @@ export type PullRequestModel = {
     updatedAt: string;
     checkStatus: CheckStatus;
     mergeable?: null | boolean;
+    labels?: Array<PullRequestLabel>;
 };
 
 export type PullRequestReference = {
