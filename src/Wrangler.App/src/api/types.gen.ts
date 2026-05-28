@@ -32,11 +32,36 @@ export type ApprovePullRequestsRequest = {
     pullRequests?: Array<PullRequestReference>;
 };
 
+export type AttentionItem = {
+    type: AttentionItemType;
+    repositoryOwner: string;
+    repositoryName: string;
+    title: string;
+    htmlUrl: string;
+    occurredAt: string;
+    workflowRunId?: null | number | string;
+    workflowName?: null | string;
+    branch?: null | string;
+    pullRequestNumber?: null | number | string;
+    pullRequestAuthor?: null | string;
+};
+
+export type AttentionItemType = 'WorkflowFailure' | 'PullRequestReview';
+
+export type AttentionRequest = {
+    repositories?: Array<RepositoryRequest>;
+};
+
 export type BranchFilterRequest = {
     branchFilters?: Array<string>;
 };
 
 export type CheckStatus = 'Pending' | 'Success' | 'Failure' | 'Unknown';
+
+export type CurrentUserModel = {
+    login: string;
+    avatarUrl?: null | string;
+};
 
 export type DependabotSecurityUpdates = {
     status?: null | string;
@@ -282,6 +307,22 @@ export type WorkflowsRequest = {
 
 export type WorkflowStatus = 'None' | 'Red' | 'Amber' | 'Green' | 'Running' | 'Waiting';
 
+export type GetMeData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/me';
+};
+
+export type GetMeResponses = {
+    /**
+     * OK
+     */
+    200: CurrentUserModel;
+};
+
+export type GetMeResponse = GetMeResponses[keyof GetMeResponses];
+
 export type GetRepositoriesData = {
     body?: never;
     path?: never;
@@ -400,3 +441,19 @@ export type PostPullRequestsApproveResponses = {
 };
 
 export type PostPullRequestsApproveResponse = PostPullRequestsApproveResponses[keyof PostPullRequestsApproveResponses];
+
+export type PostAttentionData = {
+    body: AttentionRequest;
+    path?: never;
+    query?: never;
+    url: '/attention';
+};
+
+export type PostAttentionResponses = {
+    /**
+     * OK
+     */
+    200: Array<AttentionItem>;
+};
+
+export type PostAttentionResponse = PostAttentionResponses[keyof PostAttentionResponses];

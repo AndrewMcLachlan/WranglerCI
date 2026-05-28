@@ -277,6 +277,38 @@
           }
         }
       }
+    },
+    "/attention": {
+      "post": {
+        "tags": [
+          "AttentionHandler"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttentionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttentionItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -381,6 +413,91 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PullRequestReference"
+            }
+          }
+        }
+      },
+      "AttentionItem": {
+        "required": [
+          "type",
+          "repositoryOwner",
+          "repositoryName",
+          "title",
+          "htmlUrl",
+          "occurredAt"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/AttentionItemType"
+          },
+          "repositoryOwner": {
+            "type": "string"
+          },
+          "repositoryName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "workflowRunId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "workflowName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "branch": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pullRequestNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "pullRequestAuthor": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AttentionItemType": {
+        "enum": [
+          "WorkflowFailure",
+          "PullRequestReview"
+        ]
+      },
+      "AttentionRequest": {
+        "type": "object",
+        "properties": {
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepositoryRequest"
             }
           }
         }
@@ -1522,6 +1639,9 @@
     },
     {
       "name": "ApprovePullRequestsHandler"
+    },
+    {
+      "name": "AttentionHandler"
     }
   ]
 }
