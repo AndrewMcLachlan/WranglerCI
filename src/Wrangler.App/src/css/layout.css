@@ -47,6 +47,7 @@
             border-radius: 6px;
             transition: background 0.15s, color 0.15s;
             color: rgba(255, 255, 255, 0.45);
+            position: relative;
 
             &:hover {
                 background: rgba(255, 255, 255, 0.06);
@@ -57,6 +58,16 @@
                 color: var(--primary);
                 background: rgba(212, 162, 78, 0.08);
             }
+        }
+
+        .attention-dot {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ff4444;
         }
     }
 }
