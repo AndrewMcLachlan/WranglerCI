@@ -32,6 +32,26 @@ export type ApprovePullRequestsRequest = {
     pullRequests?: Array<PullRequestReference>;
 };
 
+export type AttentionItem = {
+    type: AttentionItemType;
+    repositoryOwner: string;
+    repositoryName: string;
+    title: string;
+    htmlUrl: string;
+    occurredAt: string;
+    workflowRunId?: null | number | string;
+    workflowName?: null | string;
+    branch?: null | string;
+    pullRequestNumber?: null | number | string;
+    pullRequestAuthor?: null | string;
+};
+
+export type AttentionItemType = 'WorkflowFailure' | 'PullRequestReview';
+
+export type AttentionRequest = {
+    repositories?: Array<RepositoryRequest>;
+};
+
 export type BranchFilterRequest = {
     branchFilters?: Array<string>;
 };
@@ -427,3 +447,19 @@ export type PostPullRequestsApproveResponses = {
 };
 
 export type PostPullRequestsApproveResponse = PostPullRequestsApproveResponses[keyof PostPullRequestsApproveResponses];
+
+export type PostAttentionData = {
+    body: AttentionRequest;
+    path?: never;
+    query?: never;
+    url: '/attention';
+};
+
+export type PostAttentionResponses = {
+    /**
+     * OK
+     */
+    200: Array<AttentionItem>;
+};
+
+export type PostAttentionResponse = PostAttentionResponses[keyof PostAttentionResponses];

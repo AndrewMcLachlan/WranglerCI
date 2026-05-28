@@ -6,6 +6,7 @@
 @import "./components/spinner.css";
 @import "./components/no-repositories.css";
 @import "./components/user-menu.css";
+@import "./components/attention.css";
 
 /* Dashboard views */
 @import "./components/overview/overview.css";

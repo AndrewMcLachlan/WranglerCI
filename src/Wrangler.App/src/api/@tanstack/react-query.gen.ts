@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions, useQuery } fr
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { getMe, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
-import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
+import { getMe, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postAttention, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
+import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostAttentionData, PostAttentionResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -151,6 +151,20 @@ export const postPullRequestsApproveMutation = (options?: Partial<Options<PostPu
     const mutationOptions: UseMutationOptions<PostPullRequestsApproveResponse, AxiosError<DefaultError>, Options<PostPullRequestsApproveData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postPullRequestsApprove({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const postAttentionMutation = (options?: Partial<Options<PostAttentionData>>): UseMutationOptions<PostAttentionResponse, AxiosError<DefaultError>, Options<PostAttentionData>> => {
+    const mutationOptions: UseMutationOptions<PostAttentionResponse, AxiosError<DefaultError>, Options<PostAttentionData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postAttention({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

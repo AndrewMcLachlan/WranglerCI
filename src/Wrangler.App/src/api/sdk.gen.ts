@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
+import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -79,6 +79,16 @@ export const postPullRequests = <ThrowOnError extends boolean = false>(options: 
 export const postPullRequestsApprove = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsApproveData, ThrowOnError>) => (options.client ?? client).post<PostPullRequestsApproveResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/pull-requests/approve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postAttention = <ThrowOnError extends boolean = false>(options: Options<PostAttentionData, ThrowOnError>) => (options.client ?? client).post<PostAttentionResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/attention',
     ...options,
     headers: {
         'Content-Type': 'application/json',
