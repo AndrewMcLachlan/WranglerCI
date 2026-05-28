@@ -235,14 +235,7 @@ export const PullRequests = () => {
 
       <div className="controls">
         <div className="pr-filters">
-          <div className="author-filter">
-            <input type="text" className="form-control" placeholder="Add author filter..." onKeyUp={checkInput} onBlur={checkInput} />
-            <div className="author-badges">
-              {authors.map(author => (
-                <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
-              ))}
-            </div>
-          </div>
+          <input type="text" className="form-control author-input" placeholder="Add author filter..." onKeyUp={checkInput} onBlur={checkInput} />
           <div className="status-filter" role="group" aria-label="Filter by check status">
             {STATUS_OPTIONS.map((status) => (
               <button
@@ -255,6 +248,11 @@ export const PullRequests = () => {
                 <span className={`status-dot ${STATUS_DOT[status]}`} />
                 {status}
               </button>
+            ))}
+          </div>
+          <div className="author-badges">
+            {authors.map(author => (
+              <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
             ))}
           </div>
         </div>

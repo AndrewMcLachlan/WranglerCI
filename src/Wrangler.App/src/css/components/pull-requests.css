@@ -18,44 +18,40 @@
     }
 
     /* Group the author and status filters together on the left so the
-       Approve button is the only thing pushed to the right edge. */
+       Approve button is the only thing pushed to the right edge. The
+       search box and status chips share the top row (vertically centred);
+       the author badges wrap to their own full-width row below. */
     .pr-filters {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.75rem 1.5rem;
+        gap: 0.5rem 0.75rem;
         align-items: center;
         flex: 1 1 auto;
         min-width: 0;
     }
 
-    .author-filter {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
+    .author-input {
+        max-width: 300px;
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.1);
 
-        input {
-            max-width: 300px;
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.1);
-
-            &:focus {
-                border-color: var(--primary);
-                box-shadow: 0 0 0 2px rgba(212, 162, 78, 0.15);
-            }
+        &:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(212, 162, 78, 0.15);
         }
     }
 
     .author-badges {
+        flex-basis: 100%;
         display: flex;
         flex-wrap: wrap;
         gap: 0.25rem;
 
-        /* The global .badge override tints everything a faint blue; give the
-           author chips a clearly legible neutral fill instead. */
+        /* The global .badge override tints everything a faint blue; the
+           author chips use the brand gold instead. */
         .badge {
-            --badge-bg: rgba(255, 255, 255, 0.1);
-            --badge-fg: rgba(255, 255, 255, 0.85);
+            --badge-bg: var(--primary);
+            --badge-fg: #1a1a1a;
         }
     }
 
