@@ -17,6 +17,17 @@
         justify-content: space-between;
     }
 
+    /* Group the author and status filters together on the left so the
+       Approve button is the only thing pushed to the right edge. */
+    .pr-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+        align-items: center;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
     .author-filter {
         display: flex;
         flex-wrap: wrap;
@@ -45,6 +56,7 @@
         display: flex;
         gap: 0.5rem;
         align-items: center;
+        flex: 0 0 auto;
     }
 
     .status-filter {

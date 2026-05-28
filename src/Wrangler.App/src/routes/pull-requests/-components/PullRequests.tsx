@@ -228,29 +228,31 @@ export const PullRequests = () => {
       <h2>Pull Requests</h2>
 
       <div className="controls">
-        <div className="author-filter">
-          <input type="text" className="form-control" placeholder="Add author filter..." onKeyUp={checkInput} onBlur={checkInput} />
-          <div className="author-badges">
-            {authors.map(author => (
-              <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
-            ))}
+        <div className="pr-filters">
+          <div className="author-filter">
+            <input type="text" className="form-control" placeholder="Add author filter..." onKeyUp={checkInput} onBlur={checkInput} />
+            <div className="author-badges">
+              {authors.map(author => (
+                <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="status-filter" role="group" aria-label="Filter by check status">
-          {STATUS_OPTIONS.map((status) => {
-            const active = isStatusActive(status);
-            return (
-              <button
-                key={status}
-                type="button"
-                className={`status-filter-pill${active ? " active" : ""}`}
-                aria-pressed={statusSet.has(status)}
-                onClick={() => toggleStatus(status)}
-              >
-                <CheckStatusBadge status={status} />
-              </button>
-            );
-          })}
+          <div className="status-filter" role="group" aria-label="Filter by check status">
+            {STATUS_OPTIONS.map((status) => {
+              const active = isStatusActive(status);
+              return (
+                <button
+                  key={status}
+                  type="button"
+                  className={`status-filter-pill${active ? " active" : ""}`}
+                  aria-pressed={statusSet.has(status)}
+                  onClick={() => toggleStatus(status)}
+                >
+                  <CheckStatusBadge status={status} />
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div className="actions">
           <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving}>
