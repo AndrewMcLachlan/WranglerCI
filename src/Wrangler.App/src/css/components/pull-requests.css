@@ -50,6 +50,13 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.25rem;
+
+        /* The global .badge override tints everything a faint blue; give the
+           author chips a clearly legible neutral fill instead. */
+        .badge {
+            --badge-bg: rgba(255, 255, 255, 0.1);
+            --badge-fg: rgba(255, 255, 255, 0.85);
+        }
     }
 
     .actions {
@@ -66,25 +73,41 @@
         flex-wrap: wrap;
     }
 
-    .status-filter-pill {
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.7rem;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
         background: transparent;
-        border: none;
-        padding: 0;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.78rem;
         cursor: pointer;
-        opacity: 0.35;
-        transition: opacity 0.15s;
-
-        &.active {
-            opacity: 1;
-        }
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
 
         &:hover {
-            opacity: 0.85;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.85);
         }
 
-        &.active:hover {
-            opacity: 1;
+        &.active {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.28);
+            color: #fff;
         }
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+
+        &.green { background: #6bcc6b; }
+        &.red { background: #ff6b6b; }
+        &.amber { background: #e8c44a; }
+        &.grey { background: rgba(255, 255, 255, 0.4); }
     }
 
     .pr-title-cell {

@@ -20,6 +20,13 @@ const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long
 
 const STATUS_OPTIONS: CheckStatus[] = ["Success", "Failure", "Pending", "Unknown"];
 
+const STATUS_DOT: Record<CheckStatus, string> = {
+  Success: "green",
+  Failure: "red",
+  Pending: "amber",
+  Unknown: "grey",
+};
+
 // Pick legible foreground for a GitHub label colour, which arrives as a
 // six-digit hex string with no leading '#'.
 const labelTextColour = (hex: string): string => {
@@ -86,7 +93,6 @@ export const PullRequests = () => {
   });
 
   const statusSet = useMemo(() => new Set(statusFilter), [statusFilter]);
-  const isStatusActive = (status: CheckStatus) => statusSet.size === 0 || statusSet.has(status);
   const toggleStatus = (status: CheckStatus) => {
     const next = new Set(statusSet);
     if (next.has(status)) next.delete(status);
@@ -238,20 +244,18 @@ export const PullRequests = () => {
             </div>
           </div>
           <div className="status-filter" role="group" aria-label="Filter by check status">
-            {STATUS_OPTIONS.map((status) => {
-              const active = isStatusActive(status);
-              return (
-                <button
-                  key={status}
-                  type="button"
-                  className={`status-filter-pill${active ? " active" : ""}`}
-                  aria-pressed={statusSet.has(status)}
-                  onClick={() => toggleStatus(status)}
-                >
-                  <CheckStatusBadge status={status} />
-                </button>
-              );
-            })}
+            {STATUS_OPTIONS.map((status) => (
+              <button
+                key={status}
+                type="button"
+                className={`status-chip${statusSet.has(status) ? " active" : ""}`}
+                aria-pressed={statusSet.has(status)}
+                onClick={() => toggleStatus(status)}
+              >
+                <span className={`status-dot ${STATUS_DOT[status]}`} />
+                {status}
+              </button>
+            ))}
           </div>
         </div>
         <div className="actions">
