@@ -10,6 +10,7 @@
         .nav {
             flex: 200px 0 1;
             flex-direction: column;
+            flex-wrap: nowrap;
             min-width: auto;
             width: auto;
         }

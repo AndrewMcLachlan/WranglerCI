@@ -1,12 +1,16 @@
 @scope (.badge) {
+
   /* moo-ds now drives backgrounds through CSS custom properties — overriding
      --badge-bg/--badge-fg cooperates with the design system instead of being
      overridden by its `background: var(--badge-bg)` declaration. */
   :scope {
-    --badge-bg: rgba(100, 149, 237, 0.15);
-    --badge-fg: cornflowerblue;
     font-size: 0.7rem;
     letter-spacing: 0.02em;
+  }
+
+  &.branch {
+    --badge-bg: rgba(100, 149, 237, 0.15);
+    --badge-fg: cornflowerblue;
   }
 
   &.bg-primary {
