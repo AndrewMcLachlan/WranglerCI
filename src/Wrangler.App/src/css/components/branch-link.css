@@ -1,0 +1,12 @@
+/* Wraps a branch Badge in a link to the GitHub PR list filtered to the branch.
+   Resets default anchor styling so the badge looks unchanged. */
+.branch-link {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.branch-link:hover .badge {
+  filter: brightness(1.15);
+}

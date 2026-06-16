@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import type { RepositoryModel, WorkflowModel, WorkflowRunModel } from "../../../../api";
 import { useWorkflows } from "../../-hooks/useWorkflows";
 import { Badge } from "../shared/Badge";
+import { BranchBadge } from "../shared/BranchBadge";
 
 interface WorkflowRunItem {
   repo: RepositoryModel;
@@ -30,7 +31,7 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
     field: (item: WorkflowRunItem) => item.run.headBranch,
     id: "branch",
     header: "Branch",
-    cell: ({ row }) => <Badge>{row.original.run.headBranch}</Badge>,
+    cell: ({ row }) => <BranchBadge run={row.original.run} />,
     enableSorting: true,
   },
   {

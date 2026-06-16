@@ -69,6 +69,13 @@
             border-radius: 50%;
             background: #ff4444;
         }
+
+        /* The Stack icon ships with a 112mm intrinsic size; constrain it so it
+           matches the other (32px) nav icons and its hit area stays in the button. */
+        .attention-link svg {
+            width: 2rem;
+            height: 2rem;
+        }
     }
 }
 

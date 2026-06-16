@@ -1,6 +1,6 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
 import type { WorkflowRunModel } from "../../../../api";
-import { Badge } from "../shared/Badge";
+import { BranchBadge } from "../shared/BranchBadge";
 import StatusIndicator from "../shared/StatusIndicator";
 import { DateTime } from "luxon";
 
@@ -15,7 +15,7 @@ export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun })
     <section className="workflow-run-card">
       <StatusIndicator status={workflowRun.workflowStatus} />
       <span className="conclusion">{workflowRun.conclusion}</span>
-      <Badge className="branch">{workflowRun.headBranch}</Badge>
+      <BranchBadge run={workflowRun} className="branch" />
       <span>{workflowRun.event}</span>
       <span>{workflowRun.runNumber}</span>
       <span>{workflowRun.triggeringActor}</span>
