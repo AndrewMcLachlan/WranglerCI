@@ -1,8 +1,8 @@
-import type { PropsWithChildren } from "react";
+import type { CSSProperties, PropsWithChildren } from "react";
 
-export const Badge: React.FC<PropsWithChildren<{ className?: string }>> = ({ className, children }) => {
+export const Badge: React.FC<PropsWithChildren<{ className?: string; style?: CSSProperties }>> = ({ className, style, children }) => {
   return (
-    <div className={`badge ${className || ''}`}>
+    <div className={`badge ${className || ''}`} style={style}>
       {children}
     </div>
   );

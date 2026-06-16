@@ -184,13 +184,13 @@ export const PullRequests = () => {
           {row.original.labels && row.original.labels.length > 0 && (
             <span className="pr-labels">
               {row.original.labels.map((label) => (
-                <span
+                <Badge
                   key={label.name}
-                  className="pr-label"
-                  style={{ backgroundColor: `#${label.color}`, color: labelTextColour(label.color) }}
+                  className="pr-label rounded-pill"
+                  style={{ "--badge-bg": `#${label.color}`, "--badge-fg": labelTextColour(label.color) } as React.CSSProperties}
                 >
                   {label.name}
-                </span>
+                </Badge>
               ))}
             </span>
           )}
