@@ -10,8 +10,8 @@ import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { Badge } from "@andrewmclachlan/moo-ds";
 import { CheckStatusBadge } from "./CheckStatusBadge";
-import { Badge } from "../../dashboard/-components/shared/Badge";
 import { NoRepositories } from "../../../components/NoRepositories";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
@@ -186,8 +186,10 @@ export const PullRequests = () => {
               {row.original.labels.map((label) => (
                 <Badge
                   key={label.name}
-                  className="pr-label rounded-pill"
-                  style={{ "--badge-bg": `#${label.color}`, "--badge-fg": labelTextColour(label.color) } as React.CSSProperties}
+                  className="pr-label"
+                  pill
+                  colour={`#${label.color}`}
+                  textColour={labelTextColour(label.color)}
                 >
                   {label.name}
                 </Badge>

@@ -147,9 +147,9 @@
         gap: 0.25rem;
     }
 
-    /* GitHub label colours arrive via inline --badge-bg/--badge-fg; here we
-       just shrink the moo-ds badge to the compact label size. The .rounded-pill
-       class gives the pill shape. */
+    /* The moo-ds Badge handles each GitHub label's colour (via its colour/
+       textColour props) and pill shape; here we only shrink it to the compact
+       label size. */
     .badge.pr-label {
         --badge-font-size: 0.7rem;
         --badge-padding-y: 0.1rem;
