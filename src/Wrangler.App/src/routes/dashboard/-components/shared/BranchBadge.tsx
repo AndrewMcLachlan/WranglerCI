@@ -1,6 +1,6 @@
 import type { MouseEventHandler } from "react";
+import { Badge } from "@andrewmclachlan/moo-ds";
 import type { WorkflowRunModel } from "../../../../api";
-import { Badge } from "./Badge";
 
 // run.htmlUrl looks like https://github.com/{owner}/{repo}/actions/runs/{id}.
 // The repo base is everything before /actions/, which we turn into the Actions

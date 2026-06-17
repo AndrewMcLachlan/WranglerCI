@@ -10,8 +10,8 @@ import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { Badge } from "@andrewmclachlan/moo-ds";
 import { CheckStatusBadge } from "./CheckStatusBadge";
-import { Badge } from "../../dashboard/-components/shared/Badge";
 import { NoRepositories } from "../../../components/NoRepositories";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
@@ -26,19 +26,6 @@ const STATUS_DOT: Record<CheckStatus, string> = {
   Failure: "red",
   Pending: "amber",
   Unknown: "grey",
-};
-
-// Pick legible foreground for a GitHub label colour, which arrives as a
-// six-digit hex string with no leading '#'.
-const labelTextColour = (hex: string): string => {
-  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "#000";
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  // Relative luminance per WCAG; the 0.5 threshold matches GitHub's own
-  // black/white text choice for labels closely enough.
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? "#000" : "#fff";
 };
 
 const prKey = (owner: string, repo: string, number: number | string) =>
@@ -184,13 +171,15 @@ export const PullRequests = () => {
           {row.original.labels && row.original.labels.length > 0 && (
             <span className="pr-labels">
               {row.original.labels.map((label) => (
-                <span
+                <Badge
                   key={label.name}
                   className="pr-label"
-                  style={{ backgroundColor: `#${label.color}`, color: labelTextColour(label.color) }}
+                  pill
+                  muted
+                  colour={`#${label.color}`}
                 >
                   {label.name}
-                </span>
+                </Badge>
               ))}
             </span>
           )}
