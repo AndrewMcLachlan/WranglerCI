@@ -1,8 +1,7 @@
-import { DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
+import { Badge, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { DateTime } from "luxon";
 import type { RepositoryModel, WorkflowModel, WorkflowRunModel } from "../../../../api";
 import { useWorkflows } from "../../-hooks/useWorkflows";
-import { Badge } from "../shared/Badge";
 import { BranchBadge } from "../shared/BranchBadge";
 
 interface WorkflowRunItem {

@@ -28,19 +28,6 @@ const STATUS_DOT: Record<CheckStatus, string> = {
   Unknown: "grey",
 };
 
-// Pick legible foreground for a GitHub label colour, which arrives as a
-// six-digit hex string with no leading '#'.
-const labelTextColour = (hex: string): string => {
-  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return "#000";
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  // Relative luminance per WCAG; the 0.5 threshold matches GitHub's own
-  // black/white text choice for labels closely enough.
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.5 ? "#000" : "#fff";
-};
-
 const prKey = (owner: string, repo: string, number: number | string) =>
   `${owner}/${repo}#${number}`;
 
@@ -188,8 +175,8 @@ export const PullRequests = () => {
                   key={label.name}
                   className="pr-label"
                   pill
+                  muted
                   colour={`#${label.color}`}
-                  textColour={labelTextColour(label.color)}
                 >
                   {label.name}
                 </Badge>
