@@ -1,0 +1,41 @@
+@scope (.gates) {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+
+    h2 {
+        font-size: 1.3rem;
+        margin: 0;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex: 0 0 auto;
+    }
+
+    .gate-open-link {
+        color: rgba(255, 255, 255, 0.45);
+        transition: color 0.15s;
+
+        &:hover {
+            color: var(--primary);
+        }
+    }
+
+    .badge.gate-environment {
+        --badge-font-size: 0.72rem;
+        --badge-padding-y: 0.1rem;
+        --badge-padding-x: 0.5rem;
+    }
+}
