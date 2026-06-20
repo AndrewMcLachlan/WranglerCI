@@ -1,5 +1,5 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import { Cog, Dashboard, PullRequest, Stack } from "@andrewmclachlan/moo-icons";
+import { Cog, Dashboard, PullRequest, Stack, UserShield } from "@andrewmclachlan/moo-icons";
 import { Link } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
 import { UserMenu } from "./UserMenu";
@@ -32,6 +32,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
               </li>
               <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
               <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
+              <li><Link to="/gates" title="Deployment gates"><Icon icon={UserShield} /></Link></li>
               <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
             </ul>
           </nav>

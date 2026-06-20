@@ -72,6 +72,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<ISettingsService, SettingsService>();
     builder.Services.AddScoped<IPullRequestService, PullRequestService>();
     builder.Services.AddScoped<IAttentionService, AttentionService>();
+    builder.Services.AddScoped<IGateService, GateService>();
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
     builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
@@ -270,6 +271,8 @@ static void AddApp(WebApplication app)
     api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
 
     api.MapPost("attention", AttentionHandler.Handle).DisableAntiforgery();
+    api.MapPost("gates", GatesHandler.Handle).DisableAntiforgery();
+    api.MapPost("gates/approve", ApproveGatesHandler.Handle);
 
     api.MapGet("events/stream", EventStreamHandler.Handle).ExcludeFromDescription();
 
