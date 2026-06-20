@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as GatesRouteImport } from './routes/gates'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AttentionRouteImport } from './routes/attention'
 import { Route as IndexRouteImport } from './routes/index'
@@ -22,6 +23,11 @@ import { Route as DashboardListRouteImport } from './routes/dashboard/list'
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GatesRoute = GatesRouteImport.update({
+  id: '/gates',
+  path: '/gates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/attention': typeof AttentionRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/gates': typeof GatesRoute
   '/privacy': typeof PrivacyRoute
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/nested': typeof DashboardNestedRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/attention': typeof AttentionRoute
+  '/gates': typeof GatesRoute
   '/privacy': typeof PrivacyRoute
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/nested': typeof DashboardNestedRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/attention': typeof AttentionRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/gates': typeof GatesRoute
   '/privacy': typeof PrivacyRoute
   '/dashboard/list': typeof DashboardListRoute
   '/dashboard/nested': typeof DashboardNestedRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
     | '/'
     | '/attention'
     | '/dashboard'
+    | '/gates'
     | '/privacy'
     | '/dashboard/list'
     | '/dashboard/nested'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/attention'
+    | '/gates'
     | '/privacy'
     | '/dashboard/list'
     | '/dashboard/nested'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/attention'
     | '/dashboard'
+    | '/gates'
     | '/privacy'
     | '/dashboard/list'
     | '/dashboard/nested'
@@ -137,6 +149,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AttentionRoute: typeof AttentionRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  GatesRoute: typeof GatesRoute
   PrivacyRoute: typeof PrivacyRoute
   PullRequestsIndexRoute: typeof PullRequestsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -149,6 +162,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gates': {
+      id: '/gates'
+      path: '/gates'
+      fullPath: '/gates'
+      preLoaderRoute: typeof GatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -230,6 +250,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AttentionRoute: AttentionRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  GatesRoute: GatesRoute,
   PrivacyRoute: PrivacyRoute,
   PullRequestsIndexRoute: PullRequestsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
