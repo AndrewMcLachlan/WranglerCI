@@ -13,6 +13,11 @@
             flex-wrap: nowrap;
             min-width: auto;
             width: auto;
+
+            /* Mute repos with no workflows so it's obvious they can't be selected. */
+            .nav-link.disabled {
+                opacity: 0.4;
+            }
         }
     }
 }
