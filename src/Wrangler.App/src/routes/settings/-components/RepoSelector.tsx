@@ -19,6 +19,7 @@ export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> 
                 key={repo.name}
                 active={selectedRepo?.name === repo.name}
                 disabled={disabled}
+                title={disabled ? "No GitHub Actions workflows" : undefined}
                 onClick={() => !disabled && setSelectedRepo(repo)}
               >
                 {repo.name}
