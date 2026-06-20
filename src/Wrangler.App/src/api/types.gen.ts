@@ -28,6 +28,10 @@ export type ApprovalResult = {
     error?: null | string;
 };
 
+export type ApproveGatesRequest = {
+    gates?: Array<GateRef>;
+};
+
 export type ApprovePullRequestsRequest = {
     pullRequests?: Array<PullRequestReference>;
 };
@@ -65,6 +69,43 @@ export type CurrentUserModel = {
 
 export type DependabotSecurityUpdates = {
     status?: null | string;
+};
+
+export type DeploymentGateModel = {
+    repositoryOwner: string;
+    repositoryName: string;
+    workflowRunId: number | string;
+    runNumber: number | string;
+    workflowName: string;
+    headBranch: string;
+    event: string;
+    htmlUrl: string;
+    createdAt: string;
+    updatedAt: string;
+    environmentId: number | string;
+    environmentName: string;
+    currentUserCanApprove: boolean;
+};
+
+export type GateApprovalResult = {
+    repositoryOwner: string;
+    repositoryName: string;
+    workflowRunId: number | string;
+    environmentName: string;
+    approved: boolean;
+    error?: null | string;
+};
+
+export type GateRef = {
+    owner: string;
+    repo: string;
+    runId: number | string;
+    environmentId: number | string;
+    environmentName: string;
+};
+
+export type GatesRequest = {
+    repositories?: Array<RepositoryRequest>;
 };
 
 export type LicenseMetadata = {
@@ -463,3 +504,35 @@ export type PostAttentionResponses = {
 };
 
 export type PostAttentionResponse = PostAttentionResponses[keyof PostAttentionResponses];
+
+export type PostGatesData = {
+    body: GatesRequest;
+    path?: never;
+    query?: never;
+    url: '/gates';
+};
+
+export type PostGatesResponses = {
+    /**
+     * OK
+     */
+    200: Array<DeploymentGateModel>;
+};
+
+export type PostGatesResponse = PostGatesResponses[keyof PostGatesResponses];
+
+export type PostGatesApproveData = {
+    body: ApproveGatesRequest;
+    path?: never;
+    query?: never;
+    url: '/gates/approve';
+};
+
+export type PostGatesApproveResponses = {
+    /**
+     * OK
+     */
+    200: Array<GateApprovalResult>;
+};
+
+export type PostGatesApproveResponse = PostGatesApproveResponses[keyof PostGatesApproveResponses];

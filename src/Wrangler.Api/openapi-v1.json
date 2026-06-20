@@ -309,6 +309,70 @@
           }
         }
       }
+    },
+    "/gates": {
+      "post": {
+        "tags": [
+          "GatesHandler"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GatesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeploymentGateModel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gates/approve": {
+      "post": {
+        "tags": [
+          "ApproveGatesHandler"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveGatesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GateApprovalResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -403,6 +467,17 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "ApproveGatesRequest": {
+        "type": "object",
+        "properties": {
+          "gates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GateRef"
+            }
           }
         }
       },
@@ -546,6 +621,168 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "DeploymentGateModel": {
+        "required": [
+          "repositoryOwner",
+          "repositoryName",
+          "workflowRunId",
+          "runNumber",
+          "workflowName",
+          "headBranch",
+          "event",
+          "htmlUrl",
+          "createdAt",
+          "updatedAt",
+          "environmentId",
+          "environmentName",
+          "currentUserCanApprove"
+        ],
+        "type": "object",
+        "properties": {
+          "repositoryOwner": {
+            "type": "string"
+          },
+          "repositoryName": {
+            "type": "string"
+          },
+          "workflowRunId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "runNumber": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "workflowName": {
+            "type": "string"
+          },
+          "headBranch": {
+            "type": "string"
+          },
+          "event": {
+            "type": "string"
+          },
+          "htmlUrl": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "environmentId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "environmentName": {
+            "type": "string"
+          },
+          "currentUserCanApprove": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GateApprovalResult": {
+        "required": [
+          "repositoryOwner",
+          "repositoryName",
+          "workflowRunId",
+          "environmentName",
+          "approved"
+        ],
+        "type": "object",
+        "properties": {
+          "repositoryOwner": {
+            "type": "string"
+          },
+          "repositoryName": {
+            "type": "string"
+          },
+          "workflowRunId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "environmentName": {
+            "type": "string"
+          },
+          "approved": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "GateRef": {
+        "required": [
+          "owner",
+          "repo",
+          "runId",
+          "environmentId",
+          "environmentName"
+        ],
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "runId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "environmentId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "environmentName": {
+            "type": "string"
+          }
+        }
+      },
+      "GatesRequest": {
+        "type": "object",
+        "properties": {
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepositoryRequest"
+            }
           }
         }
       },
@@ -1663,6 +1900,12 @@
     },
     {
       "name": "AttentionHandler"
+    },
+    {
+      "name": "GatesHandler"
+    },
+    {
+      "name": "ApproveGatesHandler"
     }
   ]
 }

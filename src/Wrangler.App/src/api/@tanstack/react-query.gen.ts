@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions, useQuery } fr
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { getMe, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postAttention, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
-import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostAttentionData, PostAttentionResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
+import { getMe, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postAttention, postGates, postGatesApprove, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
+import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostAttentionData, PostAttentionResponse, PostGatesApproveData, PostGatesApproveResponse, PostGatesData, PostGatesResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -165,6 +165,34 @@ export const postAttentionMutation = (options?: Partial<Options<PostAttentionDat
     const mutationOptions: UseMutationOptions<PostAttentionResponse, AxiosError<DefaultError>, Options<PostAttentionData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postAttention({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const postGatesMutation = (options?: Partial<Options<PostGatesData>>): UseMutationOptions<PostGatesResponse, AxiosError<DefaultError>, Options<PostGatesData>> => {
+    const mutationOptions: UseMutationOptions<PostGatesResponse, AxiosError<DefaultError>, Options<PostGatesData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postGates({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const postGatesApproveMutation = (options?: Partial<Options<PostGatesApproveData>>): UseMutationOptions<PostGatesApproveResponse, AxiosError<DefaultError>, Options<PostGatesApproveData>> => {
+    const mutationOptions: UseMutationOptions<PostGatesApproveResponse, AxiosError<DefaultError>, Options<PostGatesApproveData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postGatesApprove({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
