@@ -548,22 +548,29 @@ git commit -m "Map gate list and approve endpoints (#142)"
 
 ### Task 5: Regenerate the frontend API client
 
+The client is generated from the **static** `src/Wrangler.Api/openapi-v1.json`. The
+API csproj has `OpenApiGenerateDocuments=true` (via `Microsoft.Extensions.ApiDescription.Server`),
+so a normal `dotnet build` of the API re-emits that file — no running server is
+needed. `openapi-ts.config.ts` reads it as its `input`.
+
 **Files:**
+- Modify (build artifact, checked in): `src/Wrangler.Api/openapi-v1.json`
 - Modify (generated, do not hand-edit): `src/Wrangler.App/src/api/*`
 
 **Interfaces:**
 - Consumes: the `/api/gates` and `/api/gates/approve` endpoints (Task 4).
 - Produces (generated names later tasks import): `postGates`, `postGatesApprove` (from `sdk.gen.ts`); types `DeploymentGateModel`, `GateApprovalResult`, `GateRef`, `GatesRequest`, `ApproveGatesRequest` (re-exported via `src/api/index.ts`).
 
-- [ ] **Step 1: Start the backend on localhost:5010**
+- [ ] **Step 1: Build the API to refresh the OpenAPI document**
 
-Run (leave running in its own shell):
-`cd src/Wrangler.Api && dotnet run --launch-profile "Full App"`
-Expected: listening on http://localhost:5010 and https://localhost:7010.
+Run: `cd src/Wrangler.Api && dotnet build`
+Expected: build succeeds; `src/Wrangler.Api/openapi-v1.json` now contains `/gates` and `/gates/approve` paths. Confirm with:
+`grep -n "/gates" src/Wrangler.Api/openapi-v1.json`
+Expected: matches for both `/gates` and `/gates/approve`.
 
 - [ ] **Step 2: Regenerate the client**
 
-Run (separate shell): `cd src/Wrangler.App && npm run generate`
+Run: `cd src/Wrangler.App && npm run generate`
 Expected: files under `src/api/` updated; `git status` shows changes in `sdk.gen.ts`, `types.gen.ts`, `@tanstack/react-query.gen.ts`.
 
 - [ ] **Step 3: Confirm the new symbols were generated**
@@ -571,19 +578,15 @@ Expected: files under `src/api/` updated; `git status` shows changes in `sdk.gen
 Run: `grep -n "postGates\b\|postGatesApprove\|GateApprovalResult\|DeploymentGateModel\|GateRef" src/Wrangler.App/src/api/sdk.gen.ts src/Wrangler.App/src/api/types.gen.ts`
 Expected: matches for `postGates`, `postGatesApprove`, and each type. If `GateRef` is absent, confirm it appears nested in `ApproveGatesRequest` and adjust Task 6's import accordingly.
 
-- [ ] **Step 4: Stop the backend**
-
-Stop the `dotnet run` process from Step 1.
-
-- [ ] **Step 5: Verify the frontend still builds**
+- [ ] **Step 4: Verify the frontend still builds**
 
 Run: `cd src/Wrangler.App && npm run build`
 Expected: build succeeds.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/Wrangler.App/src/api
+git add src/Wrangler.Api/openapi-v1.json src/Wrangler.App/src/api
 git commit -m "Regenerate API client with gate endpoints (#142)"
 ```
 
