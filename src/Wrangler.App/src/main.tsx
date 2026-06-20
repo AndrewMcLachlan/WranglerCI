@@ -7,7 +7,7 @@ import { configureInterceptors } from "./utils/axiosInterceptors.ts"
 
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faListUl, faLongArrowDown, faLongArrowUp, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 
 import { routeTree } from './routeTree.gen'
 import { Spinner } from "./components/Spinner"
@@ -16,7 +16,7 @@ import { NavLnk } from "./components/NavLink"
 import { client } from "./api/client.gen.ts"
 import { registerServiceWorker } from "./pwa/registerServiceWorker"
 
-library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle);
+library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faListUl, faLongArrowDown, faLongArrowUp, faTimesCircle);
 
 registerServiceWorker();
 
