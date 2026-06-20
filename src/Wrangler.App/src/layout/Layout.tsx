@@ -32,6 +32,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
               </li>
               <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
               <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
+              <li><Link to="/gates" title="Deployment gates"><Icon icon="shield-halved" /></Link></li>
               <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
             </ul>
           </nav>
