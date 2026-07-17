@@ -36,7 +36,7 @@ export const usePrRepositories = () => {
   return useQuery({
     queryKey: ["prRepositories", data],
     queryFn: () => data,
-    initialData: [],
+    initialData: data,
   });
 };
 

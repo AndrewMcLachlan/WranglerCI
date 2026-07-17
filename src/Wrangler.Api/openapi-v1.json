@@ -68,6 +68,38 @@
         }
       }
     },
+    "/users/search": {
+      "get": {
+        "tags": [
+          "UserSearchHandler"
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserSearchResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/workflows": {
       "post": {
         "tags": [
@@ -1683,6 +1715,29 @@
           }
         }
       },
+      "UserSearchResult": {
+        "required": [
+          "login"
+        ],
+        "type": "object",
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "avatarUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "WorkflowBase": {
         "required": [
           "nodeId",
@@ -1882,6 +1937,9 @@
     },
     {
       "name": "GroupedRepositoriesHandler"
+    },
+    {
+      "name": "UserSearchHandler"
     },
     {
       "name": "WorkflowsHandler"

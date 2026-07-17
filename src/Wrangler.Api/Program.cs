@@ -73,6 +73,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<IPullRequestService, PullRequestService>();
     builder.Services.AddScoped<IAttentionService, AttentionService>();
     builder.Services.AddScoped<IGateService, GateService>();
+    builder.Services.AddScoped<IUserSearchService, UserSearchService>();
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
     builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
@@ -258,6 +259,7 @@ static void AddApp(WebApplication app)
     api.MapGet("me", MeHandler.Handle);
     api.MapGet("repositories", RepositoriesHandler.Handle);
     api.MapGet("repositories/grouped", GroupedRepositoriesHandler.Handle);
+    api.MapGet("users/search", UserSearchHandler.Handle);
     api.MapPost("workflows", WorkflowsHandler.Handle).DisableAntiforgery();
 
     api.MapPost("repositories/{owner}/{repo}/workflows/", RepositoriesWorkflowsHandler.Handle)

@@ -10,6 +10,7 @@ import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
 import { usePrIncludeTags, usePrExcludeTags } from "../-hooks/usePrTagFilter";
 import { usePrRepositories, useUpdatePrRepositories } from "../-hooks/usePrRepositories";
+import { useUserSearch } from "../-hooks/useUserSearch";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { useRepositories } from "../../../hooks/useRepositories";
 import { Badge } from "@andrewmclachlan/moo-ds";
@@ -64,6 +65,9 @@ export const PullRequests = () => {
   const [excludeTags, setExcludeTags] = usePrExcludeTags();
   const [alerts, setAlerts] = useState<ApprovalResult[]>([]);
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
+  const [authorQuery, setAuthorQuery] = useState("");
+  const [authorFocused, setAuthorFocused] = useState(false);
+  const { data: authorSuggestions } = useUserSearch(authorQuery);
 
   const { mutate: approvePullRequests, isPending: isApproving } = useApprovePullRequests({
     onResults: (results) => {
@@ -213,24 +217,31 @@ export const PullRequests = () => {
     // selected so the user can act on them again.
   };
 
-  const checkInput = (e: React.FocusEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.type === "keyup") {
-      const keyEvent = e as React.KeyboardEvent<HTMLInputElement>;
-      if (keyEvent.key !== "Enter" && keyEvent.key !== " " && keyEvent.key !== "," && keyEvent.key !== ";") {
-        return;
-      }
+  // Add an author by exact login — used both for typeahead selections and for
+  // typing a login directly (so bots like dependabot[bot], which user search
+  // won't surface, stay addable).
+  const addAuthor = (value: string) => {
+    const login = value.trim().replace(/[,;]/g, "");
+    if (login !== "" && !authors.includes(login)) {
+      updateAuthors([...authors, login]);
+    }
+    setAuthorQuery("");
+  };
+
+  const checkInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter" && e.key !== " " && e.key !== "," && e.key !== ";") {
+      return;
     }
     e.preventDefault();
-    const value = e.currentTarget.value.trim();
-    if (value !== "" && !authors.includes(value)) {
-      updateAuthors([...authors, value]);
-      e.currentTarget.value = "";
-    }
+    addAuthor(authorQuery);
   };
 
   const removeAuthor = (author: string) => {
     updateAuthors(authors.filter(a => a !== author));
   };
+
+  const showAuthorSuggestions =
+    authorFocused && authorQuery.trim().length >= 2 && (authorSuggestions?.length ?? 0) > 0;
 
   const columns: ColumnDef<PullRequestModel>[] = useMemo(() => [
     {
@@ -336,7 +347,33 @@ export const PullRequests = () => {
           />
         </div>
         <div className="pr-filters">
-          <input type="text" className="form-control author-input" placeholder="Add author filter..." onKeyUp={checkInput} onBlur={checkInput} />
+          <div className="author-filter">
+            <input
+              type="text"
+              className="form-control author-input"
+              placeholder="Filter by author..."
+              value={authorQuery}
+              onChange={(e) => setAuthorQuery(e.target.value)}
+              onKeyUp={checkInput}
+              onFocus={() => setAuthorFocused(true)}
+              onBlur={() => setAuthorFocused(false)}
+              role="combobox"
+              aria-expanded={showAuthorSuggestions}
+              aria-autocomplete="list"
+            />
+            {showAuthorSuggestions && (
+              <ul className="author-suggestions" role="listbox">
+                {authorSuggestions!.map((user) => (
+                  // onMouseDown fires before the input's blur, so the click registers.
+                  <li key={user.login} role="option" aria-selected={false} onMouseDown={() => addAuthor(user.login)}>
+                    {user.avatarUrl && <img className="author-suggestion-avatar" src={user.avatarUrl} alt="" />}
+                    <span className="author-suggestion-login">{user.login}</span>
+                    {user.name && <span className="author-suggestion-name">{user.name}</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <div className="status-filter" role="group" aria-label="Filter by check status">
             {STATUS_OPTIONS.map((status) => (
               <button
