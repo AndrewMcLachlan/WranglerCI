@@ -94,7 +94,10 @@ export const useWorkflows = () => {
     queryFn: async () => {
       var result = await postWorkflows({
         body: {
-          repositories: selectedRepositories,
+          // A repo with no selected workflows has nothing to show on the
+          // dashboard, so exclude it here rather than fetch and render an
+          // empty card (issue #172). The entry stays in settings/PR scope.
+          repositories: selectedRepositories.filter((r) => (r.workflows?.length ?? 0) > 0),
           branchFilters: branchFilter?.length ? branchFilter : undefined,
         }
       })

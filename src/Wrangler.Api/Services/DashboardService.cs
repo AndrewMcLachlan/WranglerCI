@@ -119,7 +119,10 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
             workflowRuns.AddRange(runTask.Result);
         }
 
-        foreach (var workflowRepo in workflows)
+        // Skip repos whose selected workflows resolved to nothing (e.g. all
+        // workflows deselected in settings) so the dashboard doesn't render an
+        // empty card for them (issue #172).
+        foreach (var workflowRepo in workflows.Where(wr => wr.Value.Any()))
         {
             results.Add(new RepositoryModel
             {
