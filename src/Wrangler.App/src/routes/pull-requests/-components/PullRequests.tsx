@@ -310,29 +310,35 @@ export const PullRequests = () => {
               <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
             ))}
           </div>
-          <div className="tag-filters">
-            <ComboBox<TagOption>
-              className="tag-filter tag-filter-include"
-              placeholder="Include tags..."
-              multiSelect
-              items={availableTags}
-              selectedItems={includeTagOptions}
-              labelField={(t) => t.name}
-              valueField={(t) => t.name}
-              colourField={(t) => `#${t.color}`}
-              onChange={(items) => setIncludeTags(items.map((t) => t.name))}
-            />
-            <ComboBox<TagOption>
-              className="tag-filter tag-filter-exclude"
-              placeholder="Exclude tags..."
-              multiSelect
-              items={availableTags}
-              selectedItems={excludeTagOptions}
-              labelField={(t) => t.name}
-              valueField={(t) => t.name}
-              colourField={(t) => `#${t.color}`}
-              onChange={(items) => setExcludeTags(items.map((t) => t.name))}
-            />
+          <div className="tag-filters" role="group" aria-label="Filter by tag">
+            <div className="tag-filter-group">
+              <span className="tag-filter-label"><span className="tag-dot include" />Include</span>
+              <ComboBox<TagOption>
+                className="tag-filter"
+                placeholder="Add tags..."
+                multiSelect
+                items={availableTags}
+                selectedItems={includeTagOptions}
+                labelField={(t) => t.name}
+                valueField={(t) => t.name}
+                colourField={(t) => `#${t.color}`}
+                onChange={(items) => setIncludeTags(items.map((t) => t.name))}
+              />
+            </div>
+            <div className="tag-filter-group">
+              <span className="tag-filter-label"><span className="tag-dot exclude" />Exclude</span>
+              <ComboBox<TagOption>
+                className="tag-filter"
+                placeholder="Add tags..."
+                multiSelect
+                items={availableTags}
+                selectedItems={excludeTagOptions}
+                labelField={(t) => t.name}
+                valueField={(t) => t.name}
+                colourField={(t) => `#${t.color}`}
+                onChange={(items) => setExcludeTags(items.map((t) => t.name))}
+              />
+            </div>
           </div>
         </div>
         <div className="actions">
