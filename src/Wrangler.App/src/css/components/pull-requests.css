@@ -117,11 +117,10 @@
         opacity: 1;
     }
 
-    /* The include/exclude tag pickers sit on their own full-width row below the
-       author/status filters, mirroring how the author badges wrap. Each picker
-       is paired with a dotted label that echoes the status-chip colour cues. */
+    /* The include/exclude tag pickers sit inline on the first row alongside the
+       status chips. Each picker is paired with a dotted label that echoes the
+       status-chip colour cues. */
     .tag-filters {
-        flex-basis: 100%;
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem 1.5rem;

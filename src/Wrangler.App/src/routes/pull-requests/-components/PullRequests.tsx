@@ -305,11 +305,6 @@ export const PullRequests = () => {
               </button>
             ))}
           </div>
-          <div className="author-badges">
-            {authors.map(author => (
-              <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
-            ))}
-          </div>
           <div className="tag-filters" role="group" aria-label="Filter by tag">
             <div className="tag-filter-group">
               <span className="tag-filter-label"><span className="tag-dot include" />Include</span>
@@ -339,6 +334,11 @@ export const PullRequests = () => {
                 onChange={(items) => setExcludeTags(items.map((t) => t.name))}
               />
             </div>
+          </div>
+          <div className="author-badges">
+            {authors.map(author => (
+              <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
+            ))}
           </div>
         </div>
         <div className="actions">
