@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Alert, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
+import { Alert, ComboBox, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { CloseBadge } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
+import { usePrIncludeTags, usePrExcludeTags } from "../-hooks/usePrTagFilter";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { Badge } from "@andrewmclachlan/moo-ds";
@@ -31,6 +32,15 @@ const STATUS_DOT: Record<CheckStatus, string> = {
 const prKey = (owner: string, repo: string, number: number | string) =>
   `${owner}/${repo}#${number}`;
 
+interface TagOption {
+  name: string;
+  color: string;
+}
+
+// Fallback colour (6-char hex, no leading '#') for a persisted tag that is not
+// present on any currently-loaded PR, so its chip still renders.
+const FALLBACK_TAG_COLOUR = "6e7681";
+
 export const PullRequests = () => {
 
   const queryClient = useQueryClient();
@@ -39,6 +49,8 @@ export const PullRequests = () => {
   const { mutate: updateAuthors } = useUpdatePrAuthors();
   const { data: pullRequests, isLoading, isError, error } = usePullRequests();
   const [statusFilter, setStatusFilter] = usePrStatusFilter();
+  const [includeTags, setIncludeTags] = usePrIncludeTags();
+  const [excludeTags, setExcludeTags] = usePrExcludeTags();
   const [alerts, setAlerts] = useState<ApprovalResult[]>([]);
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
 
@@ -88,9 +100,44 @@ export const PullRequests = () => {
     setStatusFilter([...next]);
   };
 
+  // Deduplicated union of labels across the loaded PRs (first-seen colour wins),
+  // sorted by name — this is the typeahead suggestion set for both tag filters.
+  const availableTags = useMemo<TagOption[]>(() => {
+    const byName = new Map<string, string>();
+    for (const pr of pullRequests ?? []) {
+      for (const label of pr.labels ?? []) {
+        if (!byName.has(label.name)) byName.set(label.name, label.color);
+      }
+    }
+    return [...byName.entries()]
+      .map(([name, color]) => ({ name, color }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [pullRequests]);
+
+  // Resolve stored tag names to options, falling back to a neutral colour for a
+  // persisted tag that is no longer on any loaded PR so its chip still renders.
+  const toTagOptions = (names: string[]): TagOption[] => {
+    const colours = new Map(availableTags.map((t) => [t.name, t.color]));
+    return names.map((name) => ({ name, color: colours.get(name) ?? FALLBACK_TAG_COLOUR }));
+  };
+  const includeTagOptions = useMemo(() => toTagOptions(includeTags), [includeTags, availableTags]);
+  const excludeTagOptions = useMemo(() => toTagOptions(excludeTags), [excludeTags, availableTags]);
+
+  const includeSet = useMemo(() => new Set(includeTags), [includeTags]);
+  const excludeSet = useMemo(() => new Set(excludeTags), [excludeTags]);
+
   const visiblePullRequests = useMemo(
-    () => (pullRequests ?? []).filter((pr) => statusSet.size === 0 || statusSet.has(pr.checkStatus)),
-    [pullRequests, statusSet],
+    () => (pullRequests ?? []).filter((pr) => {
+      if (statusSet.size !== 0 && !statusSet.has(pr.checkStatus)) return false;
+      const labelNames = (pr.labels ?? []).map((l) => l.name);
+      // Inclusive filter (OR): empty means no constraint.
+      if (includeSet.size !== 0 && !labelNames.some((n) => includeSet.has(n))) return false;
+      // Exclusive filter: any match hides the PR. Applied after include, so a
+      // tag in both include and exclude resolves pessimistically (hidden).
+      if (labelNames.some((n) => excludeSet.has(n))) return false;
+      return true;
+    }),
+    [pullRequests, statusSet, includeSet, excludeSet],
   );
   const approvable = visiblePullRequests.filter(canApprove);
 
@@ -257,6 +304,36 @@ export const PullRequests = () => {
                 {status}
               </button>
             ))}
+          </div>
+          <div className="tag-filters" role="group" aria-label="Filter by tag">
+            <div className="tag-filter-group">
+              <span className="tag-filter-label"><span className="tag-dot include" />Include</span>
+              <ComboBox<TagOption>
+                className="tag-filter"
+                placeholder="Add tags..."
+                multiSelect
+                items={availableTags}
+                selectedItems={includeTagOptions}
+                labelField={(t) => t.name}
+                valueField={(t) => t.name}
+                colourField={(t) => `#${t.color}`}
+                onChange={(items) => setIncludeTags(items.map((t) => t.name))}
+              />
+            </div>
+            <div className="tag-filter-group">
+              <span className="tag-filter-label"><span className="tag-dot exclude" />Exclude</span>
+              <ComboBox<TagOption>
+                className="tag-filter"
+                placeholder="Add tags..."
+                multiSelect
+                items={availableTags}
+                selectedItems={excludeTagOptions}
+                labelField={(t) => t.name}
+                valueField={(t) => t.name}
+                colourField={(t) => `#${t.color}`}
+                onChange={(items) => setExcludeTags(items.map((t) => t.name))}
+              />
+            </div>
           </div>
           <div className="author-badges">
             {authors.map(author => (
