@@ -1,39 +1,40 @@
-# GitHub Actions Dashboard
+# Wrangler
+
+A GitHub Actions & pull request dashboard.
 
 ## Project Structure
 
-- `src/GitHubActionsDashboard.Api/` — .NET backend (ASP.NET Core minimal API)
-- `src/GitHubActionsDashboard.App/` — React frontend (Vite + TanStack Router)
+- `src/Wrangler.Api/` — .NET backend (ASP.NET Core minimal API)
+- `src/Wrangler.App/` — React frontend (Vite + TanStack Router)
 
 ## Build Commands
 
 ### Backend
 ```bash
-cd src/GitHubActionsDashboard.Api && dotnet build
+cd src/Wrangler.Api && dotnet build
 ```
 
 ### Frontend
 ```bash
-cd src/GitHubActionsDashboard.App && npm run build
+cd src/Wrangler.App && npm run build
 ```
 
 ## API Client Generation
 
-The frontend API client (`src/GitHubActionsDashboard.App/src/api/`) is auto-generated from the backend's OpenAPI spec. **Do not manually edit files in `src/api/`.**
+The frontend API client (`src/Wrangler.App/src/api/`) is auto-generated from the backend's OpenAPI spec. **Do not manually edit files in `src/api/`.**
+
+The OpenAPI document (`src/Wrangler.Api/openapi-v1.json`) is generated at **build time** by `Microsoft.Extensions.ApiDescription.Server` (`OpenApiGenerateDocuments` is enabled in `Wrangler.Api.csproj`). `npm run generate` reads that file (see `openapi-ts.config.ts`), so the backend does **not** need to be running.
 
 To regenerate after backend model/endpoint changes:
 
-1. Start the backend (it must be reachable on http://localhost:5010):
+1. Build the backend to refresh the spec file:
    ```bash
-   cd src/GitHubActionsDashboard.Api && dotnet run --launch-profile "Full App"
+   cd src/Wrangler.Api && dotnet build
    ```
-2. In a separate shell, regenerate the client:
+2. In the frontend, regenerate the client:
    ```bash
-   cd src/GitHubActionsDashboard.App && npm run generate
+   cd src/Wrangler.App && npm run generate
    ```
-3. Stop the backend process.
-
-The `Full App` launch profile listens on both http://localhost:5010 and https://localhost:7010; the http URL matches the openapi-ts config.
 
 ## Key Conventions
 
