@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { usePrRepositories } from "./usePrRepositories";
 import { usePrAuthors } from "./usePrAuthors";
 import { postPullRequests } from "../../../api";
 
 export const usePullRequests = () => {
 
-  const { data: selectedRepositories } = useSelectedRepositories();
+  const { data: prRepositories } = usePrRepositories();
   const { data: authors } = usePrAuthors();
 
-  const repositories = selectedRepositories.map(r => ({ owner: r.owner, name: r.name }));
+  const repositories = prRepositories.map(r => ({ owner: r.owner, name: r.name }));
 
   return useQuery({
     queryKey: ["pullRequests", repositories, authors],

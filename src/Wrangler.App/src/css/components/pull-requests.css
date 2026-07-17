@@ -30,6 +30,30 @@
         min-width: 0;
     }
 
+    /* The PR view's own repository scope (issue #143) sits on its own row at
+       the top of the controls, above the author/status/tag filters. */
+    .pr-repositories {
+        flex-basis: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .pr-repositories-label {
+        font-size: 0.78rem;
+        color: rgba(255, 255, 255, 0.55);
+        white-space: nowrap;
+    }
+
+    .repository-scope {
+        --input-padding-v: 0.375rem;
+        --input-padding-h: 0.75rem;
+        flex: 1 1 auto;
+        min-width: 240px;
+        max-width: 520px;
+        font-size: 0.85rem;
+    }
+
     .author-input {
         max-width: 300px;
         background: rgba(255, 255, 255, 0.04);
