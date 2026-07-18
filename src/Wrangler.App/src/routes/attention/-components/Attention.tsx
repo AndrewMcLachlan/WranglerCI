@@ -12,17 +12,42 @@ const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long
 const TYPE_LABEL: Record<AttentionItemType, string> = {
   WorkflowFailure: "Workflow failed",
   PullRequestReview: "Review requested",
+  SecurityAlert: "Security alert",
 };
 
+// Class used for the filter-chip dot per type. Security-alert item badges are
+// coloured by severity instead (see badgeClass).
 const TYPE_CLASS: Record<AttentionItemType, string> = {
   WorkflowFailure: "red",
   PullRequestReview: "amber",
+  SecurityAlert: "purple",
 };
 
-const TYPE_OPTIONS: AttentionItemType[] = ["WorkflowFailure", "PullRequestReview"];
+const TYPE_OPTIONS: AttentionItemType[] = ["WorkflowFailure", "PullRequestReview", "SecurityAlert"];
+
+const SEVERITY_CLASS: Record<string, string> = {
+  critical: "red",
+  high: "red",
+  medium: "amber",
+  moderate: "amber",
+  low: "grey",
+};
+
+const capitalise = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
+// Security items badge on severity; other types badge on their fixed colour.
+const badgeClass = (item: AttentionItem): string =>
+  item.type === "SecurityAlert"
+    ? SEVERITY_CLASS[(item.alertSeverity ?? "").toLowerCase()] ?? "amber"
+    : TYPE_CLASS[item.type];
+
+const badgeLabel = (item: AttentionItem): string =>
+  item.type === "SecurityAlert"
+    ? (item.alertSeverity ? capitalise(item.alertSeverity) : "Security")
+    : TYPE_LABEL[item.type];
 
 const itemKey = (item: AttentionItem) =>
-  `${item.type}:${item.repositoryOwner}/${item.repositoryName}:${item.workflowRunId ?? item.pullRequestNumber ?? item.title}`;
+  `${item.type}:${item.repositoryOwner}/${item.repositoryName}:${item.workflowRunId ?? item.pullRequestNumber ?? item.alertCategory ?? item.title}`;
 
 const formatWhen = (iso: string): string => {
   const dt = DateTime.fromISO(iso);
@@ -93,7 +118,7 @@ export const Attention = () => {
         <ul className="attention-list">
           {visibleItems.map((item) => (
             <li key={itemKey(item)} className="attention-item">
-              <span className={`attention-badge ${TYPE_CLASS[item.type]}`}>{TYPE_LABEL[item.type]}</span>
+              <span className={`attention-badge ${badgeClass(item)}`}>{badgeLabel(item)}</span>
               <div className="attention-body">
                 <a className="attention-title" href={item.htmlUrl} target="_blank" rel="noopener noreferrer">
                   {item.title}
@@ -107,6 +132,9 @@ export const Attention = () => {
                     <span className="attention-pr">
                       #{item.pullRequestNumber}{item.pullRequestAuthor ? ` · ${item.pullRequestAuthor}` : ""}
                     </span>
+                  )}
+                  {item.type === "SecurityAlert" && item.alertCategory && (
+                    <span className="attention-alert">{item.alertCategory}</span>
                   )}
                 </div>
               </div>

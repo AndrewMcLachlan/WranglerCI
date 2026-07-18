@@ -48,9 +48,12 @@ export type AttentionItem = {
   branch?: null | string;
   pullRequestNumber?: null | number | string;
   pullRequestAuthor?: null | string;
+  alertCount?: null | number | string;
+  alertSeverity?: null | string;
+  alertCategory?: null | string;
 };
 
-export type AttentionItemType = 'WorkflowFailure' | 'PullRequestReview';
+export type AttentionItemType = 'WorkflowFailure' | 'PullRequestReview' | 'SecurityAlert';
 
 export type AttentionRequest = {
   repositories?: Array<RepositoryRequest>;

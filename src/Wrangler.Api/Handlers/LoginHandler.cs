@@ -23,7 +23,11 @@ public static class LoginHandler
             ["client_id"] = clientId,
             ["redirect_uri"] = redirectUri,
             ["state"] = state,
-            ["scope"] = "read:user repo"
+            // security_events is required to read code scanning alerts on
+            // private repos (issue #145); Dependabot and secret scanning alerts
+            // are covered by repo. Existing sessions keep their old scope until
+            // the user next logs in and re-consents.
+            ["scope"] = "read:user repo security_events"
         };
         url.Query = String.Join('&', query.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
 

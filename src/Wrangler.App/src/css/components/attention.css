@@ -58,6 +58,7 @@
 
     &.red { background: #ff6b6b; }
     &.amber { background: #e8c44a; }
+    &.purple { background: #b98cf0; }
   }
 
   .attention-chip:hover .attention-dot {
@@ -109,6 +110,11 @@
     &.amber {
       background: rgba(255, 191, 0, 0.12);
       color: #e8c44a;
+    }
+
+    &.grey {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.6);
     }
   }
 

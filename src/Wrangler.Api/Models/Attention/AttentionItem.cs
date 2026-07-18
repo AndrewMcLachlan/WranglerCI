@@ -9,6 +9,8 @@ public enum AttentionItemType
     WorkflowFailure,
     /// <summary>A pull request where the current user is a requested reviewer.</summary>
     PullRequestReview,
+    /// <summary>Open security alerts (Dependabot, code scanning, or secret scanning) on a repository.</summary>
+    SecurityAlert,
 }
 
 /// <summary>
@@ -36,4 +38,13 @@ public record AttentionItem
 
     public int? PullRequestNumber { get; init; }
     public string? PullRequestAuthor { get; init; }
+
+    /// <summary>The number of open alerts (SecurityAlert items only).</summary>
+    public int? AlertCount { get; init; }
+
+    /// <summary>The highest alert severity: critical | high | medium | low (SecurityAlert items only).</summary>
+    public string? AlertSeverity { get; init; }
+
+    /// <summary>The alert category: Dependabot, Code scanning, or Secret scanning (SecurityAlert items only).</summary>
+    public string? AlertCategory { get; init; }
 }

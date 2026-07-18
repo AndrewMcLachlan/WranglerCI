@@ -15,6 +15,7 @@ public interface IAttentionService
 
 internal class AttentionService(
     IGitHubClient gitHubClient,
+    ISecurityAlertsService securityAlertsService,
     IHttpContextAccessor httpContextAccessor,
     IDistributedCache cache,
     ILogger<AttentionService> logger) : GitHubService(cache, logger), IAttentionService
@@ -51,10 +52,29 @@ internal class AttentionService(
 
         var workflowTask = GetWorkflowFailuresAsync(owner, repo, repository.DefaultBranch, cancellationToken);
         var reviewTask = GetPullRequestReviewsAsync(owner, repo, currentUser, cancellationToken);
+        var securityTask = GetSecurityAlertsAsync(owner, repo, cancellationToken);
 
-        await Task.WhenAll(workflowTask, reviewTask);
+        await Task.WhenAll(workflowTask, reviewTask, securityTask);
 
-        return workflowTask.Result.Concat(reviewTask.Result);
+        return workflowTask.Result.Concat(reviewTask.Result).Concat(securityTask.Result);
+    }
+
+    private async Task<IEnumerable<AttentionItem>> GetSecurityAlertsAsync(string owner, string repo, CancellationToken cancellationToken)
+    {
+        var summaries = await securityAlertsService.GetOpenAlertSummariesAsync(owner, repo, cancellationToken);
+
+        return summaries.Select(summary => new AttentionItem
+        {
+            Type = AttentionItemType.SecurityAlert,
+            RepositoryOwner = owner,
+            RepositoryName = repo,
+            Title = $"{summary.Count} open {summary.Category} alert{(summary.Count == 1 ? "" : "s")}",
+            HtmlUrl = summary.HtmlUrl,
+            OccurredAt = summary.NewestAt,
+            AlertCount = summary.Count,
+            AlertSeverity = summary.HighestSeverity,
+            AlertCategory = summary.Category,
+        });
     }
 
     private async Task<IEnumerable<AttentionItem>> GetWorkflowFailuresAsync(string owner, string repo, string defaultBranch, CancellationToken cancellationToken)
