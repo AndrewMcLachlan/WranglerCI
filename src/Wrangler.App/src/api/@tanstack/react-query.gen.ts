@@ -4,55 +4,55 @@ import { type DefaultError, queryOptions, type UseMutationOptions, useQuery } fr
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { getMe, getRepositories, getRepositoriesGrouped, getWorkflowsForARepository, type Options, postAttention, postGates, postGatesApprove, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
-import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostAttentionData, PostAttentionResponse, PostGatesApproveData, PostGatesApproveResponse, PostGatesData, PostGatesResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
+import { getMe, getRepositories, getRepositoriesGrouped, getUsersSearch, getWorkflowsForARepository, type Options, postAttention, postGates, postGatesApprove, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
+import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetUsersSearchData, GetUsersSearchResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostAttentionData, PostAttentionResponse, PostGatesApproveData, PostGatesApproveResponse, PostGatesData, PostGatesResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
-    Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
-        _id: string;
-        _infinite?: boolean;
-        tags?: ReadonlyArray<string>;
-    }
+  Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
+    _id: string;
+    _infinite?: boolean;
+    tags?: ReadonlyArray<string>;
+  }
 ];
 
 const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions, infinite?: boolean, tags?: ReadonlyArray<string>): [
-    QueryKey<TOptions>[0]
+  QueryKey<TOptions>[0]
 ] => {
-    const params: QueryKey<TOptions>[0] = { _id: id, baseURL: options?.baseURL || (options?.client ?? client).getConfig().baseURL } as QueryKey<TOptions>[0];
-    if (infinite) {
-        params._infinite = infinite;
-    }
-    if (tags) {
-        params.tags = tags;
-    }
-    if (options?.body) {
-        params.body = options.body;
-    }
-    if (options?.headers) {
-        params.headers = options.headers;
-    }
-    if (options?.path) {
-        params.path = options.path;
-    }
-    if (options?.query) {
-        params.query = options.query;
-    }
-    return [params];
+  const params: QueryKey<TOptions>[0] = { _id: id, baseURL: options?.baseURL || (options?.client ?? client).getConfig().baseURL } as QueryKey<TOptions>[0];
+  if (infinite) {
+    params._infinite = infinite;
+  }
+  if (tags) {
+    params.tags = tags;
+  }
+  if (options?.body) {
+    params.body = options.body;
+  }
+  if (options?.headers) {
+    params.headers = options.headers;
+  }
+  if (options?.path) {
+    params.path = options.path;
+  }
+  if (options?.query) {
+    params.query = options.query;
+  }
+  return [params];
 };
 
 export const getMeQueryKey = (options?: Options<GetMeData>) => createQueryKey('getMe', options);
 
 export const getMeOptions = (options?: Options<GetMeData>) => queryOptions<GetMeResponse, AxiosError<DefaultError>, GetMeResponse, ReturnType<typeof getMeQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getMe({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getMeQueryKey(options)
+  queryFn: async ({ queryKey, signal }) => {
+    const { data } = await getMe({
+      ...options,
+      ...queryKey[0],
+      signal,
+      throwOnError: true
+    });
+    return data;
+  },
+  queryKey: getMeQueryKey(options)
 });
 
 export const useGetMeQuery = (options?: Options<GetMeData>) => useQuery(getMeOptions(options));
@@ -60,16 +60,16 @@ export const useGetMeQuery = (options?: Options<GetMeData>) => useQuery(getMeOpt
 export const getRepositoriesQueryKey = (options?: Options<GetRepositoriesData>) => createQueryKey('getRepositories', options);
 
 export const getRepositoriesOptions = (options?: Options<GetRepositoriesData>) => queryOptions<GetRepositoriesResponse, AxiosError<DefaultError>, GetRepositoriesResponse, ReturnType<typeof getRepositoriesQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getRepositories({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getRepositoriesQueryKey(options)
+  queryFn: async ({ queryKey, signal }) => {
+    const { data } = await getRepositories({
+      ...options,
+      ...queryKey[0],
+      signal,
+      throwOnError: true
+    });
+    return data;
+  },
+  queryKey: getRepositoriesQueryKey(options)
 });
 
 export const useGetRepositoriesQuery = (options?: Options<GetRepositoriesData>) => useQuery(getRepositoriesOptions(options));
@@ -77,128 +77,145 @@ export const useGetRepositoriesQuery = (options?: Options<GetRepositoriesData>) 
 export const getRepositoriesGroupedQueryKey = (options?: Options<GetRepositoriesGroupedData>) => createQueryKey('getRepositoriesGrouped', options);
 
 export const getRepositoriesGroupedOptions = (options?: Options<GetRepositoriesGroupedData>) => queryOptions<GetRepositoriesGroupedResponse, AxiosError<DefaultError>, GetRepositoriesGroupedResponse, ReturnType<typeof getRepositoriesGroupedQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getRepositoriesGrouped({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getRepositoriesGroupedQueryKey(options)
+  queryFn: async ({ queryKey, signal }) => {
+    const { data } = await getRepositoriesGrouped({
+      ...options,
+      ...queryKey[0],
+      signal,
+      throwOnError: true
+    });
+    return data;
+  },
+  queryKey: getRepositoriesGroupedQueryKey(options)
 });
 
 export const useGetRepositoriesGroupedQuery = (options?: Options<GetRepositoriesGroupedData>) => useQuery(getRepositoriesGroupedOptions(options));
 
+export const getUsersSearchQueryKey = (options: Options<GetUsersSearchData>) => createQueryKey('getUsersSearch', options);
+
+export const getUsersSearchOptions = (options: Options<GetUsersSearchData>) => queryOptions<GetUsersSearchResponse, AxiosError<DefaultError>, GetUsersSearchResponse, ReturnType<typeof getUsersSearchQueryKey>>({
+  queryFn: async ({ queryKey, signal }) => {
+    const { data } = await getUsersSearch({
+      ...options,
+      ...queryKey[0],
+      signal,
+      throwOnError: true
+    });
+    return data;
+  },
+  queryKey: getUsersSearchQueryKey(options)
+});
+
+export const useGetUsersSearchQuery = (options: Options<GetUsersSearchData>) => useQuery(getUsersSearchOptions(options));
+
 export const postWorkflowsMutation = (options?: Partial<Options<PostWorkflowsData>>): UseMutationOptions<PostWorkflowsResponse, AxiosError<DefaultError>, Options<PostWorkflowsData>> => {
-    const mutationOptions: UseMutationOptions<PostWorkflowsResponse, AxiosError<DefaultError>, Options<PostWorkflowsData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postWorkflows({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<PostWorkflowsResponse, AxiosError<DefaultError>, Options<PostWorkflowsData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await postWorkflows({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };
 
 export const getWorkflowsForARepositoryMutation = (options?: Partial<Options<GetWorkflowsForARepositoryData>>): UseMutationOptions<GetWorkflowsForARepositoryResponse, AxiosError<DefaultError>, Options<GetWorkflowsForARepositoryData>> => {
-    const mutationOptions: UseMutationOptions<GetWorkflowsForARepositoryResponse, AxiosError<DefaultError>, Options<GetWorkflowsForARepositoryData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await getWorkflowsForARepository({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<GetWorkflowsForARepositoryResponse, AxiosError<DefaultError>, Options<GetWorkflowsForARepositoryData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await getWorkflowsForARepository({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };
 
 export const postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsMutation = (options?: Partial<Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData>>): UseMutationOptions<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, AxiosError<DefaultError>, Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData>> => {
-    const mutationOptions: UseMutationOptions<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, AxiosError<DefaultError>, Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, AxiosError<DefaultError>, Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };
 
 export const postPullRequestsMutation = (options?: Partial<Options<PostPullRequestsData>>): UseMutationOptions<PostPullRequestsResponse, AxiosError<DefaultError>, Options<PostPullRequestsData>> => {
-    const mutationOptions: UseMutationOptions<PostPullRequestsResponse, AxiosError<DefaultError>, Options<PostPullRequestsData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postPullRequests({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<PostPullRequestsResponse, AxiosError<DefaultError>, Options<PostPullRequestsData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await postPullRequests({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };
 
 export const postPullRequestsApproveMutation = (options?: Partial<Options<PostPullRequestsApproveData>>): UseMutationOptions<PostPullRequestsApproveResponse, AxiosError<DefaultError>, Options<PostPullRequestsApproveData>> => {
-    const mutationOptions: UseMutationOptions<PostPullRequestsApproveResponse, AxiosError<DefaultError>, Options<PostPullRequestsApproveData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postPullRequestsApprove({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<PostPullRequestsApproveResponse, AxiosError<DefaultError>, Options<PostPullRequestsApproveData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await postPullRequestsApprove({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };
 
 export const postAttentionMutation = (options?: Partial<Options<PostAttentionData>>): UseMutationOptions<PostAttentionResponse, AxiosError<DefaultError>, Options<PostAttentionData>> => {
-    const mutationOptions: UseMutationOptions<PostAttentionResponse, AxiosError<DefaultError>, Options<PostAttentionData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postAttention({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<PostAttentionResponse, AxiosError<DefaultError>, Options<PostAttentionData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await postAttention({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };
 
 export const postGatesMutation = (options?: Partial<Options<PostGatesData>>): UseMutationOptions<PostGatesResponse, AxiosError<DefaultError>, Options<PostGatesData>> => {
-    const mutationOptions: UseMutationOptions<PostGatesResponse, AxiosError<DefaultError>, Options<PostGatesData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postGates({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<PostGatesResponse, AxiosError<DefaultError>, Options<PostGatesData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await postGates({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };
 
 export const postGatesApproveMutation = (options?: Partial<Options<PostGatesApproveData>>): UseMutationOptions<PostGatesApproveResponse, AxiosError<DefaultError>, Options<PostGatesApproveData>> => {
-    const mutationOptions: UseMutationOptions<PostGatesApproveResponse, AxiosError<DefaultError>, Options<PostGatesApproveData>> = {
-        mutationFn: async (fnOptions) => {
-            const { data } = await postGatesApprove({
-                ...options,
-                ...fnOptions,
-                throwOnError: true
-            });
-            return data;
-        }
-    };
-    return mutationOptions;
+  const mutationOptions: UseMutationOptions<PostGatesApproveResponse, AxiosError<DefaultError>, Options<PostGatesApproveData>> = {
+    mutationFn: async (fnOptions) => {
+      const { data } = await postGatesApprove({
+        ...options,
+        ...fnOptions,
+        throwOnError: true
+      });
+      return data;
+    }
+  };
+  return mutationOptions;
 };

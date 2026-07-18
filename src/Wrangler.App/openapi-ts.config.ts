@@ -6,7 +6,7 @@ export default defineConfig({
     plugins: [
         {
             name: '@hey-api/client-axios',
-            runtimeConfigPath: '../utils/axios-config.ts',
+            runtimeConfigPath: './src/utils/axios-config.ts',
         },
         {
             name: '@tanstack/react-query',

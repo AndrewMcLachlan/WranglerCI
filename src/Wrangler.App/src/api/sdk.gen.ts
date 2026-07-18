@@ -2,116 +2,122 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
+import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
-    /**
-     * You can provide a client instance returned by `createClient()` instead of
-     * individual options. This might be also useful if you want to implement a
-     * custom client.
-     */
-    client?: Client;
-    /**
-     * You can pass arbitrary values through the `meta` object. This can be
-     * used to access values that aren't defined as part of the SDK function.
-     */
-    meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
+  /**
+   * You can provide a client instance returned by `createClient()` instead of
+   * individual options. This might be also useful if you want to implement a
+   * custom client.
+   */
+  client?: Client;
+  /**
+   * You can pass arbitrary values through the `meta` object. This can be
+   * used to access values that aren't defined as part of the SDK function.
+   */
+  meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
 export const getMe = <ThrowOnError extends boolean = false>(options?: Options<GetMeData, ThrowOnError>): RequestResult<GetMeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetMeResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/me',
-    ...options
+  responseType: 'json',
+  url: '/me',
+  ...options
 });
 
 export const getRepositories = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesData, ThrowOnError>): RequestResult<GetRepositoriesResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetRepositoriesResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/repositories',
-    ...options
+  responseType: 'json',
+  url: '/repositories',
+  ...options
 });
 
 export const getRepositoriesGrouped = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesGroupedData, ThrowOnError>): RequestResult<GetRepositoriesGroupedResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetRepositoriesGroupedResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/repositories/grouped',
-    ...options
+  responseType: 'json',
+  url: '/repositories/grouped',
+  ...options
+});
+
+export const getUsersSearch = <ThrowOnError extends boolean = false>(options: Options<GetUsersSearchData, ThrowOnError>): RequestResult<GetUsersSearchResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetUsersSearchResponses, unknown, ThrowOnError>({
+  responseType: 'json',
+  url: '/users/search',
+  ...options
 });
 
 export const postWorkflows = <ThrowOnError extends boolean = false>(options: Options<PostWorkflowsData, ThrowOnError>): RequestResult<PostWorkflowsResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostWorkflowsResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/workflows',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/workflows',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
 
 export const getWorkflowsForARepository = <ThrowOnError extends boolean = false>(options: Options<GetWorkflowsForARepositoryData, ThrowOnError>): RequestResult<GetWorkflowsForARepositoryResponses, unknown, ThrowOnError> => (options.client ?? client).post<GetWorkflowsForARepositoryResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/repositories/{owner}/{repo}/workflows',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/repositories/{owner}/{repo}/workflows',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
 
 export const postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns = <ThrowOnError extends boolean = false>(options: Options<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, ThrowOnError>): RequestResult<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/repositories/{owner}/{repo}/workflows/{workflowId}/runs',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/repositories/{owner}/{repo}/workflows/{workflowId}/runs',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
 
 export const postPullRequests = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsData, ThrowOnError>): RequestResult<PostPullRequestsResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostPullRequestsResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/pull-requests',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/pull-requests',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
 
 export const postPullRequestsApprove = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsApproveData, ThrowOnError>): RequestResult<PostPullRequestsApproveResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostPullRequestsApproveResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/pull-requests/approve',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/pull-requests/approve',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
 
 export const postAttention = <ThrowOnError extends boolean = false>(options: Options<PostAttentionData, ThrowOnError>): RequestResult<PostAttentionResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostAttentionResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/attention',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/attention',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
 
 export const postGates = <ThrowOnError extends boolean = false>(options: Options<PostGatesData, ThrowOnError>): RequestResult<PostGatesResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostGatesResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/gates',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/gates',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
 
 export const postGatesApprove = <ThrowOnError extends boolean = false>(options: Options<PostGatesApproveData, ThrowOnError>): RequestResult<PostGatesApproveResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostGatesApproveResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/gates/approve',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
+  responseType: 'json',
+  url: '/gates/approve',
+  ...options,
+  headers: {
+    'Content-Type': 'application/json',
+    ...options.headers
+  }
 });
