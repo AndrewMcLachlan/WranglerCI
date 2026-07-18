@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { DateTime } from "luxon";
 import { useAttention } from "../-hooks/useAttention";
+import { useAttentionTypeFilter } from "../-hooks/useAttentionTypeFilter";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { NoRepositories } from "../../../components/NoRepositories";
 import { Spinner } from "../../../components/Spinner";
@@ -17,6 +19,8 @@ const TYPE_CLASS: Record<AttentionItemType, string> = {
   PullRequestReview: "amber",
 };
 
+const TYPE_OPTIONS: AttentionItemType[] = ["WorkflowFailure", "PullRequestReview"];
+
 const itemKey = (item: AttentionItem) =>
   `${item.type}:${item.repositoryOwner}/${item.repositoryName}:${item.workflowRunId ?? item.pullRequestNumber ?? item.title}`;
 
@@ -28,6 +32,20 @@ const formatWhen = (iso: string): string => {
 export const Attention = () => {
   const { data: selectedRepositories } = useSelectedRepositories();
   const { data: items, isLoading, isError, error } = useAttention();
+  const [typeFilter, setTypeFilter] = useAttentionTypeFilter();
+
+  const typeSet = useMemo(() => new Set(typeFilter), [typeFilter]);
+  const toggleType = (type: AttentionItemType) => {
+    const next = new Set(typeSet);
+    if (next.has(type)) next.delete(type);
+    else next.add(type);
+    setTypeFilter([...next]);
+  };
+
+  const visibleItems = useMemo(
+    () => (items ?? []).filter((item) => typeSet.size === 0 || typeSet.has(item.type)),
+    [items, typeSet],
+  );
 
   if (!selectedRepositories || selectedRepositories.length === 0) {
     return <NoRepositories />;
@@ -38,19 +56,42 @@ export const Attention = () => {
     return <p>Error loading attention feed.</p>;
   }
 
+  const hasItems = !!items && items.length > 0;
+
   return (
     <article className="attention">
       <h2>Needs your attention</h2>
 
+      {hasItems && (
+        <div className="attention-filters" role="group" aria-label="Filter by type">
+          {TYPE_OPTIONS.map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={`attention-chip${typeSet.has(type) ? " active" : ""}`}
+              aria-pressed={typeSet.has(type)}
+              onClick={() => toggleType(type)}
+            >
+              <span className={`attention-dot ${TYPE_CLASS[type]}`} />
+              {TYPE_LABEL[type]}
+            </button>
+          ))}
+        </div>
+      )}
+
       {isLoading && <Spinner />}
 
-      {!isLoading && (!items || items.length === 0) && (
+      {!isLoading && !hasItems && (
         <p className="attention-empty">Nothing is waiting on you across your selected repositories. ✨</p>
       )}
 
-      {items && items.length > 0 && (
+      {hasItems && visibleItems.length === 0 && (
+        <p className="attention-empty">No items match the current filter.</p>
+      )}
+
+      {visibleItems.length > 0 && (
         <ul className="attention-list">
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <li key={itemKey(item)} className="attention-item">
               <span className={`attention-badge ${TYPE_CLASS[item.type]}`}>{TYPE_LABEL[item.type]}</span>
               <div className="attention-body">
