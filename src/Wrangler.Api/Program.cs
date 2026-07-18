@@ -72,6 +72,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<ISettingsService, SettingsService>();
     builder.Services.AddScoped<IPullRequestService, PullRequestService>();
     builder.Services.AddScoped<IAttentionService, AttentionService>();
+    builder.Services.AddScoped<ISecurityAlertsService, SecurityAlertsService>();
     builder.Services.AddScoped<IGateService, GateService>();
     builder.Services.AddScoped<IUserSearchService, UserSearchService>();
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();

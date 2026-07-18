@@ -589,13 +589,35 @@
               "null",
               "string"
             ]
+          },
+          "alertCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "alertSeverity": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "alertCategory": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "AttentionItemType": {
         "enum": [
           "WorkflowFailure",
-          "PullRequestReview"
+          "PullRequestReview",
+          "SecurityAlert"
         ]
       },
       "AttentionRequest": {
