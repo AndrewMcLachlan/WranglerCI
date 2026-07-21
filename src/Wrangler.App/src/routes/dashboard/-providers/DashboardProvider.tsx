@@ -31,7 +31,6 @@ export const DashboardProvider: React.FC<PropsWithChildren<unknown>> = ({ childr
   );
 }
 
-/* eslint-disable react-refresh/only-export-components */
 export const useDashboardContext = () => {
   const context = useContext(DashboardContext);
   if (!context) {

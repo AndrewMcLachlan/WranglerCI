@@ -92,7 +92,7 @@ export const useWorkflows = () => {
   return useQuery({
     queryKey: ["getWorkflows", selectedRepositories, branchFilter],
     queryFn: async () => {
-      var result = await postWorkflows({
+      const result = await postWorkflows({
         body: {
           // A repo with no selected workflows has nothing to show on the
           // dashboard, so exclude it here rather than fetch and render an

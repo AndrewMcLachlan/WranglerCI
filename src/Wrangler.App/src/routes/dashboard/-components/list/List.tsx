@@ -10,6 +10,13 @@ interface WorkflowRunItem {
   run: WorkflowRunModel;
 }
 
+// moo-ds's ColumnDef is a union (keyed vs computed `field`), which the TS6-based
+// compiler used for linting can't use to contextually infer the `cell` callback's
+// argument — it falls back to implicit `any`. The cells only read `row.original`,
+// so annotate that minimal shape explicitly; this is assignable to TanStack's
+// full CellContext and compiles under both compilers.
+type CellProps = { row: { original: WorkflowRunItem } };
+
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
 const columns: ColumnDef<WorkflowRunItem>[] = [
@@ -17,7 +24,7 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
     field: (item: WorkflowRunItem) => item.run.workflowStatus,
     id: "status",
     header: "Status",
-    cell: ({ row }) => <Badge className={row.original.run.workflowStatus?.toLowerCase()}>{row.original.run.conclusion || row.original.run.status}</Badge>,
+    cell: ({ row }: CellProps) => <Badge className={row.original.run.workflowStatus?.toLowerCase()}>{row.original.run.conclusion || row.original.run.status}</Badge>,
     enableSorting: true,
   },
   {
@@ -30,14 +37,14 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
     field: (item: WorkflowRunItem) => item.run.headBranch,
     id: "branch",
     header: "Branch",
-    cell: ({ row }) => <BranchBadge run={row.original.run} />,
+    cell: ({ row }: CellProps) => <BranchBadge run={row.original.run} />,
     enableSorting: true,
   },
   {
     field: (item: WorkflowRunItem) => item.run.updatedAt,
     id: "run",
     header: "Run",
-    cell: ({ row }) => {
+    cell: ({ row }: CellProps) => {
       const updatedAt = DateTime.fromISO(row.original.run.updatedAt!);
       const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
       return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
@@ -54,14 +61,14 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
     field: (item: WorkflowRunItem) => item.repo.name,
     id: "repository",
     header: "Repository",
-    cell: ({ row }) => <a href={row.original.repo.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.original.repo.name}</a>,
+    cell: ({ row }: CellProps) => <a href={row.original.repo.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.original.repo.name}</a>,
     enableSorting: true,
   },
   {
     field: () => null,
     id: "actions",
     header: "",
-    cell: ({ row }) => <a href={row.original.run.htmlUrl} target="_blank" rel="noopener noreferrer">View Run</a>,
+    cell: ({ row }: CellProps) => <a href={row.original.run.htmlUrl} target="_blank" rel="noopener noreferrer">View Run</a>,
     enableSorting: false,
   },
 ];
