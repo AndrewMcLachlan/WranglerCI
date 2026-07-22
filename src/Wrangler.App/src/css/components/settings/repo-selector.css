@@ -14,9 +14,18 @@
             min-width: auto;
             width: auto;
 
-            /* Mute repos with no workflows so it's obvious they can't be selected. */
-            .nav-link.disabled {
-                opacity: 0.4;
+            .nav-link {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+            }
+
+            .repo-feature-icons {
+                display: inline-flex;
+                gap: 0.35rem;
+                font-size: 0.75em;
+                opacity: 0.7;
             }
         }
     }
