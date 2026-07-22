@@ -3,16 +3,17 @@ import { Alert, ComboBox, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-
 import { CloseBadge } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
 import { usePrIncludeTags, usePrExcludeTags } from "../-hooks/usePrTagFilter";
-import { usePrRepositories, useUpdatePrRepositories } from "../-hooks/usePrRepositories";
+import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { NoRepositories } from "../../../components/NoRepositories";
 import { useUserSearch } from "../-hooks/useUserSearch";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
-import { useRepositories } from "../../../hooks/useRepositories";
 import { Badge } from "@andrewmclachlan/moo-ds";
 import { CheckStatusBadge } from "./CheckStatusBadge";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
@@ -42,21 +43,13 @@ interface TagOption {
 // present on any currently-loaded PR, so its chip still renders.
 const FALLBACK_TAG_COLOUR = "6e7681";
 
-interface RepoOption {
-  owner: string;
-  name: string;
-  id: string;
-  label: string;
-}
-
-const repoKey = (owner: string, name: string) => `${owner}/${name}`;
-
 export const PullRequests = () => {
 
   const queryClient = useQueryClient();
-  const { data: prRepositories } = usePrRepositories();
-  const { mutate: updatePrRepositories } = useUpdatePrRepositories();
-  const { data: availableRepositories } = useRepositories();
+  const { data: selectedRepositories } = useSelectedRepositories();
+  const prRepositories = useMemo(
+    () => selectedRepositories.filter((r) => r.pullRequests === true),
+    [selectedRepositories]);
   const { data: authors } = usePrAuthors();
   const { mutate: updateAuthors } = useUpdatePrAuthors();
   const { data: pullRequests, isLoading, isError, error } = usePullRequests();
@@ -114,32 +107,6 @@ export const PullRequests = () => {
     else next.add(status);
     setStatusFilter([...next]);
   };
-
-  // Every repository the user can access, as options for the PR scope picker.
-  const repoOptions = useMemo<RepoOption[]>(() =>
-    (availableRepositories ?? [])
-      .filter((r) => r.owner?.login && r.name)
-      .map((r) => ({
-        owner: r.owner!.login!,
-        name: r.name!,
-        id: repoKey(r.owner!.login!, r.name!),
-        label: r.fullName ?? repoKey(r.owner!.login!, r.name!),
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label)),
-    [availableRepositories]);
-
-  // The currently-scoped repos as picker options; a scoped repo missing from the
-  // accessible list still renders as a removable chip (owner/name fallback).
-  const selectedRepoOptions = useMemo<RepoOption[]>(() => {
-    const byKey = new Map(repoOptions.map((o) => [repoKey(o.owner, o.name), o]));
-    return prRepositories.map((r) =>
-      byKey.get(repoKey(r.owner, r.name)) ?? {
-        owner: r.owner,
-        name: r.name,
-        id: repoKey(r.owner, r.name),
-        label: repoKey(r.owner, r.name),
-      });
-  }, [prRepositories, repoOptions]);
 
   // Deduplicated union of labels across the loaded PRs (first-seen colour wins),
   // sorted by name — this is the typeahead suggestion set for both tag filters.
@@ -328,24 +295,20 @@ export const PullRequests = () => {
     },
   ], [selected, allSelected, approvable.length, isApproving]);
 
+  if (prRepositories.length === 0) {
+    return (
+      <NoRepositories
+        title="No repositories opted into Pull Requests"
+        message={<>Head over to <Link to="/settings">Settings</Link> and switch on <strong>Pull Requests</strong> for the repositories you want to see here.</>}
+      />
+    );
+  }
+
   return (
     <article className="pull-requests">
       <h2>Pull Requests</h2>
 
       <div className="controls">
-        <div className="pr-repositories">
-          <span className="pr-repositories-label">Repositories</span>
-          <ComboBox<RepoOption>
-            className="repository-scope"
-            placeholder="Add repositories..."
-            multiSelect
-            items={repoOptions}
-            selectedItems={selectedRepoOptions}
-            labelField={(r) => r.label}
-            valueField={(r) => r.id}
-            onChange={(items) => updatePrRepositories(items.map((r) => ({ owner: r.owner, name: r.name })))}
-          />
-        </div>
         <div className="pr-filters">
           <div className="author-filter">
             <input
@@ -450,7 +413,7 @@ export const PullRequests = () => {
         columns={columns}
         sortable
         loading={isLoading}
-        emptyMessage={prRepositories.length === 0 ? "Select repositories to see pull requests." : "No open pull requests found."}
+        emptyMessage="No open pull requests found."
       />
     </article>
   );
