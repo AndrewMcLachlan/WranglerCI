@@ -33,7 +33,7 @@
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^5.17.3",
     "@eslint/js": "^10.0.1",
-    "@hey-api/openapi-ts": "^0.97.3",
+    "@hey-api/openapi-ts": "^0.99.0",
     "@svgr/plugin-svgo": "^8.1.0",
     "@tanstack/router-plugin": "^1.168.23",
     "@types/luxon": "^3.7.2",
