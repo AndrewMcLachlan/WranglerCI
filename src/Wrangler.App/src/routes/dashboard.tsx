@@ -6,11 +6,14 @@ import { Dashboard, NestedList, List } from "../assets";
 import { useSelectedRepositories } from "./settings/-hooks/useSelectedRepositories";
 import { NoRepositories } from "../components/NoRepositories";
 import { useDashboardView } from "./dashboard/-hooks/useDashboardView";
+import { hasDashboardWorkflows } from "./settings/-hooks/repositoryFeatures";
 
 
 const DashboardRoute = () => {
     const { data: selectedRepositories } = useSelectedRepositories();
-    const hasRepos = selectedRepositories && selectedRepositories.length > 0;
+    // Entries may be PR-only or security-only; the dashboard cares only about
+    // repos with selected workflows.
+    const hasRepos = selectedRepositories?.some(hasDashboardWorkflows) ?? false;
     const [, setView] = useDashboardView();
 
     return (

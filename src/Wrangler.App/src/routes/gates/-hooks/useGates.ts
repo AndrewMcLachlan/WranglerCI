@@ -1,10 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { postGates } from "../../../api";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 
 export const useGates = () => {
   const { data: selectedRepositories } = useSelectedRepositories();
-  const repositories = selectedRepositories.map((r) => ({ owner: r.owner, name: r.name }));
+  // Gates follows the dashboard: only repos with selected workflows. The
+  // unified list also holds PR-only/security-only entries, which have no
+  // business here.
+  const repositories = selectedRepositories
+    .filter(hasDashboardWorkflows)
+    .map((r) => ({ owner: r.owner, name: r.name }));
 
   return useQuery({
     queryKey: ["gates", repositories],

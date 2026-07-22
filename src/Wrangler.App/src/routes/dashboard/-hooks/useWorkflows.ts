@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { useDashboardContext } from "../-providers/DashboardProvider";
 import { postWorkflows } from "../../../api";
+import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import type { RepositoryModel, WorkflowModel } from "../../../api";
 
 // TODO: Remove this fake data - temporary for testing issue #76
@@ -97,7 +98,7 @@ export const useWorkflows = () => {
           // A repo with no selected workflows has nothing to show on the
           // dashboard, so exclude it here rather than fetch and render an
           // empty card (issue #172). The entry stays in settings/PR scope.
-          repositories: selectedRepositories.filter((r) => (r.workflows?.length ?? 0) > 0),
+          repositories: selectedRepositories.filter(hasDashboardWorkflows),
           branchFilters: branchFilter?.length ? branchFilter : undefined,
         }
       })
