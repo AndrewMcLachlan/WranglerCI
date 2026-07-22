@@ -268,3 +268,4 @@ serviceDependencies.local.json
 
 .tanstack
 /.claude/settings.local.json
+.superpowers/
