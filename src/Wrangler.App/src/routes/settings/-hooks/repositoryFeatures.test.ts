@@ -82,6 +82,20 @@ describe("migrateRepositories", () => {
     expect(migrateRepositories('{"a":1}', null)).toEqual([]);
     expect(migrateRepositories(null, "not json")).toEqual([]);
   });
+
+  it("appends PR-only entries when repositories is absent but prRepositories exists", () => {
+    const result = migrateRepositories(
+      null,
+      JSON.stringify([
+        { owner: "a", name: "one" },
+        { owner: "b", name: "two" },
+      ]),
+    );
+    expect(result).toEqual([
+      { owner: "a", name: "one", workflows: [], pullRequests: true, securityAlerts: false },
+      { owner: "b", name: "two", workflows: [], pullRequests: true, securityAlerts: false },
+    ]);
+  });
 });
 
 describe("ensureMigrated", () => {
@@ -145,6 +159,21 @@ describe("upsertRepository", () => {
     );
     expect(result).toContainEqual({ owner: "a", name: "one", workflows: [1] });
     expect(result).toContainEqual({ owner: "a", name: "two", workflows: [2, 3] });
+  });
+
+  it("patches a middle entry in place, preserving list order", () => {
+    const original: SelectedRepository[] = [
+      { owner: "a", name: "one", workflows: [1] },
+      { owner: "a", name: "two", workflows: [2] },
+      { owner: "a", name: "three", workflows: [3] },
+    ];
+    const result = upsertRepository(original, "a", "two", { pullRequests: true });
+    expect(result.map((r) => `${r.owner}/${r.name}`)).toEqual(["a/one", "a/two", "a/three"]);
+    expect(result).toEqual([
+      { owner: "a", name: "one", workflows: [1] },
+      { owner: "a", name: "two", workflows: [2], pullRequests: true },
+      { owner: "a", name: "three", workflows: [3] },
+    ]);
   });
 });
 

@@ -25,11 +25,11 @@ export const useUpdateSelectedRepositories = () => {
     mutationFn: async (repositories: SelectedRepository[]) => {
       localStorage.setItem(REPOSITORIES_KEY, JSON.stringify(repositories));
     },
-    onSettled: () => {
-      queryClient.refetchQueries({
-        queryKey: ["selectedRepositories"],
-        exact: true,
-      });
+    onSettled: (_data, _error, variables) => {
+      // The live query keys are ["selectedRepositories", <data>], so a plain
+      // refetch matches nothing useful; push the written list into every
+      // matching cached query so sibling subscribers re-render immediately.
+      queryClient.setQueriesData({ queryKey: ["selectedRepositories"] }, variables);
     },
   });
 }

@@ -90,7 +90,9 @@ export const ensureMigrated = (storage: StorageLike): void => {
 
 /**
  * Returns a new list with the (owner, name) entry patched, creating it with
- * empty workflows if absent. Always builds fresh objects — entries may be
+ * empty workflows if absent. New entries are appended; existing entries are
+ * patched in place so list order (and therefore downstream query-key/card
+ * ordering) is preserved. Always builds fresh objects — entries may be
  * references into the react-query cache, and mutating them in place corrupts
  * the cache and defeats referential-equality change detection.
  */
@@ -100,10 +102,10 @@ export const upsertRepository = (
   name: string,
   patch: Partial<Omit<SelectedRepository, "owner" | "name">>,
 ): SelectedRepository[] => {
-  const existing = repositories.find((r) => r.owner === owner && r.name === name)
-    ?? { owner, name, workflows: [] };
-  const rest = repositories.filter((r) => !(r.owner === owner && r.name === name));
-  return [...rest, { ...existing, ...patch }];
+  const exists = repositories.some((r) => r.owner === owner && r.name === name);
+  if (!exists) return [...repositories, { owner, name, workflows: [], ...patch }];
+  return repositories.map((r) =>
+    r.owner === owner && r.name === name ? { ...r, ...patch } : r);
 };
 
 /** A repo participates in the Attention feed if it is opted into anything. */
