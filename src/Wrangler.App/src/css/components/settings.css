@@ -1,5 +1,5 @@
 @import "./settings/repo-selector.css";
-@import "./settings/workflow-selector.css";
+@import "./settings/repo-features.css";
 
 article .tab-content {
   margin-top: 0;

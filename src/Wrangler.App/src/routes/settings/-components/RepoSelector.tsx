@@ -1,28 +1,36 @@
 import { Nav } from "@andrewmclachlan/moo-ds";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { AccountModel, SettingsRepositoryModel } from "../../../api";
 import { useState } from "react";
-import { WorkflowSelector } from "./WorkflowSelector";
+import { RepoFeatures } from "./RepoFeatures";
+import { useSelectedRepositories } from "../-hooks/useSelectedRepositories";
+import { hasDashboardWorkflows } from "../-hooks/repositoryFeatures";
 
 export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> = ({ account }) => {
 
-  const firstAvailable = account.repositories?.find(r => (r.workflows?.length ?? 0) > 0);
-  const [selectedRepo, setSelectedRepo] = useState<SettingsRepositoryModel | undefined>(firstAvailable);
+  // Every repo is selectable — a repo without workflows can still be opted
+  // into Pull Requests or Security Alerts.
+  const [selectedRepo, setSelectedRepo] = useState<SettingsRepositoryModel | undefined>(account.repositories?.[0]);
+  const { data: selectedRepositories } = useSelectedRepositories();
 
   return (
     <>
       <div className="sidebar">
         <Nav>
           {account.repositories?.map(repo => {
-            const disabled = (repo.workflows?.length ?? 0) === 0;
+            const entry = selectedRepositories.find(r => r.owner === repo.owner && r.name === repo.name);
             return (
               <Nav.Link
                 key={repo.name}
                 active={selectedRepo?.name === repo.name}
-                disabled={disabled}
-                title={disabled ? "No GitHub Actions workflows" : undefined}
-                onClick={() => !disabled && setSelectedRepo(repo)}
+                onClick={() => setSelectedRepo(repo)}
               >
-                {repo.name}
+                <span className="repo-name">{repo.name}</span>
+                <span className="repo-feature-icons">
+                  {entry && hasDashboardWorkflows(entry) && <FontAwesomeIcon icon="gauge" title="On dashboard" />}
+                  {entry?.pullRequests === true && <FontAwesomeIcon icon="code-pull-request" title="Pull requests" />}
+                  {entry?.securityAlerts === true && <FontAwesomeIcon icon="shield-halved" title="Security alerts" />}
+                </span>
               </Nav.Link>
             );
           })}
@@ -30,7 +38,7 @@ export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> 
       </div>
       <div className="section-content">
         {selectedRepo && (
-          <WorkflowSelector repository={selectedRepo} />
+          <RepoFeatures repository={selectedRepo} />
         )}
       </div>
     </>

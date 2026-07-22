@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { useAttention } from "../-hooks/useAttention";
 import { useAttentionTypeFilter } from "../-hooks/useAttentionTypeFilter";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { isAttentionOptedIn, isAttentionItemVisible } from "../../settings/-hooks/repositoryFeatures";
 import { NoRepositories } from "../../../components/NoRepositories";
 import { Spinner } from "../../../components/Spinner";
 import type { AttentionItem, AttentionItemType } from "../../../api";
@@ -67,12 +68,17 @@ export const Attention = () => {
     setTypeFilter([...next]);
   };
 
-  const visibleItems = useMemo(
-    () => (items ?? []).filter((item) => typeSet.size === 0 || typeSet.has(item.type)),
-    [items, typeSet],
+  const optedInItems = useMemo(
+    () => (items ?? []).filter((item) => isAttentionItemVisible(item, selectedRepositories)),
+    [items, selectedRepositories],
   );
 
-  if (!selectedRepositories || selectedRepositories.length === 0) {
+  const visibleItems = useMemo(
+    () => optedInItems.filter((item) => typeSet.size === 0 || typeSet.has(item.type)),
+    [optedInItems, typeSet],
+  );
+
+  if (!selectedRepositories?.some(isAttentionOptedIn)) {
     return <NoRepositories />;
   }
 
@@ -81,7 +87,7 @@ export const Attention = () => {
     return <p>Error loading attention feed.</p>;
   }
 
-  const hasItems = !!items && items.length > 0;
+  const hasItems = optedInItems.length > 0;
 
   return (
     <article className="attention">

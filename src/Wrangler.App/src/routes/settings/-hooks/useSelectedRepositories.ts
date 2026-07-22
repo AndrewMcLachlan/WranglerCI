@@ -1,14 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ensureMigrated, REPOSITORIES_KEY, type SelectedRepository } from "./repositoryFeatures";
 
-export interface SelectedRepository {
-  owner: string;
-  name: string;
-  workflows?: (number | string)[];
-}
+export type { SelectedRepository } from "./repositoryFeatures";
 
 export const useSelectedRepositories = () => {
 
-  const data = JSON.parse(localStorage.getItem("repositories") ?? "[]") as SelectedRepository[];
+  ensureMigrated(localStorage);
+  const data = JSON.parse(localStorage.getItem(REPOSITORIES_KEY) ?? "[]") as SelectedRepository[];
 
   return useQuery({
     queryKey: ["selectedRepositories", data],
@@ -25,13 +23,13 @@ export const useUpdateSelectedRepositories = () => {
 
   return useMutation({
     mutationFn: async (repositories: SelectedRepository[]) => {
-      localStorage.setItem("repositories", JSON.stringify(repositories));
+      localStorage.setItem(REPOSITORIES_KEY, JSON.stringify(repositories));
     },
-    onSettled: () => {
-      queryClient.refetchQueries({
-        queryKey: ["selectedRepositories"],
-        exact: true,
-      });
+    onSettled: (_data, _error, variables) => {
+      // The live query keys are ["selectedRepositories", <data>], so a plain
+      // refetch matches nothing useful; push the written list into every
+      // matching cached query so sibling subscribers re-render immediately.
+      queryClient.setQueriesData({ queryKey: ["selectedRepositories"] }, variables);
     },
   });
 }

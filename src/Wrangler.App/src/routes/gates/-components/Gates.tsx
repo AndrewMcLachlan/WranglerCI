@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { useGates } from "../-hooks/useGates";
 import { useApproveGates } from "../-hooks/useApproveGates";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { NoRepositories } from "../../../components/NoRepositories";
 import type { DeploymentGateModel, GateApprovalResult } from "../../../api";
 
@@ -131,7 +132,7 @@ export const Gates = () => {
     },
   ], [selected, allSelected, approvable.length, isApproving]);
 
-  if (!selectedRepositories || selectedRepositories.length === 0) {
+  if (!selectedRepositories?.some(hasDashboardWorkflows)) {
     return <NoRepositories />;
   }
 

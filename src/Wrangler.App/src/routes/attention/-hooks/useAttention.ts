@@ -1,10 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { postAttention } from "../../../api";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
+import { isAttentionOptedIn } from "../../settings/-hooks/repositoryFeatures";
 
 export const useAttention = () => {
   const { data: selectedRepositories } = useSelectedRepositories();
-  const repositories = selectedRepositories.map((r) => ({ owner: r.owner, name: r.name }));
+  // Union of every opted-in repo; the component filters items per type on the
+  // way back (the endpoint takes one list and returns all item types).
+  const repositories = selectedRepositories
+    .filter(isAttentionOptedIn)
+    .map((r) => ({ owner: r.owner, name: r.name }));
 
   return useQuery({
     queryKey: ["attention", repositories],
