@@ -1,7 +1,7 @@
 import { Nav } from "@andrewmclachlan/moo-ds";
 import type { AccountModel, SettingsRepositoryModel } from "../../../api";
 import { useState } from "react";
-import { WorkflowSelector } from "./WorkflowSelector";
+import { RepoFeatures } from "./RepoFeatures";
 
 export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> = ({ account }) => {
 
@@ -30,7 +30,7 @@ export const RepoSelector: React.FC<React.PropsWithChildren<RepoSelectorProps>> 
       </div>
       <div className="section-content">
         {selectedRepo && (
-          <WorkflowSelector repository={selectedRepo} />
+          <RepoFeatures repository={selectedRepo} />
         )}
       </div>
     </>
