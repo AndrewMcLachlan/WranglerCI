@@ -105,3 +105,35 @@ export const upsertRepository = (
   const rest = repositories.filter((r) => !(r.owner === owner && r.name === name));
   return [...rest, { ...existing, ...patch }];
 };
+
+/** A repo participates in the Attention feed if it is opted into anything. */
+export const isAttentionOptedIn = (repo: SelectedRepository): boolean =>
+  hasDashboardWorkflows(repo) || repo.pullRequests === true || repo.securityAlerts === true;
+
+/**
+ * Structural stand-in for the generated AttentionItem API type, so this pure
+ * module never imports from src/api.
+ */
+export interface AttentionItemLike {
+  type: string;
+  repositoryOwner: string;
+  repositoryName: string;
+}
+
+/**
+ * The backend returns every item type for every repo in the request; each
+ * item is shown only if its repo opted into that item's feature.
+ */
+export const isAttentionItemVisible = (
+  item: AttentionItemLike,
+  repositories: SelectedRepository[],
+): boolean => {
+  const repo = repositories.find((r) => r.owner === item.repositoryOwner && r.name === item.repositoryName);
+  if (!repo) return false;
+  switch (item.type) {
+    case "WorkflowFailure": return hasDashboardWorkflows(repo);
+    case "PullRequestReview": return repo.pullRequests === true;
+    case "SecurityAlert": return repo.securityAlerts === true;
+    default: return false;
+  }
+};

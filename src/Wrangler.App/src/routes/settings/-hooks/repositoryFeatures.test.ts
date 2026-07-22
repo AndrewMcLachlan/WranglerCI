@@ -4,6 +4,8 @@ import {
   migrateRepositories,
   ensureMigrated,
   upsertRepository,
+  isAttentionOptedIn,
+  isAttentionItemVisible,
   REPOSITORIES_KEY,
   PR_REPOSITORIES_KEY,
   SCHEMA_VERSION_KEY,
@@ -143,5 +145,42 @@ describe("upsertRepository", () => {
     );
     expect(result).toContainEqual({ owner: "a", name: "one", workflows: [1] });
     expect(result).toContainEqual({ owner: "a", name: "two", workflows: [2, 3] });
+  });
+});
+
+describe("isAttentionOptedIn", () => {
+  it("is true for any of: workflows, pullRequests, securityAlerts", () => {
+    expect(isAttentionOptedIn({ owner: "a", name: "r", workflows: [1] })).toBe(true);
+    expect(isAttentionOptedIn({ owner: "a", name: "r", pullRequests: true })).toBe(true);
+    expect(isAttentionOptedIn({ owner: "a", name: "r", securityAlerts: true })).toBe(true);
+  });
+
+  it("is false for an inert entry", () => {
+    expect(isAttentionOptedIn({ owner: "a", name: "r", workflows: [] })).toBe(false);
+    expect(isAttentionOptedIn({ owner: "a", name: "r", pullRequests: false, securityAlerts: false })).toBe(false);
+  });
+});
+
+describe("isAttentionItemVisible", () => {
+  const repositories: SelectedRepository[] = [
+    { owner: "a", name: "dash", workflows: [1] },
+    { owner: "a", name: "pr", workflows: [], pullRequests: true },
+    { owner: "a", name: "sec", workflows: [], securityAlerts: true },
+  ];
+
+  const item = (type: string, name: string) => ({ type, repositoryOwner: "a", repositoryName: name });
+
+  it("shows each item type only for repos opted into it", () => {
+    expect(isAttentionItemVisible(item("WorkflowFailure", "dash"), repositories)).toBe(true);
+    expect(isAttentionItemVisible(item("WorkflowFailure", "pr"), repositories)).toBe(false);
+    expect(isAttentionItemVisible(item("PullRequestReview", "pr"), repositories)).toBe(true);
+    expect(isAttentionItemVisible(item("PullRequestReview", "sec"), repositories)).toBe(false);
+    expect(isAttentionItemVisible(item("SecurityAlert", "sec"), repositories)).toBe(true);
+    expect(isAttentionItemVisible(item("SecurityAlert", "dash"), repositories)).toBe(false);
+  });
+
+  it("hides items for unknown repos and unknown types", () => {
+    expect(isAttentionItemVisible(item("WorkflowFailure", "missing"), repositories)).toBe(false);
+    expect(isAttentionItemVisible(item("SomethingNew", "dash"), repositories)).toBe(false);
   });
 });
