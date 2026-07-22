@@ -53,7 +53,7 @@ jobs:
     - name: Install App dependencies
       env:
         NODE_AUTH_TOKEN: ${{ secrets.CROSS_REPO_PACKAGE_TOKEN }}
-      run: npm ci --prefix src/Wrangler.App --force
+      run: npm ci --prefix src/Wrangler.App
     - name: Version App
       run: npm version ${{ steps.set-version-number.outputs.version }} --prefix src/Wrangler.App --force
     - name: Build App

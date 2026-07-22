@@ -12,28 +12,27 @@ export const WorkflowSelector: React.FC<React.PropsWithChildren<WorkflowSelector
 
   const { mutate } = useUpdateSelectedRepositories();
 
-  const handleWorkflowsChange = (workflow: WorkflowBase) => {
-
-    const workflows = repositoryEntry.workflows ?? [];
-    repositoryEntry.workflows = workflows.some(wf => wf === workflow.id!) ?
-      workflows.filter(wf => wf !== workflow.id!) :
-      [...workflows, workflow.id!];
-
+  // Build a fresh entry rather than mutating repositoryEntry in place: it may be
+  // a reference into the react-query cache, and mutating it corrupts that cache
+  // and defeats the referential-equality checks that detect the change.
+  const commit = (workflows: (number | string)[]) => {
     const newRepos = repositories.filter(r => !(r.owner === repository.owner && r.name === repository.name));
+    mutate([...newRepos, { ...repositoryEntry, workflows }]);
+  };
 
-    mutate([...newRepos, repositoryEntry]);
+  const handleWorkflowsChange = (workflow: WorkflowBase) => {
+    const workflows = repositoryEntry.workflows ?? [];
+    commit(workflows.some(wf => wf === workflow.id!) ?
+      workflows.filter(wf => wf !== workflow.id!) :
+      [...workflows, workflow.id!]);
   }
 
   const selectAll = () => {
-    repositoryEntry.workflows = repository.workflows?.map(wf => wf.id!) ?? [];
-    const newRepos = repositories.filter(r => !(r.owner === repository.owner && r.name === repository.name));
-    mutate([...newRepos, repositoryEntry]);
+    commit(repository.workflows?.map(wf => wf.id!) ?? []);
   };
 
   const clear = () => {
-    repositoryEntry.workflows = [];
-    const newRepos = repositories.filter(r => !(r.owner === repository.owner && r.name === repository.name));
-    mutate([...newRepos, repositoryEntry]);
+    commit([]);
   };
 
   return (

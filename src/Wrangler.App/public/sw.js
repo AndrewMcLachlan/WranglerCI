@@ -6,7 +6,7 @@
 // later by adding install/activate/fetch handlers that pre-cache the
 // shell and serve cached responses on failure.
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   // Take over immediately so the new SW becomes active without waiting
   // for all tabs to close.
   self.skipWaiting();
