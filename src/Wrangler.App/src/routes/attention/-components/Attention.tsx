@@ -93,21 +93,18 @@ export const Attention = () => {
       <h2>Needs your attention</h2>
 
       <div className="filter-bar">
-        <div className="filter-group">
-          <span className="filter-label">Type</span>
-          <ComboBox<AttentionItemType>
-            className="filter-combo"
-            placeholder="All types"
-            multiSelect
-            clearable
-            items={TYPE_OPTIONS}
-            selectedItems={typeFilter}
-            labelField={typeLabel}
-            valueField={(t) => t}
-            search={typeSearch}
-            onChange={(items) => setTypeFilter(items)}
-          />
-        </div>
+        <ComboBox<AttentionItemType>
+          className="filter-combo"
+          placeholder="All types"
+          multiSelect
+          clearable
+          items={TYPE_OPTIONS}
+          selectedItems={typeFilter}
+          labelField={typeLabel}
+          valueField={(t) => t}
+          search={typeSearch}
+          onChange={(items) => setTypeFilter(items)}
+        />
       </div>
 
       {isLoading && <Spinner />}

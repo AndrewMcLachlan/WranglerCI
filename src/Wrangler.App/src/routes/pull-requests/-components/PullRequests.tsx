@@ -214,6 +214,22 @@ export const PullRequests = () => {
     return authorItems.filter((o) => o.login.toLowerCase().includes(query));
   };
 
+  // Free-text tag entry — the suggestion list only holds labels on currently
+  // loaded PRs, so any other tag name stays addable.
+  const addIncludeTag = (value: string) => {
+    const tag = value.trim();
+    if (tag !== "" && !includeTags.includes(tag)) {
+      setIncludeTags([...includeTags, tag]);
+    }
+  };
+
+  const addExcludeTag = (value: string) => {
+    const tag = value.trim();
+    if (tag !== "" && !excludeTags.includes(tag)) {
+      setExcludeTags([...excludeTags, tag]);
+    }
+  };
+
   const columns: ColumnDef<PullRequestModel>[] = useMemo(() => [
     {
       field: () => null,
@@ -314,67 +330,63 @@ export const PullRequests = () => {
 
       <div className="controls">
         <div className="filter-bar">
-          <div className="filter-group">
-            <span className="filter-label">Authors</span>
-            <ComboBox<AuthorOption>
-              className="filter-combo"
-              placeholder="Add authors..."
-              multiSelect
-              clearable
-              creatable
-              createLabel={(input) => `Add "${input.trim()}"`}
-              items={authorItems}
-              selectedItems={selectedAuthorItems}
-              labelField={(o) => o.login}
-              valueField={(o) => o.login}
-              search={authorSearch}
-              onCreate={addAuthor}
-              onChange={(items) => updateAuthors(items.map((o) => o.login))}
-            />
-          </div>
-          <div className="filter-group">
-            <span className="filter-label">Status</span>
-            <ComboBox<CheckStatus>
-              className="filter-combo"
-              placeholder="Any status"
-              multiSelect
-              clearable
-              items={STATUS_OPTIONS}
-              selectedItems={statusFilter}
-              labelField={statusLabel}
-              valueField={(s) => s}
-              search={statusSearch}
-              onChange={(items) => setStatusFilter(items)}
-            />
-          </div>
-          <div className="filter-group">
-            <span className="filter-label"><span className="dot green" />Include</span>
-            <ComboBox<TagOption>
-              className="filter-combo"
-              placeholder="Add tags..."
-              multiSelect
-              items={availableTags}
-              selectedItems={includeTagOptions}
-              labelField={(t) => t.name}
-              valueField={(t) => t.name}
-              colourField={(t) => `#${t.color}`}
-              onChange={(items) => setIncludeTags(items.map((t) => t.name))}
-            />
-          </div>
-          <div className="filter-group">
-            <span className="filter-label"><span className="dot red" />Exclude</span>
-            <ComboBox<TagOption>
-              className="filter-combo"
-              placeholder="Add tags..."
-              multiSelect
-              items={availableTags}
-              selectedItems={excludeTagOptions}
-              labelField={(t) => t.name}
-              valueField={(t) => t.name}
-              colourField={(t) => `#${t.color}`}
-              onChange={(items) => setExcludeTags(items.map((t) => t.name))}
-            />
-          </div>
+          <ComboBox<AuthorOption>
+            className="filter-combo"
+            placeholder="Authors..."
+            multiSelect
+            clearable
+            creatable
+            createLabel={(input) => `Add "${input.trim()}"`}
+            items={authorItems}
+            selectedItems={selectedAuthorItems}
+            labelField={(o) => o.login}
+            valueField={(o) => o.login}
+            search={authorSearch}
+            onCreate={addAuthor}
+            onChange={(items) => updateAuthors(items.map((o) => o.login))}
+          />
+          <ComboBox<CheckStatus>
+            className="filter-combo"
+            placeholder="Any status"
+            multiSelect
+            clearable
+            items={STATUS_OPTIONS}
+            selectedItems={statusFilter}
+            labelField={statusLabel}
+            valueField={(s) => s}
+            search={statusSearch}
+            onChange={(items) => setStatusFilter(items)}
+          />
+          <ComboBox<TagOption>
+            className="filter-combo"
+            placeholder="Include tags..."
+            multiSelect
+            clearable
+            creatable
+            createLabel={(input) => `Include "${input.trim()}"`}
+            items={availableTags}
+            selectedItems={includeTagOptions}
+            labelField={(t) => t.name}
+            valueField={(t) => t.name}
+            colourField={(t) => `#${t.color}`}
+            onCreate={addIncludeTag}
+            onChange={(items) => setIncludeTags(items.map((t) => t.name))}
+          />
+          <ComboBox<TagOption>
+            className="filter-combo"
+            placeholder="Exclude tags..."
+            multiSelect
+            clearable
+            creatable
+            createLabel={(input) => `Exclude "${input.trim()}"`}
+            items={availableTags}
+            selectedItems={excludeTagOptions}
+            labelField={(t) => t.name}
+            valueField={(t) => t.name}
+            colourField={(t) => `#${t.color}`}
+            onCreate={addExcludeTag}
+            onChange={(items) => setExcludeTags(items.map((t) => t.name))}
+          />
         </div>
         <div className="actions">
           <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving}>

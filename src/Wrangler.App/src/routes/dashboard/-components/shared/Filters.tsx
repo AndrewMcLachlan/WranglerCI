@@ -14,23 +14,20 @@ export const Filters = () => {
 
   return (
     <div className="filter-bar">
-      <div className="filter-group">
-        <span className="filter-label">Branches</span>
-        <ComboBox<BranchOption>
-          className="filter-combo"
-          placeholder="Add branches..."
-          multiSelect
-          clearable
-          creatable
-          createLabel={(input) => `Add "${input.trim()}"`}
-          items={[]}
-          selectedItems={selectedBranches}
-          labelField={(b) => b.name}
-          valueField={(b) => b.name}
-          onCreate={(name) => name.trim() !== "" && addBranchFilter(name.trim())}
-          onChange={(items) => setBranchFilter(items.map((b) => b.name))}
-        />
-      </div>
+      <ComboBox<BranchOption>
+        className="filter-combo"
+        placeholder="All branches"
+        multiSelect
+        clearable
+        creatable
+        createLabel={(input) => `Add "${input.trim()}"`}
+        items={[]}
+        selectedItems={selectedBranches}
+        labelField={(b) => b.name}
+        valueField={(b) => b.name}
+        onCreate={(name) => name.trim() !== "" && addBranchFilter(name.trim())}
+        onChange={(items) => setBranchFilter(items.map((b) => b.name))}
+      />
     </div>
   );
 }
