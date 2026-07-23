@@ -343,7 +343,7 @@ export const PullRequests = () => {
               selectedItems={statusFilter}
               labelField={statusLabel}
               valueField={(s) => s}
-              search={(input) => statusSearch(input).filter((s) => !statusSet.has(s))}
+              search={statusSearch}
               onChange={(items) => setStatusFilter(items)}
             />
           </div>

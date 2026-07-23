@@ -18,7 +18,7 @@ const TYPE_LABEL: Record<AttentionItemType, string> = {
   SecurityAlert: "Security alert",
 };
 
-// Class used for the filter-chip dot per type. Security-alert item badges are
+// Class used for the type-filter dot per type. Security-alert item badges are
 // coloured by severity instead (see badgeClass).
 const TYPE_CLASS: Record<AttentionItemType, string> = {
   WorkflowFailure: "red",
@@ -104,7 +104,7 @@ export const Attention = () => {
             selectedItems={typeFilter}
             labelField={typeLabel}
             valueField={(t) => t}
-            search={(input) => typeSearch(input).filter((t) => !typeSet.has(t))}
+            search={typeSearch}
             onChange={(items) => setTypeFilter(items)}
           />
         </div>
