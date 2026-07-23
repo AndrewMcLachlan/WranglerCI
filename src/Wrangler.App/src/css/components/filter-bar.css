@@ -48,13 +48,16 @@
     margin-right: 0;
 }
 
-/* Match the standard control height and stop pickers growing to fill the row. */
+/* Match the standard control height. The control starts at 240px and grows
+   with its pill content (moo-ds keeps pills on one row and needs ~66px of
+   headroom for the "+N more" chip before the first pill even shows — a fixed
+   narrow width collapses every selection to a bare "+N more" chip). */
 .filter-combo {
     --input-padding-v: 0.375rem;
     --input-padding-h: 0.75rem;
-    flex: 0 1 240px;
-    min-width: 180px;
-    max-width: 280px;
+    flex: 1 1 240px;
+    min-width: 240px;
+    max-width: 100%;
     font-size: 0.85rem;
 }
 
