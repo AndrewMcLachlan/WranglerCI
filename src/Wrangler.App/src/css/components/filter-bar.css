@@ -50,7 +50,9 @@
     --input-padding-h: 0.75rem;
     flex: 0 1 auto;
     min-width: 240px;
-    max-width: 100%;
+    /* Grow with the selected pills up to a sane maximum, then let moo-ds
+       collapse the overflow into its "+N more" chip. */
+    max-width: min(100%, 560px);
     font-size: 0.85rem;
 }
 
