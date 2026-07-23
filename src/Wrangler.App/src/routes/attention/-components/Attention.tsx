@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import { DateTime } from "luxon";
+import { ComboBox } from "@andrewmclachlan/moo-ds";
 import { useAttention } from "../-hooks/useAttention";
 import { useAttentionTypeFilter } from "../-hooks/useAttentionTypeFilter";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { isAttentionOptedIn, isAttentionItemVisible } from "../../settings/-hooks/repositoryFeatures";
 import { NoRepositories } from "../../../components/NoRepositories";
 import { Spinner } from "../../../components/Spinner";
+import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
 import type { AttentionItem, AttentionItemType } from "../../../api";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
@@ -25,6 +27,9 @@ const TYPE_CLASS: Record<AttentionItemType, string> = {
 };
 
 const TYPE_OPTIONS: AttentionItemType[] = ["WorkflowFailure", "PullRequestReview", "SecurityAlert"];
+
+const typeLabel = dotLabel<AttentionItemType>((t) => TYPE_CLASS[t], (t) => TYPE_LABEL[t]);
+const typeSearch = optionSearch<AttentionItemType>(TYPE_OPTIONS, (t) => TYPE_LABEL[t]);
 
 const SEVERITY_CLASS: Record<string, string> = {
   critical: "red",
@@ -61,12 +66,6 @@ export const Attention = () => {
   const [typeFilter, setTypeFilter] = useAttentionTypeFilter();
 
   const typeSet = useMemo(() => new Set(typeFilter), [typeFilter]);
-  const toggleType = (type: AttentionItemType) => {
-    const next = new Set(typeSet);
-    if (next.has(type)) next.delete(type);
-    else next.add(type);
-    setTypeFilter([...next]);
-  };
 
   const optedInItems = useMemo(
     () => (items ?? []).filter((item) => isAttentionItemVisible(item, selectedRepositories)),
@@ -93,22 +92,23 @@ export const Attention = () => {
     <article className="attention">
       <h2>Needs your attention</h2>
 
-      {hasItems && (
-        <div className="attention-filters" role="group" aria-label="Filter by type">
-          {TYPE_OPTIONS.map((type) => (
-            <button
-              key={type}
-              type="button"
-              className={`attention-chip${typeSet.has(type) ? " active" : ""}`}
-              aria-pressed={typeSet.has(type)}
-              onClick={() => toggleType(type)}
-            >
-              <span className={`attention-dot ${TYPE_CLASS[type]}`} />
-              {TYPE_LABEL[type]}
-            </button>
-          ))}
+      <div className="filter-bar">
+        <div className="filter-group">
+          <span className="filter-label">Type</span>
+          <ComboBox<AttentionItemType>
+            className="filter-combo"
+            placeholder="All types"
+            multiSelect
+            clearable
+            items={TYPE_OPTIONS}
+            selectedItems={typeFilter}
+            labelField={typeLabel}
+            valueField={(t) => t}
+            search={(input) => typeSearch(input).filter((t) => !typeSet.has(t))}
+            onChange={(items) => setTypeFilter(items)}
+          />
         </div>
-      )}
+      </div>
 
       {isLoading && <Spinner />}
 
