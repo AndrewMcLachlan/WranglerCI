@@ -4,7 +4,7 @@ import { createContext, useContext, type PropsWithChildren } from "react";
 interface DashboardContextType {
   branchFilter: string[];
   addBranchFilter: (branch: string) => void;
-  removeBranchFilter: (branch: string) => void;
+  setBranchFilter: (branches: string[]) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -20,12 +20,8 @@ export const DashboardProvider: React.FC<PropsWithChildren<unknown>> = ({ childr
     setBranchFilter(prev => [...prev, branch]);
   }
 
-  const removeBranchFilter = (branch: string) => {
-    setBranchFilter(prev => prev.filter(b => b !== branch));
-  }
-
   return (
-    <DashboardContext.Provider value={{ branchFilter, addBranchFilter, removeBranchFilter }}>
+    <DashboardContext.Provider value={{ branchFilter, addBranchFilter, setBranchFilter }}>
       {children}
     </DashboardContext.Provider>
   );

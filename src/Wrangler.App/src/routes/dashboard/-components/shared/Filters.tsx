@@ -1,35 +1,35 @@
-import { CloseBadge } from "@andrewmclachlan/moo-ds";
+import { useMemo } from "react";
+import { ComboBox } from "@andrewmclachlan/moo-ds";
 import { useDashboardContext } from "../../-providers/DashboardProvider";
+
+interface BranchOption {
+  name: string;
+}
 
 export const Filters = () => {
 
-  const { branchFilter, addBranchFilter, removeBranchFilter } = useDashboardContext();
+  const { branchFilter, addBranchFilter, setBranchFilter } = useDashboardContext();
 
-  const checkInput = (e: React.FocusEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
-
-    if (e.type === "keyup") {
-      const keyEvent = e as React.KeyboardEvent<HTMLInputElement>;
-      if (keyEvent.key !== "Enter" && keyEvent.key !== " " && keyEvent.key !== "," && keyEvent.key !== ";") {
-        return;
-      }
-    }
-
-    e.preventDefault();
-    if (e.currentTarget.value.trim() !== "") {
-      addBranchFilter(e.currentTarget.value.trim());
-      e.currentTarget.value = "";
-
-    }
-  }
+  const selectedBranches = useMemo<BranchOption[]>(() => branchFilter.map((name) => ({ name })), [branchFilter]);
 
   return (
-    <div className="filters">
-      <input type="text" className="form-control branch-filter" placeholder="Branches" onKeyUp={checkInput} onBlur={checkInput} />
-
-      <div className="branch-badges">
-        {branchFilter?.map((branch) => (
-          <CloseBadge key={branch} onClose={() => removeBranchFilter(branch)}>{branch}</CloseBadge>))
-        }
+    <div className="filter-bar">
+      <div className="filter-group">
+        <span className="filter-label">Branches</span>
+        <ComboBox<BranchOption>
+          className="filter-combo"
+          placeholder="Add branches..."
+          multiSelect
+          clearable
+          creatable
+          createLabel={(input) => `Add "${input.trim()}"`}
+          items={[]}
+          selectedItems={selectedBranches}
+          labelField={(b) => b.name}
+          valueField={(b) => b.name}
+          onCreate={(name) => name.trim() !== "" && addBranchFilter(name.trim())}
+          onChange={(items) => setBranchFilter(items.map((b) => b.name))}
+        />
       </div>
     </div>
   );
