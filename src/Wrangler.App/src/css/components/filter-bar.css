@@ -1,0 +1,64 @@
+/* Shared filter conventions: every page's filters are labelled ComboBox
+   groups inside a .filter-bar row, with the page's action buttons pinned to
+   the right edge of the surrounding .controls row. */
+
+.filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+}
+
+/* Colour dot used in ComboBox option lists, selected pills, and filter
+   labels. Global (not @scope'd) because moo-ds renders the options. */
+.dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 0.4rem;
+
+    &.green { background: #6bcc6b; }
+    &.red { background: #ff6b6b; }
+    &.amber { background: #e8c44a; }
+    &.grey { background: rgba(255, 255, 255, 0.4); }
+    &.purple { background: #b98cf0; }
+}
+
+/* Inside a filter label the flex gap provides the spacing. */
+.filter-label .dot {
+    margin-right: 0;
+}
+
+/* Match the standard control height and stop pickers growing to fill the row. */
+.filter-combo {
+    --input-padding-v: 0.375rem;
+    --input-padding-h: 0.75rem;
+    flex: 0 1 240px;
+    min-width: 180px;
+    max-width: 280px;
+    font-size: 0.85rem;
+}
+
+/* Action buttons (Approve etc.) sit at the right edge on every page. */
+.controls .actions {
+    margin-left: auto;
+}
