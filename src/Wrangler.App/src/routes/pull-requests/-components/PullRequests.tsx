@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Alert, ComboBox, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
-import { CloseBadge } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -16,6 +15,7 @@ import { useUserSearch } from "../-hooks/useUserSearch";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { Badge } from "@andrewmclachlan/moo-ds";
 import { CheckStatusBadge } from "./CheckStatusBadge";
+import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
 export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
@@ -30,6 +30,13 @@ const STATUS_DOT: Record<CheckStatus, string> = {
   Pending: "amber",
   Unknown: "grey",
 };
+
+const statusLabel = dotLabel<CheckStatus>((s) => STATUS_DOT[s], (s) => s);
+const statusSearch = optionSearch<CheckStatus>(STATUS_OPTIONS, (s) => s);
+
+interface AuthorOption {
+  login: string;
+}
 
 const prKey = (owner: string, repo: string, number: number | string) =>
   `${owner}/${repo}#${number}`;
@@ -59,8 +66,18 @@ export const PullRequests = () => {
   const [alerts, setAlerts] = useState<ApprovalResult[]>([]);
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
   const [authorQuery, setAuthorQuery] = useState("");
-  const [authorFocused, setAuthorFocused] = useState(false);
   const { data: authorSuggestions } = useUserSearch(authorQuery);
+
+  // Remote suggestions as ComboBox items, minus already-selected authors.
+  // Passing them as `items` keeps the open dropdown reactive when the
+  // debounced query resolves after the search callback has already run.
+  const authorItems = useMemo<AuthorOption[]>(
+    () => (authorSuggestions ?? [])
+      .filter((u) => !authors.includes(u.login))
+      .map((u) => ({ login: u.login })),
+    [authorSuggestions, authors]);
+
+  const selectedAuthorItems = useMemo<AuthorOption[]>(() => authors.map((login) => ({ login })), [authors]);
 
   const { mutate: approvePullRequests, isPending: isApproving } = useApprovePullRequests({
     onResults: (results) => {
@@ -101,12 +118,6 @@ export const PullRequests = () => {
   });
 
   const statusSet = useMemo(() => new Set(statusFilter), [statusFilter]);
-  const toggleStatus = (status: CheckStatus) => {
-    const next = new Set(statusSet);
-    if (next.has(status)) next.delete(status);
-    else next.add(status);
-    setStatusFilter([...next]);
-  };
 
   // Deduplicated union of labels across the loaded PRs (first-seen colour wins),
   // sorted by name — this is the typeahead suggestion set for both tag filters.
@@ -184,9 +195,9 @@ export const PullRequests = () => {
     // selected so the user can act on them again.
   };
 
-  // Add an author by exact login — used both for typeahead selections and for
-  // typing a login directly (so bots like dependabot[bot], which user search
-  // won't surface, stay addable).
+  // Add an author by exact login — used by the ComboBox's creatable option
+  // (so bots like dependabot[bot], which user search won't surface, stay
+  // addable).
   const addAuthor = (value: string) => {
     const login = value.trim().replace(/[,;]/g, "");
     if (login !== "" && !authors.includes(login)) {
@@ -195,20 +206,13 @@ export const PullRequests = () => {
     setAuthorQuery("");
   };
 
-  const checkInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== "Enter" && e.key !== " " && e.key !== "," && e.key !== ";") {
-      return;
-    }
-    e.preventDefault();
-    addAuthor(authorQuery);
+  // ComboBox search callback: drives the debounced remote user search via
+  // authorQuery and returns whatever suggestions are currently loaded.
+  const authorSearch = (input: string) => {
+    setAuthorQuery(input);
+    const query = input.trim().toLowerCase();
+    return authorItems.filter((o) => o.login.toLowerCase().includes(query));
   };
-
-  const removeAuthor = (author: string) => {
-    updateAuthors(authors.filter(a => a !== author));
-  };
-
-  const showAuthorSuggestions =
-    authorFocused && authorQuery.trim().length >= 2 && (authorSuggestions?.length ?? 0) > 0;
 
   const columns: ColumnDef<PullRequestModel>[] = useMemo(() => [
     {
@@ -309,82 +313,67 @@ export const PullRequests = () => {
       <h2>Pull Requests</h2>
 
       <div className="controls">
-        <div className="pr-filters">
-          <div className="author-filter">
-            <input
-              type="text"
-              className="form-control author-input"
-              placeholder="Filter by author..."
-              value={authorQuery}
-              onChange={(e) => setAuthorQuery(e.target.value)}
-              onKeyUp={checkInput}
-              onFocus={() => setAuthorFocused(true)}
-              onBlur={() => setAuthorFocused(false)}
-              role="combobox"
-              aria-expanded={showAuthorSuggestions}
-              aria-autocomplete="list"
+        <div className="filter-bar">
+          <div className="filter-group">
+            <span className="filter-label">Authors</span>
+            <ComboBox<AuthorOption>
+              className="filter-combo"
+              placeholder="Add authors..."
+              multiSelect
+              clearable
+              creatable
+              createLabel={(input) => `Add "${input.trim()}"`}
+              items={authorItems}
+              selectedItems={selectedAuthorItems}
+              labelField={(o) => o.login}
+              valueField={(o) => o.login}
+              search={authorSearch}
+              onCreate={addAuthor}
+              onChange={(items) => updateAuthors(items.map((o) => o.login))}
             />
-            {showAuthorSuggestions && (
-              <ul className="author-suggestions" role="listbox">
-                {authorSuggestions!.map((user) => (
-                  // onMouseDown fires before the input's blur, so the click registers.
-                  <li key={user.login} role="option" aria-selected={false} onMouseDown={() => addAuthor(user.login)}>
-                    {user.avatarUrl && <img className="author-suggestion-avatar" src={user.avatarUrl} alt="" />}
-                    <span className="author-suggestion-login">{user.login}</span>
-                    {user.name && <span className="author-suggestion-name">{user.name}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
-          <div className="status-filter" role="group" aria-label="Filter by check status">
-            {STATUS_OPTIONS.map((status) => (
-              <button
-                key={status}
-                type="button"
-                className={`status-chip${statusSet.has(status) ? " active" : ""}`}
-                aria-pressed={statusSet.has(status)}
-                onClick={() => toggleStatus(status)}
-              >
-                <span className={`status-dot ${STATUS_DOT[status]}`} />
-                {status}
-              </button>
-            ))}
+          <div className="filter-group">
+            <span className="filter-label">Status</span>
+            <ComboBox<CheckStatus>
+              className="filter-combo"
+              placeholder="Any status"
+              multiSelect
+              clearable
+              items={STATUS_OPTIONS}
+              selectedItems={statusFilter}
+              labelField={statusLabel}
+              valueField={(s) => s}
+              search={(input) => statusSearch(input).filter((s) => !statusSet.has(s))}
+              onChange={(items) => setStatusFilter(items)}
+            />
           </div>
-          <div className="tag-filters" role="group" aria-label="Filter by tag">
-            <div className="tag-filter-group">
-              <span className="tag-filter-label"><span className="tag-dot include" />Include</span>
-              <ComboBox<TagOption>
-                className="tag-filter"
-                placeholder="Add tags..."
-                multiSelect
-                items={availableTags}
-                selectedItems={includeTagOptions}
-                labelField={(t) => t.name}
-                valueField={(t) => t.name}
-                colourField={(t) => `#${t.color}`}
-                onChange={(items) => setIncludeTags(items.map((t) => t.name))}
-              />
-            </div>
-            <div className="tag-filter-group">
-              <span className="tag-filter-label"><span className="tag-dot exclude" />Exclude</span>
-              <ComboBox<TagOption>
-                className="tag-filter"
-                placeholder="Add tags..."
-                multiSelect
-                items={availableTags}
-                selectedItems={excludeTagOptions}
-                labelField={(t) => t.name}
-                valueField={(t) => t.name}
-                colourField={(t) => `#${t.color}`}
-                onChange={(items) => setExcludeTags(items.map((t) => t.name))}
-              />
-            </div>
+          <div className="filter-group">
+            <span className="filter-label"><span className="dot green" />Include</span>
+            <ComboBox<TagOption>
+              className="filter-combo"
+              placeholder="Add tags..."
+              multiSelect
+              items={availableTags}
+              selectedItems={includeTagOptions}
+              labelField={(t) => t.name}
+              valueField={(t) => t.name}
+              colourField={(t) => `#${t.color}`}
+              onChange={(items) => setIncludeTags(items.map((t) => t.name))}
+            />
           </div>
-          <div className="author-badges">
-            {authors.map(author => (
-              <CloseBadge key={author} onClose={() => removeAuthor(author)}>{author}</CloseBadge>
-            ))}
+          <div className="filter-group">
+            <span className="filter-label"><span className="dot red" />Exclude</span>
+            <ComboBox<TagOption>
+              className="filter-combo"
+              placeholder="Add tags..."
+              multiSelect
+              items={availableTags}
+              selectedItems={excludeTagOptions}
+              labelField={(t) => t.name}
+              valueField={(t) => t.name}
+              colourField={(t) => `#${t.color}`}
+              onChange={(items) => setExcludeTags(items.map((t) => t.name))}
+            />
           </div>
         </div>
         <div className="actions">
