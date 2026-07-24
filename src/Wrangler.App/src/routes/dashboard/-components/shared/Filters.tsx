@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { ComboBox } from "@andrewmclachlan/moo-ds";
 import { useDashboardContext } from "../../-providers/DashboardProvider";
-import { useDashboardStatusFilter } from "../../-hooks/useDashboardStatusFilter";
 import { dotLabel, optionSearch } from "../../../../components/filters/filterOptions";
 import type { WorkflowStatus } from "../../../../api";
 
@@ -12,13 +11,22 @@ interface BranchOption {
 // Statuses a run can carry, minus "None" (no run / nothing to filter on).
 const STATUS_OPTIONS: WorkflowStatus[] = ["Green", "Red", "Amber", "Running", "Waiting"];
 
+// Solid pill colour per status — the dropdown keeps the dot cue, the selected
+// pill is tinted the whole status colour (dark text set in CSS for contrast).
+const STATUS_COLOUR: Record<string, string> = {
+  Green: "#6bcc6b",
+  Red: "#ff6b6b",
+  Amber: "#e8c44a",
+  Running: "cornflowerblue",
+  Waiting: "orange",
+};
+
 const statusLabel = dotLabel<WorkflowStatus>((s) => s.toLowerCase(), (s) => s);
 const statusSearch = optionSearch<WorkflowStatus>(STATUS_OPTIONS, (s) => s);
 
 export const Filters = () => {
 
-  const { branchFilter, addBranchFilter, setBranchFilter } = useDashboardContext();
-  const [statusFilter, setStatusFilter] = useDashboardStatusFilter();
+  const { branchFilter, addBranchFilter, setBranchFilter, statusFilter, setStatusFilter } = useDashboardContext();
 
   const selectedBranches = useMemo<BranchOption[]>(() => branchFilter.map((name) => ({ name })), [branchFilter]);
 
@@ -39,7 +47,7 @@ export const Filters = () => {
         onChange={(items) => setBranchFilter(items.map((b) => b.name))}
       />
       <ComboBox<WorkflowStatus>
-        className="filter-combo"
+        className="filter-combo status-combo"
         placeholder="Any status"
         multiSelect
         clearable
@@ -47,6 +55,7 @@ export const Filters = () => {
         selectedItems={statusFilter}
         labelField={statusLabel}
         valueField={(s) => s}
+        colourField={(s) => STATUS_COLOUR[s]}
         search={statusSearch}
         onChange={(items) => setStatusFilter(items)}
       />

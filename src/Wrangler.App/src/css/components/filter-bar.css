@@ -43,6 +43,12 @@
     display: none;
 }
 
+/* Status filter pills are tinted the whole status colour (via colourField);
+   the status swatches are light, so force dark text for contrast. */
+.status-combo .badge {
+    --badge-fg: #16181d;
+}
+
 /* Match the standard control height. The control hugs its pill content with
    a 240px floor — moo-ds keeps pills on one row and needs the first pill
    plus ~66px of "+N more" chip headroom before it shows any pill, so a fixed

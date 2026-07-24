@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { useDashboardContext } from "../-providers/DashboardProvider";
-import { useDashboardStatusFilter } from "./useDashboardStatusFilter";
 import { postWorkflows } from "../../../api";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
@@ -101,8 +100,7 @@ const buildFakeRepo = (filters: string[]): RepositoryModel => {
 export const useWorkflows = () => {
 
   const { data: selectedRepositories } = useSelectedRepositories();
-  const { branchFilter } = useDashboardContext();
-  const [statusFilter] = useDashboardStatusFilter();
+  const { branchFilter, statusFilter } = useDashboardContext();
 
   return useQuery({
     queryKey: ["getWorkflows", selectedRepositories, branchFilter],
