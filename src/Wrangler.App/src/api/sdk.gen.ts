@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionErrors, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesErrors, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsErrors, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
+import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesErrors, GetRepositoriesGroupedData, GetRepositoriesGroupedErrors, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchErrors, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionErrors, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesErrors, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsErrors, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -24,19 +24,19 @@ export const getMe = <ThrowOnError extends boolean = false>(options?: Options<Ge
     ...options
 });
 
-export const getRepositories = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesData, ThrowOnError>): RequestResult<GetRepositoriesResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetRepositoriesResponses, unknown, ThrowOnError>({
+export const getRepositories = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesData, ThrowOnError>): RequestResult<GetRepositoriesResponses, GetRepositoriesErrors, ThrowOnError> => (options?.client ?? client).get<GetRepositoriesResponses, GetRepositoriesErrors, ThrowOnError>({
     responseType: 'json',
     url: '/repositories',
     ...options
 });
 
-export const getRepositoriesGrouped = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesGroupedData, ThrowOnError>): RequestResult<GetRepositoriesGroupedResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetRepositoriesGroupedResponses, unknown, ThrowOnError>({
+export const getRepositoriesGrouped = <ThrowOnError extends boolean = false>(options?: Options<GetRepositoriesGroupedData, ThrowOnError>): RequestResult<GetRepositoriesGroupedResponses, GetRepositoriesGroupedErrors, ThrowOnError> => (options?.client ?? client).get<GetRepositoriesGroupedResponses, GetRepositoriesGroupedErrors, ThrowOnError>({
     responseType: 'json',
     url: '/repositories/grouped',
     ...options
 });
 
-export const getUsersSearch = <ThrowOnError extends boolean = false>(options: Options<GetUsersSearchData, ThrowOnError>): RequestResult<GetUsersSearchResponses, unknown, ThrowOnError> => (options.client ?? client).get<GetUsersSearchResponses, unknown, ThrowOnError>({
+export const getUsersSearch = <ThrowOnError extends boolean = false>(options: Options<GetUsersSearchData, ThrowOnError>): RequestResult<GetUsersSearchResponses, GetUsersSearchErrors, ThrowOnError> => (options.client ?? client).get<GetUsersSearchResponses, GetUsersSearchErrors, ThrowOnError>({
     responseType: 'json',
     url: '/users/search',
     ...options

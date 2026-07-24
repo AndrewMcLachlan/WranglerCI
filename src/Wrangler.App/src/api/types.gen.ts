@@ -386,6 +386,13 @@ export type GetRepositoriesData = {
     url: '/repositories';
 };
 
+export type GetRepositoriesErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
 export type GetRepositoriesResponses = {
     /**
      * OK
@@ -400,6 +407,13 @@ export type GetRepositoriesGroupedData = {
     path?: never;
     query?: never;
     url: '/repositories/grouped';
+};
+
+export type GetRepositoriesGroupedErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
 };
 
 export type GetRepositoriesGroupedResponses = {
@@ -418,6 +432,13 @@ export type GetUsersSearchData = {
         q: string;
     };
     url: '/users/search';
+};
+
+export type GetUsersSearchErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
 };
 
 export type GetUsersSearchResponses = {
