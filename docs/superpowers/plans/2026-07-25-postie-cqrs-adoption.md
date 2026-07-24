@@ -10,8 +10,9 @@
 
 ## Global Constraints
 
-- **Primary invariant — empty frontend-client diff.** After every slice: `dotnet build` (regenerates `src/Wrangler.Api/openapi-v1.json`) → `npm run generate` in `src/Wrangler.App` → `git diff src/Wrangler.App/src/api/` MUST be empty. If not, the mapping is not faithful — fix or fall back before continuing.
-- **The only permitted OpenAPI change** is an *additive* `404` response on reference-returning query endpoints (Postie advertises null→404; our queries return empty collections, never null, so runtime behaviour is unchanged). No path, verb, request-schema, response-schema, or `operationId`/route-name change is permitted.
+- **Primary invariant — no breaking frontend-client change.** After every slice: `dotnet build` (regenerates `src/Wrangler.Api/openapi-v1.json`) → `npm run generate` in `src/Wrangler.App` → inspect `git diff --ignore-all-space src/Wrangler.App/src/api/`. The **only** permitted semantic change is *additive*: new `Get*Errors`/`Post*Errors` types of shape `{ 404: unknown }` and the matching error-type-param change (`unknown` → the new `*Errors` type) on the converted endpoint's function/hook. **No** renamed or removed functions/hooks/types, **no** changed request- or response-body types, **no** changed parameters. Then commit the regenerated `src/api/` with the task. (Context: the committed client was stale vs the pinned `openapi-ts 0.99.0` formatting; a one-time reformat landed in commit `b940cf4`, so per-task client diffs are now small and additive-only. A *literally* empty `git diff src/api/` is not achievable in this repo and is not the gate.)
+- **Frontend must stay green:** after regenerating, `cd src/Wrangler.App && npm run build && npm test && npm run lint` all pass (the build's `tsc -b` is what proves the additive error types don't break existing call sites).
+- **The only permitted OpenAPI change** is an *additive* `404` response on reference-returning query endpoints (Postie advertises null→404; our queries return empty collections, never null, so runtime behaviour is unchanged) plus a `tags` value change (Postie tags converted endpoints `Asm.Wrangler.Api` instead of the deleted handler class name — cosmetic, does not affect the flat generated client). No path, verb, request-schema, response-schema, or `operationId`/route-name change is permitted.
 - **Preserve routes and verbs exactly.** The `/api` group prefix (`app.MapGroup("/api")`) and the `/api`-strip OpenAPI document transformer stay.
 - **Preserve `DisableAntiforgery()`** on the four body-POST *query* endpoints (`workflows`, `pull-requests`, `attention`, `gates`). The two `/approve` *command* endpoints do **not** disable antiforgery today — do not add it.
 - **Request record names are unchanged.** Only add a marker interface. This keeps schema component `$ref` names stable.
@@ -336,18 +337,22 @@ Run: `cd src/Wrangler.Api && dotnet build`
 Then: `git diff src/Wrangler.Api/openapi-v1.json`
 Expected: build succeeds; the only diffs are added `"404"` responses on `/pull-requests`, `/attention`, `/gates`. No path/verb/schema changes.
 
-- [ ] **Step 6: Regenerate the frontend client and verify it is empty**
+- [ ] **Step 6: Regenerate the frontend client and verify additive-only**
 
 Run: `cd src/Wrangler.App && npm run generate`
-Then: `git diff src/Wrangler.App/src/api/`
-Expected: **empty**.
+Then: `git diff --ignore-all-space src/Wrangler.App/src/api/`
+Expected: only *additive* changes — new `PostPullRequestsErrors`, `PostAttentionErrors`, `PostGatesErrors` (`{ 404: unknown }`) types and the matching error-param change on `postPullRequests`/`postAttention`/`postGates`. No renamed/removed functions/hooks/types, no request/response-body-type change.
+Then: `npm run build && npm test && npm run lint`
+Expected: all green.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Commit (including the regenerated client)**
 
 ```bash
-git add src/Wrangler.Api/Requests/ src/Wrangler.Api/Handlers/ src/Wrangler.Api/Program.cs src/Wrangler.Api/openapi-v1.json
+git add src/Wrangler.Api/Requests/ src/Wrangler.Api/Handlers/ src/Wrangler.Api/Program.cs src/Wrangler.Api/openapi-v1.json src/Wrangler.App/src/api/
 git commit -m "Convert pull-requests, attention, and gates endpoints to Postie MapQuery"
 ```
+
+(Do NOT stage `src/Wrangler.App/src/routeTree.gen.ts`.)
 
 ---
 
@@ -456,18 +461,22 @@ Run: `cd src/Wrangler.Api && dotnet build`
 Then: `git diff src/Wrangler.Api/openapi-v1.json`
 Expected: build succeeds. `MapCommand` advertises `200` with the response body (as today) and adds **no** `404`. The diff should be empty or cosmetically equivalent for `/pull-requests/approve` and `/gates/approve`. No path/verb/schema change.
 
-- [ ] **Step 6: Regenerate the frontend client and verify it is empty**
+- [ ] **Step 6: Regenerate the frontend client and verify additive-only**
 
 Run: `cd src/Wrangler.App && npm run generate`
-Then: `git diff src/Wrangler.App/src/api/`
-Expected: **empty**.
+Then: `git diff --ignore-all-space src/Wrangler.App/src/api/`
+Expected: **empty or no semantic change** — `MapCommand` advertises `200` with the response body and adds **no** `404`, so the approve functions' error param stays `unknown`. No renamed/removed functions/hooks/types, no request/response-body-type change. (If a spurious formatting-only diff appears, that is acceptable churn; there must be no semantic client change.)
+Then: `npm run build && npm test && npm run lint`
+Expected: all green.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Commit (including any regenerated client)**
 
 ```bash
-git add src/Wrangler.Api/Requests/ src/Wrangler.Api/Handlers/ src/Wrangler.Api/Program.cs src/Wrangler.Api/openapi-v1.json
+git add src/Wrangler.Api/Requests/ src/Wrangler.Api/Handlers/ src/Wrangler.Api/Program.cs src/Wrangler.Api/openapi-v1.json src/Wrangler.App/src/api/
 git commit -m "Convert approve endpoints to Postie MapCommand"
 ```
+
+(Do NOT stage `src/Wrangler.App/src/routeTree.gen.ts`.)
 
 ---
 
@@ -629,18 +638,22 @@ Run: `cd src/Wrangler.Api && dotnet build`
 Then: `git diff src/Wrangler.Api/openapi-v1.json`
 Expected: build succeeds. Diffs limited to added `"404"` responses on `/repositories`, `/repositories/grouped`, `/users/search`. Critically, the `/users/search` `get` still declares a query parameter named exactly **`q`** (from `[FromQuery(Name = "q")]`), unchanged. No new request-body schema components for the empty records.
 
-- [ ] **Step 6: Regenerate the frontend client and verify it is empty**
+- [ ] **Step 6: Regenerate the frontend client and verify additive-only**
 
 Run: `cd src/Wrangler.App && npm run generate`
-Then: `git diff src/Wrangler.App/src/api/`
-Expected: **empty**. If a single endpoint drifts, apply the per-endpoint fallback (revert just that one to its static handler) and re-run this step.
+Then: `git diff --ignore-all-space src/Wrangler.App/src/api/`
+Expected: only *additive* changes — new `GetRepositoriesErrors`, `GetRepositoriesGroupedErrors`, `GetUsersSearchErrors` (`{ 404: unknown }`) types and the matching error-param change on `getRepositories`/`getRepositoriesGrouped`/`getUsersSearch`. Critically, **`getUsersSearch` must keep its `q` query parameter** — same name, same type — and no request/response-body type may change. If any endpoint shows a *breaking* change (renamed/removed function, changed param, changed body type), apply the per-endpoint fallback (revert just that one to its static handler) and re-run.
+Then: `npm run build && npm test && npm run lint`
+Expected: all green.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 7: Commit (including the regenerated client)**
 
 ```bash
-git add src/Wrangler.Api/Requests/ src/Wrangler.Api/Handlers/ src/Wrangler.Api/Program.cs src/Wrangler.Api/openapi-v1.json
+git add src/Wrangler.Api/Requests/ src/Wrangler.Api/Handlers/ src/Wrangler.Api/Program.cs src/Wrangler.Api/openapi-v1.json src/Wrangler.App/src/api/
 git commit -m "Convert repositories, grouped, and user-search GET endpoints to Postie MapQuery"
 ```
+
+(Do NOT stage `src/Wrangler.App/src/routeTree.gen.ts`.)
 
 ---
 
@@ -721,10 +734,12 @@ Expected: all tests pass (the existing pure-logic suites are unaffected; the new
 
 - [ ] **Step 4: Run the full frontend gate**
 
-Run: `cd src/Wrangler.App && npm run generate && git diff --exit-code src/api/`
-Expected: exit code 0 (empty client diff).
+Run: `cd src/Wrangler.App && npm run generate`
+Then: `git diff --ignore-all-space src/api/`
+Expected: no *semantic* change beyond what earlier tasks already committed (the additive `*Errors` types are already in the committed client). Any diff here should be formatting-only or empty. No renamed/removed functions/hooks/types.
 Then: `npm test && npm run lint && npm run build`
 Expected: all green.
+If `git diff src/api/` shows only formatting churn, commit it (`git add src/Wrangler.App/src/api/`); otherwise leave it clean.
 
 - [ ] **Step 5: Confirm the kept-raw endpoints are intact**
 
