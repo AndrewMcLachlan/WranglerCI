@@ -1,7 +1,10 @@
+using Asm.Wrangler.Api.Models.Gates;
+using Postie.Cqrs.Commands;
+
 namespace Asm.Wrangler.Api.Requests;
 
 /// <summary>Request to approve the specified deployment gates.</summary>
-public record ApproveGatesRequest
+public record ApproveGatesRequest : ICommand<IEnumerable<GateApprovalResult>>
 {
     public IReadOnlyList<GateRef> Gates { get; init; } = [];
 }

@@ -1,9 +1,12 @@
+using Asm.Wrangler.Api.Models.PullRequests;
+using Postie.Cqrs.Commands;
+
 namespace Asm.Wrangler.Api.Requests;
 
 /// <summary>
 /// Request to approve and merge a batch of pull requests.
 /// </summary>
-public record ApprovePullRequestsRequest
+public record ApprovePullRequestsRequest : ICommand<IEnumerable<ApprovalResult>>
 {
     /// <summary>
     /// Identifies a single pull request by repository and number.
