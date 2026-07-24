@@ -31,6 +31,15 @@ const STATUS_DOT: Record<CheckStatus, string> = {
   Unknown: "grey",
 };
 
+// Solid pill colour per status — the dropdown keeps the dot cue, the selected
+// pill is tinted the whole status colour (dark text set in CSS for contrast).
+const STATUS_COLOUR: Record<CheckStatus, string> = {
+  Success: "#6bcc6b",
+  Failure: "#ff6b6b",
+  Pending: "#e8c44a",
+  Unknown: "#9ea3a8",
+};
+
 const statusLabel = dotLabel<CheckStatus>((s) => STATUS_DOT[s], (s) => s);
 const statusSearch = optionSearch<CheckStatus>(STATUS_OPTIONS, (s) => s);
 
@@ -346,7 +355,7 @@ export const PullRequests = () => {
             onChange={(items) => updateAuthors(items.map((o) => o.login))}
           />
           <ComboBox<CheckStatus>
-            className="filter-combo"
+            className="filter-combo status-combo"
             placeholder="Any status"
             multiSelect
             clearable
@@ -354,6 +363,7 @@ export const PullRequests = () => {
             selectedItems={statusFilter}
             labelField={statusLabel}
             valueField={(s) => s}
+            colourField={(s) => STATUS_COLOUR[s]}
             search={statusSearch}
             onChange={(items) => setStatusFilter(items)}
           />
