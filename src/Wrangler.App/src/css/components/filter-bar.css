@@ -32,6 +32,9 @@
     &.amber { background: #e8c44a; }
     &.grey { background: rgba(255, 255, 255, 0.4); }
     &.purple { background: #b98cf0; }
+    /* Dashboard workflow statuses — match the status-indicator swatches. */
+    &.running { background: var(--status-running); }
+    &.waiting { background: var(--status-waiting); }
 }
 
 /* The dot is a pick cue for the dropdown only — inside a selected pill it

@@ -1,9 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { useDashboardContext } from "../-providers/DashboardProvider";
+import { useDashboardStatusFilter } from "./useDashboardStatusFilter";
 import { postWorkflows } from "../../../api";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
-import type { RepositoryModel, WorkflowModel } from "../../../api";
+import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
+
+// Keep only workflows whose overall status is selected, and drop repositories
+// left with none. An empty filter is no constraint. Client-side so it reshapes
+// the same fetched data across all three views without a refetch. Exported for
+// unit testing.
+export const filterByStatus = (repositories: RepositoryModel[], statuses: WorkflowStatus[]): RepositoryModel[] => {
+  if (statuses.length === 0) return repositories;
+  const wanted = new Set(statuses);
+  return repositories
+    .map((repo) => ({ ...repo, workflows: repo.workflows?.filter((w) => w.overallStatus && wanted.has(w.overallStatus)) ?? [] }))
+    .filter((repo) => repo.workflows.length > 0);
+};
 
 // TODO: Remove this fake data - temporary for testing issue #76
 const includeFakeData = import.meta.env.DEV;
@@ -89,6 +102,7 @@ export const useWorkflows = () => {
 
   const { data: selectedRepositories } = useSelectedRepositories();
   const { branchFilter } = useDashboardContext();
+  const [statusFilter] = useDashboardStatusFilter();
 
   return useQuery({
     queryKey: ["getWorkflows", selectedRepositories, branchFilter],
@@ -105,5 +119,8 @@ export const useWorkflows = () => {
       const data = result.data ?? [];
       return includeFakeData ? [...data, buildFakeRepo(branchFilter ?? [])] : data;
     },
+    // Status filtering reshapes the fetched data without a refetch, so it is a
+    // select rather than part of the query key.
+    select: (data) => filterByStatus(data, statusFilter),
   });
 }
