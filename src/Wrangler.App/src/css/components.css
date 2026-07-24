@@ -2,7 +2,7 @@
 @import "./components/branch-link.css";
 @import "./components/collapsible.css";
 @import "./components/controls.css";
-@import "./components/filters.css";
+@import "./components/filter-bar.css";
 @import "./components/status-indicator.css";
 @import "./components/spinner.css";
 @import "./components/no-repositories.css";

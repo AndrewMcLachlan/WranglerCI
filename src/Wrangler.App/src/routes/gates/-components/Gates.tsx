@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { Alert, Badge, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
+import { Alert, Badge, ComboBox, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
 import { useGates } from "../-hooks/useGates";
 import { useApproveGates } from "../-hooks/useApproveGates";
+import { useGateEnvironmentFilter, useGateBranchFilter, useGateRepositoryFilter, useGateWorkflowFilter } from "../-hooks/useGateFilters";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { NoRepositories } from "../../../components/NoRepositories";
@@ -14,6 +15,12 @@ const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long
 
 const gateKey = (g: DeploymentGateModel) =>
   `${g.repositoryOwner}/${g.repositoryName}:${g.workflowRunId}:${g.environmentId}`;
+
+const gateRepoName = (g: DeploymentGateModel) => `${g.repositoryOwner}/${g.repositoryName}`;
+
+// Unique, sorted option list from the loaded gates for one filter kind.
+const optionsFrom = (gates: DeploymentGateModel[], field: (g: DeploymentGateModel) => string | undefined | null): string[] =>
+  [...new Set(gates.map(field).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b));
 
 export const Gates = () => {
   const { data: selectedRepositories } = useSelectedRepositories();
@@ -39,7 +46,44 @@ export const Gates = () => {
     },
   });
 
-  const visibleGates = useMemo(() => gates ?? [], [gates]);
+  const [environmentFilter, setEnvironmentFilter] = useGateEnvironmentFilter();
+  const [branchFilter, setBranchFilter] = useGateBranchFilter();
+  const [repositoryFilter, setRepositoryFilter] = useGateRepositoryFilter();
+  const [workflowFilter, setWorkflowFilter] = useGateWorkflowFilter();
+
+  const environmentOptions = useMemo(() => optionsFrom(gates ?? [], (g) => g.environmentName), [gates]);
+  const branchOptions = useMemo(() => optionsFrom(gates ?? [], (g) => g.headBranch), [gates]);
+  const repositoryOptions = useMemo(() => optionsFrom(gates ?? [], gateRepoName), [gates]);
+  const workflowOptions = useMemo(() => optionsFrom(gates ?? [], (g) => g.workflowName), [gates]);
+
+  // Each filter is a ComboBox over the values present in the loaded gates,
+  // creatable so any value can be entered up front.
+  const gateFilters = [
+    { placeholder: "All environments", options: environmentOptions, selected: environmentFilter, set: setEnvironmentFilter },
+    { placeholder: "All branches", options: branchOptions, selected: branchFilter, set: setBranchFilter },
+    { placeholder: "All repositories", options: repositoryOptions, selected: repositoryFilter, set: setRepositoryFilter },
+    { placeholder: "All workflows", options: workflowOptions, selected: workflowFilter, set: setWorkflowFilter },
+  ];
+
+  const addFilterValue = (values: string[], set: (next: string[]) => void) => (value: string) => {
+    const v = value.trim();
+    if (v !== "" && !values.includes(v)) {
+      set([...values, v]);
+    }
+  };
+
+  const visibleGates = useMemo(() => {
+    const environments = new Set(environmentFilter);
+    const branches = new Set(branchFilter);
+    const repositories = new Set(repositoryFilter);
+    const workflows = new Set(workflowFilter);
+    // AND across filter kinds, OR within a kind; empty means no constraint.
+    return (gates ?? []).filter((g) =>
+      (environments.size === 0 || environments.has(g.environmentName)) &&
+      (branches.size === 0 || branches.has(g.headBranch)) &&
+      (repositories.size === 0 || repositories.has(gateRepoName(g))) &&
+      (workflows.size === 0 || workflows.has(g.workflowName)));
+  }, [gates, environmentFilter, branchFilter, repositoryFilter, workflowFilter]);
   const approvable = useMemo(() => visibleGates.filter((g) => g.currentUserCanApprove), [visibleGates]);
 
   const toggleSelection = (g: DeploymentGateModel) => {
@@ -146,6 +190,25 @@ export const Gates = () => {
       <h2>Deployment Gates</h2>
 
       <div className="controls">
+        <div className="filter-bar">
+          {gateFilters.map((filter) => (
+            <ComboBox<string>
+              key={filter.placeholder}
+              className="filter-combo"
+              placeholder={filter.placeholder}
+              multiSelect
+              clearable
+              creatable
+              createLabel={(input) => `Add "${input.trim()}"`}
+              items={filter.options}
+              selectedItems={filter.selected}
+              labelField={(value) => value}
+              valueField={(value) => value}
+              onCreate={addFilterValue(filter.selected, filter.set)}
+              onChange={filter.set}
+            />
+          ))}
+        </div>
         <div className="actions">
           <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving}>
             {isApproving ? "Approving..." : "Approve Selected"}
@@ -171,7 +234,7 @@ export const Gates = () => {
         columns={columns}
         sortable
         loading={isLoading}
-        emptyMessage="No deployment gates are waiting for approval."
+        emptyMessage={(gates?.length ?? 0) > 0 ? "No gates match the current filters." : "No deployment gates are waiting for approval."}
       />
     </article>
   );
