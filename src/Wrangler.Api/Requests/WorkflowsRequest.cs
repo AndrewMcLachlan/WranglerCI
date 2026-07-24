@@ -1,9 +1,12 @@
-﻿namespace Asm.Wrangler.Api.Requests;
+﻿using Asm.Wrangler.Api.Models.Dashboard;
+using Postie.Cqrs.Queries;
+
+namespace Asm.Wrangler.Api.Requests;
 
 /// <summary>
 /// Request to retrieve workflows and their latest runs for the specified repositories.
 /// </summary>
-public record WorkflowsRequest : BranchFilterRequest
+public record WorkflowsRequest : BranchFilterRequest, IQuery<IEnumerable<RepositoryModel>>
 {
     /// <summary>
     /// A repository with the specific workflow IDs to include.

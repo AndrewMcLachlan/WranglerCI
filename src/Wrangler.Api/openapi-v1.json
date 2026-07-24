@@ -103,7 +103,7 @@
     "/workflows": {
       "post": {
         "tags": [
-          "WorkflowsHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
@@ -128,6 +128,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1964,7 +1967,7 @@
       "name": "UserSearchHandler"
     },
     {
-      "name": "WorkflowsHandler"
+      "name": "Asm.Wrangler.Api"
     },
     {
       "name": "RepositoriesWorkflowsHandler"

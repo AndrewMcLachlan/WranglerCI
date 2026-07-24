@@ -8,6 +8,7 @@ using Asm.Wrangler.Api.Models.Dashboard;
 using Asm.Wrangler.Api.Webhooks;
 using Octokit.Webhooks.AspNetCore;
 using Asm.Wrangler.Api.OpenApi;
+using Asm.Wrangler.Api.Requests;
 using Asm.Wrangler.Api.Serialisation;
 using Asm.Wrangler.Api.Services;
 using Azure.Identity;
@@ -267,7 +268,7 @@ static void AddApp(WebApplication app)
     api.MapGet("repositories", RepositoriesHandler.Handle);
     api.MapGet("repositories/grouped", GroupedRepositoriesHandler.Handle);
     api.MapGet("users/search", UserSearchHandler.Handle);
-    api.MapPost("workflows", WorkflowsHandler.Handle).DisableAntiforgery();
+    api.MapQuery<WorkflowsRequest, IEnumerable<RepositoryModel>>("workflows", QueryMethod.Post).DisableAntiforgery();
 
     api.MapPost("repositories/{owner}/{repo}/workflows/", RepositoriesWorkflowsHandler.Handle)
         .Produces<IEnumerable<WorkflowModel>>()
