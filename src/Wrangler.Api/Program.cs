@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi;
 using Octokit;
 using Octokit.Caching;
+using Postie.AspNetCore;
 using StackExchange.Redis;
 
 const string ApiPrefix = "/api";
@@ -75,6 +76,11 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<ISecurityAlertsService, SecurityAlertsService>();
     builder.Services.AddScoped<IGateService, GateService>();
     builder.Services.AddScoped<IUserSearchService, UserSearchService>();
+
+    // Postie CQRS: scans this assembly for IQueryHandler/ICommandHandler implementations
+    // and wires the endpoint dispatcher used by MapQuery/MapCommand.
+    builder.Services.AddPostie(typeof(Asm.Wrangler.Api.Requests.WorkflowsRequest).Assembly);
+
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
     builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
