@@ -21,19 +21,29 @@ const STATUS_NAME: Record<string, string> = {
   Waiting: "Waiting",
 };
 
+// The .dot class per status. Cancelled (Amber) uses grey rather than the
+// amber-yellow, which was too close to Waiting's orange — grey also reads as
+// "inactive/dismissed", matching cancelled/skipped/action_required.
+const STATUS_DOT: Record<string, string> = {
+  Green: "green",
+  Red: "red",
+  Amber: "grey",
+  Running: "running",
+  Waiting: "waiting",
+};
+
 // Solid pill colour per status — the dropdown keeps the dot cue, the selected
 // pill is tinted the whole status colour (dark text set in CSS for contrast).
 const STATUS_COLOUR: Record<string, string> = {
   Green: "#6bcc6b",
   Red: "#ff6b6b",
-  Amber: "#e8c44a",
+  Amber: "#9ea3a8",
   Running: "cornflowerblue",
   Waiting: "orange",
 };
 
-// Dot class stays keyed on the colour (s.toLowerCase()); the label is the
-// friendly name, and search matches that name.
-const statusLabel = dotLabel<WorkflowStatus>((s) => s.toLowerCase(), (s) => STATUS_NAME[s]);
+// The label is the friendly name, and search matches that name.
+const statusLabel = dotLabel<WorkflowStatus>((s) => STATUS_DOT[s], (s) => STATUS_NAME[s]);
 const statusSearch = optionSearch<WorkflowStatus>(STATUS_OPTIONS, (s) => STATUS_NAME[s]);
 
 export const Filters = () => {
