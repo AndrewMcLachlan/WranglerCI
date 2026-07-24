@@ -498,6 +498,13 @@ export type PostPullRequestsData = {
     url: '/pull-requests';
 };
 
+export type PostPullRequestsErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
 export type PostPullRequestsResponses = {
     /**
      * OK
@@ -530,6 +537,13 @@ export type PostAttentionData = {
     url: '/attention';
 };
 
+export type PostAttentionErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
+};
+
 export type PostAttentionResponses = {
     /**
      * OK
@@ -544,6 +558,13 @@ export type PostGatesData = {
     path?: never;
     query?: never;
     url: '/gates';
+};
+
+export type PostGatesErrors = {
+    /**
+     * Not Found
+     */
+    404: unknown;
 };
 
 export type PostGatesResponses = {

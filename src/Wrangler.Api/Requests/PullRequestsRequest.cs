@@ -1,9 +1,12 @@
+using Asm.Wrangler.Api.Models.PullRequests;
+using Postie.Cqrs.Queries;
+
 namespace Asm.Wrangler.Api.Requests;
 
 /// <summary>
 /// Request to retrieve open pull requests from the specified repositories, filtered by author.
 /// </summary>
-public record PullRequestsRequest
+public record PullRequestsRequest : IQuery<IEnumerable<PullRequestModel>>
 {
     /// <summary>
     /// A repository identified by owner and name.

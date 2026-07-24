@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
+import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionErrors, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesErrors, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsErrors, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -72,7 +72,7 @@ export const postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns = <ThrowOnEr
     }
 });
 
-export const postPullRequests = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsData, ThrowOnError>): RequestResult<PostPullRequestsResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostPullRequestsResponses, unknown, ThrowOnError>({
+export const postPullRequests = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsData, ThrowOnError>): RequestResult<PostPullRequestsResponses, PostPullRequestsErrors, ThrowOnError> => (options.client ?? client).post<PostPullRequestsResponses, PostPullRequestsErrors, ThrowOnError>({
     responseType: 'json',
     url: '/pull-requests',
     ...options,
@@ -92,7 +92,7 @@ export const postPullRequestsApprove = <ThrowOnError extends boolean = false>(op
     }
 });
 
-export const postAttention = <ThrowOnError extends boolean = false>(options: Options<PostAttentionData, ThrowOnError>): RequestResult<PostAttentionResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostAttentionResponses, unknown, ThrowOnError>({
+export const postAttention = <ThrowOnError extends boolean = false>(options: Options<PostAttentionData, ThrowOnError>): RequestResult<PostAttentionResponses, PostAttentionErrors, ThrowOnError> => (options.client ?? client).post<PostAttentionResponses, PostAttentionErrors, ThrowOnError>({
     responseType: 'json',
     url: '/attention',
     ...options,
@@ -102,7 +102,7 @@ export const postAttention = <ThrowOnError extends boolean = false>(options: Opt
     }
 });
 
-export const postGates = <ThrowOnError extends boolean = false>(options: Options<PostGatesData, ThrowOnError>): RequestResult<PostGatesResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostGatesResponses, unknown, ThrowOnError>({
+export const postGates = <ThrowOnError extends boolean = false>(options: Options<PostGatesData, ThrowOnError>): RequestResult<PostGatesResponses, PostGatesErrors, ThrowOnError> => (options.client ?? client).post<PostGatesResponses, PostGatesErrors, ThrowOnError>({
     responseType: 'json',
     url: '/gates',
     ...options,

@@ -252,7 +252,7 @@
     "/pull-requests": {
       "post": {
         "tags": [
-          "PullRequestsHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
@@ -277,6 +277,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -316,7 +319,7 @@
     "/attention": {
       "post": {
         "tags": [
-          "AttentionHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
@@ -341,6 +344,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -348,7 +354,7 @@
     "/gates": {
       "post": {
         "tags": [
-          "GatesHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
@@ -373,6 +379,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -1976,16 +1985,7 @@
       "name": "WorkflowRunsHandler"
     },
     {
-      "name": "PullRequestsHandler"
-    },
-    {
       "name": "ApprovePullRequestsHandler"
-    },
-    {
-      "name": "AttentionHandler"
-    },
-    {
-      "name": "GatesHandler"
     },
     {
       "name": "ApproveGatesHandler"

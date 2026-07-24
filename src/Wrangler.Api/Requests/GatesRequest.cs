@@ -1,7 +1,10 @@
+using Asm.Wrangler.Api.Models.Gates;
+using Postie.Cqrs.Queries;
+
 namespace Asm.Wrangler.Api.Requests;
 
 /// <summary>Request to list pending deployment gates across repositories.</summary>
-public record GatesRequest
+public record GatesRequest : IQuery<IEnumerable<DeploymentGateModel>>
 {
     /// <summary>A repository identified by owner and name.</summary>
     public record RepositoryRequest

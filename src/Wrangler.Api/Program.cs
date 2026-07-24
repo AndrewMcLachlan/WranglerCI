@@ -4,7 +4,10 @@ using System.Text.Json.Serialization;
 using Asm.Wrangler.Api.Exceptions;
 using Asm.Wrangler.Api.Handlers;
 using Asm.Wrangler.Api.Models;
+using Asm.Wrangler.Api.Models.Attention;
 using Asm.Wrangler.Api.Models.Dashboard;
+using Asm.Wrangler.Api.Models.Gates;
+using Asm.Wrangler.Api.Models.PullRequests;
 using Asm.Wrangler.Api.Webhooks;
 using Octokit.Webhooks.AspNetCore;
 using Asm.Wrangler.Api.OpenApi;
@@ -277,11 +280,11 @@ static void AddApp(WebApplication app)
 
     api.MapPost("repositories/{owner}/{repo}/workflows/{workflowId}/runs", WorkflowRunsHandler.Handle).DisableAntiforgery();
 
-    api.MapPost("pull-requests", PullRequestsHandler.Handle).DisableAntiforgery();
+    api.MapQuery<PullRequestsRequest, IEnumerable<PullRequestModel>>("pull-requests", QueryMethod.Post).DisableAntiforgery();
     api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
 
-    api.MapPost("attention", AttentionHandler.Handle).DisableAntiforgery();
-    api.MapPost("gates", GatesHandler.Handle).DisableAntiforgery();
+    api.MapQuery<AttentionRequest, IEnumerable<AttentionItem>>("attention", QueryMethod.Post).DisableAntiforgery();
+    api.MapQuery<GatesRequest, IEnumerable<DeploymentGateModel>>("gates", QueryMethod.Post).DisableAntiforgery();
     api.MapPost("gates/approve", ApproveGatesHandler.Handle);
 
     api.MapGet("events/stream", EventStreamHandler.Handle).ExcludeFromDescription();
