@@ -2,7 +2,7 @@ using Asm.Wrangler.Api.Requests;
 using Octokit;
 using Postie.Cqrs.Queries;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Handlers.Queries;
 
 /// <summary>Retrieves all repositories from the user's organisations and personal account.</summary>
 public class RepositoriesQueryHandler(IGitHubClient client)

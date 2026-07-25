@@ -3,7 +3,7 @@ using Asm.Wrangler.Api.Requests;
 using Asm.Wrangler.Api.Services;
 using Postie.Cqrs.Queries;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Handlers.Queries;
 
 /// <summary>Searches GitHub users matching the query string.</summary>
 public class UserSearchQueryHandler(IUserSearchService service)

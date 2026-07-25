@@ -3,7 +3,7 @@ using Asm.Wrangler.Api.Requests;
 using Asm.Wrangler.Api.Services;
 using Postie.Cqrs.Queries;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Handlers.Queries;
 
 /// <summary>
 /// Gets a list of workflows and their latest runs for the specified repositories.

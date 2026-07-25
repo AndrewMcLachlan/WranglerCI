@@ -3,7 +3,7 @@ using Asm.Wrangler.Api.Requests;
 using Asm.Wrangler.Api.Services;
 using Postie.Cqrs.Queries;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Handlers.Queries;
 
 /// <summary>Retrieves open pull requests matching the specified repositories and author filters.</summary>
 public class PullRequestsQueryHandler(IPullRequestService service)

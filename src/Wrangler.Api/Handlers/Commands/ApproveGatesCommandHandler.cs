@@ -3,7 +3,7 @@ using Asm.Wrangler.Api.Requests;
 using Asm.Wrangler.Api.Services;
 using Postie.Cqrs.Commands;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Handlers.Commands;
 
 /// <summary>Approves the specified deployment gates.</summary>
 public class ApproveGatesCommandHandler(IGateService service)
