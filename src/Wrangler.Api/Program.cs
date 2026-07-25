@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Asm.Wrangler.Api.Authentication;
 using Asm.Wrangler.Api.Commands;
 using Asm.Wrangler.Api.Endpoints;
 using Asm.Wrangler.Api.Exceptions;
@@ -88,6 +89,10 @@ static void AddServices(WebApplicationBuilder builder)
     // and wires the endpoint dispatcher used by MapQuery/MapCommand.
     builder.Services.AddPostie(typeof(Asm.Wrangler.Api.Queries.Workflows).Assembly);
 
+    // Silently refreshes the GitHub access token before it expires so the ~8-hour token lifetime
+    // doesn't repeatedly bounce the user through GitHub's OAuth flow (and its corporate SSO prompt).
+    builder.Services.AddSingleton(TimeProvider.System);
+    builder.Services.AddScoped<IGitHubTokenService, GitHubTokenService>();
     builder.Services.AddSingleton<ICacheKeyService, CacheKeyService>();
     builder.Services.AddSingleton<IResponseCache, DistributedResponseCache>();
     builder.Services.AddSingleton<IInstallationRegistry, InstallationRegistry>();
@@ -165,7 +170,14 @@ static void AddServices(WebApplicationBuilder builder)
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.IdleTimeout = TimeSpan.FromDays(7);
+        // Persist the cookie across browser restarts (the default is a session cookie that dies on
+        // close) so the refresh token stored in the session survives to be used. Aligned to the
+        // refresh token's ~6-month cap.
+        options.Cookie.MaxAge = TimeSpan.FromDays(180);
+        options.Cookie.IsEssential = true;
+        // Sliding server-side lifetime, also aligned to the refresh token's ~6-month cap so the
+        // session holding it isn't evicted between visits within the refresh window.
+        options.IdleTimeout = TimeSpan.FromDays(180);
     });
 
     builder.Services.AddAntiforgery(options =>
@@ -231,6 +243,13 @@ static void AddApp(WebApplication app)
     app.UseExceptionHandler();
 
     app.UseSession();
+
+    // Silently renew the GitHub access token before it expires, only for API requests (static files
+    // and the OAuth endpoints don't need it). Must run after UseSession so the session is available.
+    app.UseWhen(
+        context => context.Request.Path.StartsWithSegments(ApiPrefix),
+        branch => branch.UseMiddleware<TokenRefreshMiddleware>());
+
     app.UseAntiforgery();
     app.UseDefaultFiles();
 

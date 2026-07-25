@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Web;
+using Asm.Wrangler.Api.Authentication;
 
 namespace Asm.Wrangler.Api.Endpoints;
 
@@ -17,7 +18,7 @@ public static class CallbackHandler
     /// <param name="configuration">The application configuration.</param>
     /// <returns>A redirect to the application root on success, or a bad request result on failure.</returns>
     /// <exception cref="InvalidOperationException">Thrown when required configuration values are missing.</exception>
-    public static async Task<IResult> Handle(HttpContext http, IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public static async Task<IResult> Handle(HttpContext http, IConfiguration configuration, IHttpClientFactory httpClientFactory, IGitHubTokenService tokenService)
     {
         string clientId = configuration.GetValue<string>("ClientId") ?? throw new InvalidOperationException("ClientId is missing");
         string clientSecret = configuration.GetValue<string>("ClientSecret") ?? throw new InvalidOperationException("ClientSecret is missing");
@@ -76,13 +77,23 @@ public static class CallbackHandler
         var login = user.GetProperty("login").GetString();
         var avatarUrl = user.TryGetProperty("avatar_url", out var avatarProp) ? avatarProp.GetString() : null;
 
-        // Store in session
-        http.Session.SetString("github_access_token", accessToken);
-        http.Session.SetString("github_user", login ?? "unknown");
-        if (!String.IsNullOrEmpty(avatarUrl)) http.Session.SetString("github_avatar_url", avatarUrl);
+        // Store credentials in the session. When the GitHub App issues expiring tokens the response
+        // also carries a refresh token and lifetimes; the token service persists those so the access
+        // token can later be renewed silently instead of forcing a full re-authorisation.
+        tokenService.StoreTokens(http.Session, new GitHubTokenResponse(
+            accessToken,
+            tokenData.GetValueOrDefault("refresh_token"),
+            ParseSeconds(tokenData, "expires_in"),
+            ParseSeconds(tokenData, "refresh_token_expires_in")));
+
+        http.Session.SetString(SessionKeys.User, login ?? "unknown");
+        if (!String.IsNullOrEmpty(avatarUrl)) http.Session.SetString(SessionKeys.AvatarUrl, avatarUrl);
 
         return Results.Redirect("/dashboard");
     }
+
+    private static int? ParseSeconds(IDictionary<string, string> tokenData, string key) =>
+        tokenData.TryGetValue(key, out var value) && Int32.TryParse(value, out var seconds) ? seconds : null;
 
     internal static Dictionary<string, string> ParseFormEncodedString(string formData)
     {
