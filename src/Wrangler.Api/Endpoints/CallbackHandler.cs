@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Web;
 using Asm.Wrangler.Api.Authentication;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Endpoints;
 
 /// <summary>
 /// Handles the GitHub OAuth callback, exchanging the authorisation code for an access token.

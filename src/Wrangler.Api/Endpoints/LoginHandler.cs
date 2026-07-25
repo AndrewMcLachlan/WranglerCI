@@ -1,4 +1,4 @@
-﻿namespace Asm.Wrangler.Api.Handlers;
+﻿namespace Asm.Wrangler.Api.Endpoints;
 
 /// <summary>
 /// Handles the GitHub OAuth login flow by redirecting the user to GitHub's authorisation page.

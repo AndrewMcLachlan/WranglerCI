@@ -1,4 +1,4 @@
-using Asm.Wrangler.Api.Handlers;
+using Asm.Wrangler.Api.Endpoints;
 
 namespace Asm.Wrangler.Tests;
 

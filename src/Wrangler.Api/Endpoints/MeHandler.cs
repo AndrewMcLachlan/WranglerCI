@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Endpoints;
 
 /// <summary>
 /// Identity of the currently authenticated GitHub user.

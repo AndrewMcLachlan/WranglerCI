@@ -1,9 +1,13 @@
-namespace Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Models.PullRequests;
+using Asm.Wrangler.Api.Services;
+using Postie.Cqrs.Commands;
+
+namespace Asm.Wrangler.Api.Commands;
 
 /// <summary>
 /// Request to approve and merge a batch of pull requests.
 /// </summary>
-public record ApprovePullRequestsRequest
+public record ApprovePullRequests : ICommand<IEnumerable<ApprovalResult>>
 {
     /// <summary>
     /// Identifies a single pull request by repository and number.
@@ -30,4 +34,10 @@ public record ApprovePullRequestsRequest
     /// The pull requests to approve and merge.
     /// </summary>
     public IReadOnlyList<PullRequestReference> PullRequests { get; init; } = [];
+}
+
+internal class ApprovePullRequestsHandler(IPullRequestService service) : ICommandHandler<ApprovePullRequests, IEnumerable<ApprovalResult>>
+{
+    public ValueTask<IEnumerable<ApprovalResult>> Handle(ApprovePullRequests command, CancellationToken cancellationToken) =>
+        new(service.ApprovePullRequestsAsync(command, cancellationToken));
 }

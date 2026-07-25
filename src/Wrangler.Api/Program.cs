@@ -2,13 +2,20 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Asm.Wrangler.Api.Authentication;
+using Asm.Wrangler.Api.Commands;
+using Asm.Wrangler.Api.Endpoints;
 using Asm.Wrangler.Api.Exceptions;
-using Asm.Wrangler.Api.Handlers;
 using Asm.Wrangler.Api.Models;
+using Asm.Wrangler.Api.Models.Attention;
 using Asm.Wrangler.Api.Models.Dashboard;
+using Asm.Wrangler.Api.Models.Gates;
+using Asm.Wrangler.Api.Models.PullRequests;
+using Asm.Wrangler.Api.Models.Settings;
+using Asm.Wrangler.Api.Models.Users;
 using Asm.Wrangler.Api.Webhooks;
 using Octokit.Webhooks.AspNetCore;
 using Asm.Wrangler.Api.OpenApi;
+using Asm.Wrangler.Api.Queries;
 using Asm.Wrangler.Api.Serialisation;
 using Asm.Wrangler.Api.Services;
 using Azure.Identity;
@@ -18,6 +25,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi;
 using Octokit;
 using Octokit.Caching;
+using Postie.AspNetCore;
 using StackExchange.Redis;
 
 const string ApiPrefix = "/api";
@@ -76,6 +84,10 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<ISecurityAlertsService, SecurityAlertsService>();
     builder.Services.AddScoped<IGateService, GateService>();
     builder.Services.AddScoped<IUserSearchService, UserSearchService>();
+
+    // Postie CQRS: scans this assembly for IQueryHandler/ICommandHandler implementations
+    // and wires the endpoint dispatcher used by MapQuery/MapCommand.
+    builder.Services.AddPostie(typeof(Asm.Wrangler.Api.Queries.Workflows).Assembly);
 
     // Silently refreshes the GitHub access token before it expires so the ~8-hour token lifetime
     // doesn't repeatedly bounce the user through GitHub's OAuth flow (and its corporate SSO prompt).
@@ -278,10 +290,10 @@ static void AddApp(WebApplication app)
     var api = app.MapGroup(ApiPrefix);
 
     api.MapGet("me", MeHandler.Handle);
-    api.MapGet("repositories", RepositoriesHandler.Handle);
-    api.MapGet("repositories/grouped", GroupedRepositoriesHandler.Handle);
-    api.MapGet("users/search", UserSearchHandler.Handle);
-    api.MapPost("workflows", WorkflowsHandler.Handle).DisableAntiforgery();
+    api.MapQuery<Repositories, IEnumerable<Repository>>("repositories");
+    api.MapQuery<GroupedRepositories, IEnumerable<AccountModel>>("repositories/grouped");
+    api.MapQuery<UserSearch, IEnumerable<UserSearchResult>>("users/search");
+    api.MapQuery<Workflows, IEnumerable<RepositoryModel>>("workflows", QueryMethod.Post).DisableAntiforgery();
 
     api.MapPost("repositories/{owner}/{repo}/workflows/", RepositoriesWorkflowsHandler.Handle)
         .Produces<IEnumerable<WorkflowModel>>()
@@ -290,12 +302,12 @@ static void AddApp(WebApplication app)
 
     api.MapPost("repositories/{owner}/{repo}/workflows/{workflowId}/runs", WorkflowRunsHandler.Handle).DisableAntiforgery();
 
-    api.MapPost("pull-requests", PullRequestsHandler.Handle).DisableAntiforgery();
-    api.MapPost("pull-requests/approve", ApprovePullRequestsHandler.Handle);
+    api.MapQuery<PullRequests, IEnumerable<PullRequestModel>>("pull-requests", QueryMethod.Post).DisableAntiforgery();
+    api.MapCommand<ApprovePullRequests, IEnumerable<ApprovalResult>>("pull-requests/approve");
 
-    api.MapPost("attention", AttentionHandler.Handle).DisableAntiforgery();
-    api.MapPost("gates", GatesHandler.Handle).DisableAntiforgery();
-    api.MapPost("gates/approve", ApproveGatesHandler.Handle);
+    api.MapQuery<Attention, IEnumerable<AttentionItem>>("attention", QueryMethod.Post).DisableAntiforgery();
+    api.MapQuery<Gates, IEnumerable<DeploymentGateModel>>("gates", QueryMethod.Post).DisableAntiforgery();
+    api.MapCommand<ApproveGates, IEnumerable<GateApprovalResult>>("gates/approve");
 
     api.MapGet("events/stream", EventStreamHandler.Handle).ExcludeFromDescription();
 

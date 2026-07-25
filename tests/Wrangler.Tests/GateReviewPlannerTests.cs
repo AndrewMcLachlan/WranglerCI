@@ -1,4 +1,4 @@
-using Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Commands;
 using Asm.Wrangler.Api.Services;
 
 namespace Asm.Wrangler.Tests;
