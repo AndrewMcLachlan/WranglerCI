@@ -4,7 +4,7 @@ using Asm.Wrangler.Api.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Endpoints;
 
 /// <summary>
 /// Handles requests to retrieve all workflows and their latest runs for a specific repository.

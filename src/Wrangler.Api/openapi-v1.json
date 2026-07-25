@@ -118,7 +118,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WorkflowsRequest"
+                "$ref": "#/components/schemas/Workflows"
               }
             }
           },
@@ -267,7 +267,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PullRequestsRequest"
+                "$ref": "#/components/schemas/PullRequests"
               }
             }
           },
@@ -302,7 +302,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApprovePullRequestsRequest"
+                "$ref": "#/components/schemas/ApprovePullRequests"
               }
             }
           },
@@ -334,7 +334,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AttentionRequest"
+                "$ref": "#/components/schemas/Attention"
               }
             }
           },
@@ -369,7 +369,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GatesRequest"
+                "$ref": "#/components/schemas/Gates"
               }
             }
           },
@@ -404,7 +404,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApproveGatesRequest"
+                "$ref": "#/components/schemas/ApproveGates"
               }
             }
           },
@@ -523,7 +523,7 @@
           }
         }
       },
-      "ApproveGatesRequest": {
+      "ApproveGates": {
         "type": "object",
         "properties": {
           "gates": {
@@ -534,13 +534,24 @@
           }
         }
       },
-      "ApprovePullRequestsRequest": {
+      "ApprovePullRequests": {
         "type": "object",
         "properties": {
           "pullRequests": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PullRequestReference"
+            }
+          }
+        }
+      },
+      "Attention": {
+        "type": "object",
+        "properties": {
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepositoryRequest"
             }
           }
         }
@@ -640,17 +651,6 @@
           "PullRequestReview",
           "SecurityAlert"
         ]
-      },
-      "AttentionRequest": {
-        "type": "object",
-        "properties": {
-          "repositories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RepositoryRequest"
-            }
-          }
-        }
       },
       "BranchFilterRequest": {
         "type": "object",
@@ -850,7 +850,7 @@
           }
         }
       },
-      "GatesRequest": {
+      "Gates": {
         "type": "object",
         "properties": {
           "repositories": {
@@ -1078,7 +1078,7 @@
           }
         }
       },
-      "PullRequestsRequest": {
+      "PullRequests": {
         "type": "object",
         "properties": {
           "repositories": {
@@ -1942,7 +1942,7 @@
           }
         }
       },
-      "WorkflowsRequest": {
+      "Workflows": {
         "type": "object",
         "properties": {
           "repositories": {

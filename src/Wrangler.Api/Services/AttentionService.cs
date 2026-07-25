@@ -1,5 +1,5 @@
 using Asm.Wrangler.Api.Models.Attention;
-using Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Queries;
 using Microsoft.Extensions.Caching.Distributed;
 using Octokit;
 
@@ -10,7 +10,7 @@ namespace Asm.Wrangler.Api.Services;
 /// </summary>
 public interface IAttentionService
 {
-    Task<IEnumerable<AttentionItem>> GetAttentionItemsAsync(AttentionRequest request, CancellationToken cancellationToken);
+    Task<IEnumerable<AttentionItem>> GetAttentionItemsAsync(Attention request, CancellationToken cancellationToken);
 }
 
 internal class AttentionService(
@@ -22,7 +22,7 @@ internal class AttentionService(
 {
     private readonly SemaphoreSlim _gate = new(8);
 
-    public async Task<IEnumerable<AttentionItem>> GetAttentionItemsAsync(AttentionRequest request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<AttentionItem>> GetAttentionItemsAsync(Attention request, CancellationToken cancellationToken)
     {
         var currentUser = httpContextAccessor.HttpContext?.Session.GetString("github_user");
 

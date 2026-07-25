@@ -1,5 +1,5 @@
 using System.Reflection;
-using Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Queries;
 using Microsoft.Extensions.DependencyInjection;
 using Postie.Cqrs.Commands;
 using Postie.Cqrs.Queries;
@@ -9,7 +9,7 @@ namespace Wrangler.Tests.Cqrs;
 
 public class HandlerRegistrationTests
 {
-    private static readonly Assembly ApiAssembly = typeof(WorkflowsRequest).Assembly;
+    private static readonly Assembly ApiAssembly = typeof(Workflows).Assembly;
 
     // Cached once so every test/theory case reuses the same reflection scan instead of re-running
     // Assembly.GetTypes() per case.

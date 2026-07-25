@@ -28,12 +28,16 @@ export type ApprovalResult = {
     error?: null | string;
 };
 
-export type ApproveGatesRequest = {
+export type ApproveGates = {
     gates?: Array<GateRef>;
 };
 
-export type ApprovePullRequestsRequest = {
+export type ApprovePullRequests = {
     pullRequests?: Array<PullRequestReference>;
+};
+
+export type Attention = {
+    repositories?: Array<RepositoryRequest>;
 };
 
 export type AttentionItem = {
@@ -54,10 +58,6 @@ export type AttentionItem = {
 };
 
 export type AttentionItemType = 'WorkflowFailure' | 'PullRequestReview' | 'SecurityAlert';
-
-export type AttentionRequest = {
-    repositories?: Array<RepositoryRequest>;
-};
 
 export type BranchFilterRequest = {
     branchFilters?: Array<string>;
@@ -107,7 +107,7 @@ export type GateRef = {
     environmentName: string;
 };
 
-export type GatesRequest = {
+export type Gates = {
     repositories?: Array<RepositoryRequest>;
 };
 
@@ -159,7 +159,7 @@ export type PullRequestReference = {
     number: number | string;
 };
 
-export type PullRequestsRequest = {
+export type PullRequests = {
     repositories?: Array<RepositoryRequest>;
     authors?: Array<string>;
 };
@@ -356,7 +356,7 @@ export type WorkflowRunsRequest = {
     branchFilters?: Array<string>;
 };
 
-export type WorkflowsRequest = {
+export type Workflows = {
     repositories?: Array<RepositoryWorkflowRequest>;
     branchFilters?: Array<string>;
 };
@@ -451,7 +451,7 @@ export type GetUsersSearchResponses = {
 export type GetUsersSearchResponse = GetUsersSearchResponses[keyof GetUsersSearchResponses];
 
 export type PostWorkflowsData = {
-    body: WorkflowsRequest;
+    body: Workflows;
     path?: never;
     query?: never;
     url: '/workflows';
@@ -513,7 +513,7 @@ export type PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses = {
 export type PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse = PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses[keyof PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses];
 
 export type PostPullRequestsData = {
-    body: PullRequestsRequest;
+    body: PullRequests;
     path?: never;
     query?: never;
     url: '/pull-requests';
@@ -536,7 +536,7 @@ export type PostPullRequestsResponses = {
 export type PostPullRequestsResponse = PostPullRequestsResponses[keyof PostPullRequestsResponses];
 
 export type PostPullRequestsApproveData = {
-    body: ApprovePullRequestsRequest;
+    body: ApprovePullRequests;
     path?: never;
     query?: never;
     url: '/pull-requests/approve';
@@ -552,7 +552,7 @@ export type PostPullRequestsApproveResponses = {
 export type PostPullRequestsApproveResponse = PostPullRequestsApproveResponses[keyof PostPullRequestsApproveResponses];
 
 export type PostAttentionData = {
-    body: AttentionRequest;
+    body: Attention;
     path?: never;
     query?: never;
     url: '/attention';
@@ -575,7 +575,7 @@ export type PostAttentionResponses = {
 export type PostAttentionResponse = PostAttentionResponses[keyof PostAttentionResponses];
 
 export type PostGatesData = {
-    body: GatesRequest;
+    body: Gates;
     path?: never;
     query?: never;
     url: '/gates';
@@ -598,7 +598,7 @@ export type PostGatesResponses = {
 export type PostGatesResponse = PostGatesResponses[keyof PostGatesResponses];
 
 export type PostGatesApproveData = {
-    body: ApproveGatesRequest;
+    body: ApproveGates;
     path?: never;
     query?: never;
     url: '/gates/approve';

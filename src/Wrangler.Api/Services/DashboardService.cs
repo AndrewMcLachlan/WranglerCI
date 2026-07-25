@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Asm.Wrangler.Api.Models;
 using Asm.Wrangler.Api.Models.Dashboard;
-using Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Queries;
 using Microsoft.Extensions.Caching.Distributed;
 using Octokit;
 
@@ -19,7 +19,7 @@ public interface IDashboardService
     /// <param name="request">The repositories and workflow IDs to query.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The repositories with their workflows and latest runs.</returns>
-    Task<IEnumerable<RepositoryModel>> GetWorkflowsAsync(WorkflowsRequest request, CancellationToken cancellationToken);
+    Task<IEnumerable<RepositoryModel>> GetWorkflowsAsync(Workflows request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Retrieves all workflows for a specific repository.
@@ -59,7 +59,7 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
 {
     private readonly SemaphoreSlim _gate = new(8);
 
-    public async Task<IEnumerable<RepositoryModel>> GetWorkflowsAsync(WorkflowsRequest request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<RepositoryModel>> GetWorkflowsAsync(Workflows request, CancellationToken cancellationToken)
     {
         List<Task<Repository>> repoTasks = [.. request.Repositories.Select(repo => gitHubClient.Repository.Get(repo.Owner, repo.Name))];
         var workflowIds = request.Repositories.SelectMany(r => r.Workflows);

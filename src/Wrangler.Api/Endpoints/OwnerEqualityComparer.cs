@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Octokit;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Endpoints;
 internal class OwnerEqualityComparer : IEqualityComparer<User>
 {
     public bool Equals(User? x, User? y)

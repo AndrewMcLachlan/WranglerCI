@@ -1,10 +1,11 @@
 using Asm.Wrangler.Api.Models.Gates;
+using Asm.Wrangler.Api.Services;
 using Postie.Cqrs.Commands;
 
-namespace Asm.Wrangler.Api.Requests;
+namespace Asm.Wrangler.Api.Commands;
 
 /// <summary>Request to approve the specified deployment gates.</summary>
-public record ApproveGatesRequest : ICommand<IEnumerable<GateApprovalResult>>
+public record ApproveGates : ICommand<IEnumerable<GateApprovalResult>>
 {
     public IReadOnlyList<GateRef> Gates { get; init; } = [];
 }
@@ -17,4 +18,10 @@ public record GateRef
     public required long RunId { get; init; }
     public required long EnvironmentId { get; init; }
     public required string EnvironmentName { get; init; }
+}
+
+internal class ApproveGatesHandler(IGateService service) : ICommandHandler<ApproveGates, IEnumerable<GateApprovalResult>>
+{
+    public ValueTask<IEnumerable<GateApprovalResult>> Handle(ApproveGates command, CancellationToken cancellationToken) =>
+        new(service.ApproveGatesAsync(command, cancellationToken));
 }
