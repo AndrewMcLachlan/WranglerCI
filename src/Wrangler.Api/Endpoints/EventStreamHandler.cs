@@ -2,7 +2,7 @@ using System.Text.Json;
 using Asm.Wrangler.Api.Webhooks;
 using Microsoft.AspNetCore.Http.Features;
 
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Endpoints;
 
 /// <summary>
 /// Streams webhook-driven events to connected clients via Server-Sent Events.

@@ -1,4 +1,4 @@
-namespace Asm.Wrangler.Api.Handlers;
+namespace Asm.Wrangler.Api.Endpoints;
 
 /// <summary>
 /// Ends the current session, clearing the GitHub access token from

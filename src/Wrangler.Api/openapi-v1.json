@@ -27,7 +27,7 @@
     "/repositories": {
       "get": {
         "tags": [
-          "RepositoriesHandler"
+          "Asm.Wrangler.Api"
         ],
         "responses": {
           "200": {
@@ -42,6 +42,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -49,7 +52,7 @@
     "/repositories/grouped": {
       "get": {
         "tags": [
-          "GroupedRepositoriesHandler"
+          "Asm.Wrangler.Api"
         ],
         "responses": {
           "200": {
@@ -64,6 +67,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -71,7 +77,7 @@
     "/users/search": {
       "get": {
         "tags": [
-          "UserSearchHandler"
+          "Asm.Wrangler.Api"
         ],
         "parameters": [
           {
@@ -96,6 +102,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -103,13 +112,13 @@
     "/workflows": {
       "post": {
         "tags": [
-          "WorkflowsHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/WorkflowsRequest"
+                "$ref": "#/components/schemas/Workflows"
               }
             }
           },
@@ -128,6 +137,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -249,13 +261,13 @@
     "/pull-requests": {
       "post": {
         "tags": [
-          "PullRequestsHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PullRequestsRequest"
+                "$ref": "#/components/schemas/PullRequests"
               }
             }
           },
@@ -274,6 +286,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -281,13 +296,13 @@
     "/pull-requests/approve": {
       "post": {
         "tags": [
-          "ApprovePullRequestsHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApprovePullRequestsRequest"
+                "$ref": "#/components/schemas/ApprovePullRequests"
               }
             }
           },
@@ -313,13 +328,13 @@
     "/attention": {
       "post": {
         "tags": [
-          "AttentionHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AttentionRequest"
+                "$ref": "#/components/schemas/Attention"
               }
             }
           },
@@ -338,6 +353,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -345,13 +363,13 @@
     "/gates": {
       "post": {
         "tags": [
-          "GatesHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GatesRequest"
+                "$ref": "#/components/schemas/Gates"
               }
             }
           },
@@ -370,6 +388,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
@@ -377,13 +398,13 @@
     "/gates/approve": {
       "post": {
         "tags": [
-          "ApproveGatesHandler"
+          "Asm.Wrangler.Api"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ApproveGatesRequest"
+                "$ref": "#/components/schemas/ApproveGates"
               }
             }
           },
@@ -502,7 +523,7 @@
           }
         }
       },
-      "ApproveGatesRequest": {
+      "ApproveGates": {
         "type": "object",
         "properties": {
           "gates": {
@@ -513,13 +534,24 @@
           }
         }
       },
-      "ApprovePullRequestsRequest": {
+      "ApprovePullRequests": {
         "type": "object",
         "properties": {
           "pullRequests": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PullRequestReference"
+            }
+          }
+        }
+      },
+      "Attention": {
+        "type": "object",
+        "properties": {
+          "repositories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepositoryRequest"
             }
           }
         }
@@ -619,17 +651,6 @@
           "PullRequestReview",
           "SecurityAlert"
         ]
-      },
-      "AttentionRequest": {
-        "type": "object",
-        "properties": {
-          "repositories": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/RepositoryRequest"
-            }
-          }
-        }
       },
       "BranchFilterRequest": {
         "type": "object",
@@ -829,7 +850,7 @@
           }
         }
       },
-      "GatesRequest": {
+      "Gates": {
         "type": "object",
         "properties": {
           "repositories": {
@@ -1057,7 +1078,7 @@
           }
         }
       },
-      "PullRequestsRequest": {
+      "PullRequests": {
         "type": "object",
         "properties": {
           "repositories": {
@@ -1921,7 +1942,7 @@
           }
         }
       },
-      "WorkflowsRequest": {
+      "Workflows": {
         "type": "object",
         "properties": {
           "repositories": {
@@ -1955,37 +1976,13 @@
       "name": "MeHandler"
     },
     {
-      "name": "RepositoriesHandler"
-    },
-    {
-      "name": "GroupedRepositoriesHandler"
-    },
-    {
-      "name": "UserSearchHandler"
-    },
-    {
-      "name": "WorkflowsHandler"
+      "name": "Asm.Wrangler.Api"
     },
     {
       "name": "RepositoriesWorkflowsHandler"
     },
     {
       "name": "WorkflowRunsHandler"
-    },
-    {
-      "name": "PullRequestsHandler"
-    },
-    {
-      "name": "ApprovePullRequestsHandler"
-    },
-    {
-      "name": "AttentionHandler"
-    },
-    {
-      "name": "GatesHandler"
-    },
-    {
-      "name": "ApproveGatesHandler"
     }
   ]
 }

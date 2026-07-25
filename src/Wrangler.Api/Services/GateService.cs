@@ -1,5 +1,6 @@
 using Asm.Wrangler.Api.Models.Gates;
-using Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Commands;
+using Asm.Wrangler.Api.Queries;
 using Microsoft.Extensions.Caching.Distributed;
 using Octokit;
 
@@ -11,8 +12,8 @@ namespace Asm.Wrangler.Api.Services;
 /// </summary>
 public interface IGateService
 {
-    Task<IEnumerable<DeploymentGateModel>> GetGatesAsync(GatesRequest request, CancellationToken cancellationToken);
-    Task<IEnumerable<GateApprovalResult>> ApproveGatesAsync(ApproveGatesRequest request, CancellationToken cancellationToken);
+    Task<IEnumerable<DeploymentGateModel>> GetGatesAsync(Gates request, CancellationToken cancellationToken);
+    Task<IEnumerable<GateApprovalResult>> ApproveGatesAsync(ApproveGates request, CancellationToken cancellationToken);
 }
 
 internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, ILogger<GateService> logger)
@@ -20,7 +21,7 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
 {
     private readonly SemaphoreSlim _gate = new(8);
 
-    public async Task<IEnumerable<DeploymentGateModel>> GetGatesAsync(GatesRequest request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<DeploymentGateModel>> GetGatesAsync(Gates request, CancellationToken cancellationToken)
     {
         var repoTasks = request.Repositories.Select(repo => GetRepoGatesAsync(repo.Owner, repo.Name, cancellationToken));
         var perRepo = await Task.WhenAll(repoTasks);
@@ -90,7 +91,7 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
         }
     }
 
-    public async Task<IEnumerable<GateApprovalResult>> ApproveGatesAsync(ApproveGatesRequest request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<GateApprovalResult>> ApproveGatesAsync(ApproveGates request, CancellationToken cancellationToken)
     {
         var groups = GateReviewPlanner.GroupForReview(request.Gates);
 

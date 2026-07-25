@@ -1,4 +1,4 @@
-﻿using Asm.Wrangler.Api.Handlers;
+﻿using Asm.Wrangler.Api.Endpoints;
 using Asm.Wrangler.Api.Models;
 using Asm.Wrangler.Api.Models.Settings;
 using Microsoft.Extensions.Caching.Distributed;

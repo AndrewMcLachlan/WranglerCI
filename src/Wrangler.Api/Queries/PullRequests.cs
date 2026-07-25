@@ -1,9 +1,13 @@
-namespace Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Models.PullRequests;
+using Asm.Wrangler.Api.Services;
+using Postie.Cqrs.Queries;
+
+namespace Asm.Wrangler.Api.Queries;
 
 /// <summary>
 /// Request to retrieve open pull requests from the specified repositories, filtered by author.
 /// </summary>
-public record PullRequestsRequest
+public record PullRequests : IQuery<IEnumerable<PullRequestModel>>
 {
     /// <summary>
     /// A repository identified by owner and name.
@@ -30,4 +34,10 @@ public record PullRequestsRequest
     /// The author logins to filter by (case-insensitive).
     /// </summary>
     public IReadOnlyList<string> Authors { get; init; } = [];
+}
+
+internal class PullRequestsHandler(IPullRequestService service) : IQueryHandler<PullRequests, IEnumerable<PullRequestModel>>
+{
+    public ValueTask<IEnumerable<PullRequestModel>> Handle(PullRequests query, CancellationToken cancellationToken) =>
+        new(service.GetPullRequestsAsync(query, cancellationToken));
 }

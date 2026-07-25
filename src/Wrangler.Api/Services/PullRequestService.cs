@@ -1,5 +1,6 @@
 using Asm.Wrangler.Api.Models.PullRequests;
-using Asm.Wrangler.Api.Requests;
+using Asm.Wrangler.Api.Commands;
+using Asm.Wrangler.Api.Queries;
 using Microsoft.Extensions.Caching.Distributed;
 using Octokit;
 
@@ -18,7 +19,7 @@ public interface IPullRequestService
     /// <param name="request">The repositories and author filters to query.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The matching open pull requests with their aggregated check statuses.</returns>
-    Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequestsRequest request, CancellationToken cancellationToken);
+    Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequests request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Approves and merges the specified pull requests.
@@ -26,14 +27,14 @@ public interface IPullRequestService
     /// <param name="request">The pull requests to approve and merge.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The result of each approve-and-merge operation.</returns>
-    Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequestsRequest request, CancellationToken cancellationToken);
+    Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequests request, CancellationToken cancellationToken);
 }
 
 internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache cache, ILogger<PullRequestService> logger) : GitHubService(cache, logger), IPullRequestService
 {
     private readonly SemaphoreSlim _gate = new(8);
 
-    public async Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequestsRequest request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequests request, CancellationToken cancellationToken)
     {
         var tasks = request.Repositories.Select(repo => GetRepoPullRequestsAsync(repo.Owner, repo.Name, request.Authors, cancellationToken));
 
@@ -42,7 +43,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         return results.SelectMany(r => r);
     }
 
-    public async Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequestsRequest request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequests request, CancellationToken cancellationToken)
     {
         // Group by repo so that PRs targeting the same base branch are merged
         // sequentially, avoiding "Base branch was modified" race conditions.
