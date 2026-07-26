@@ -56,7 +56,7 @@ export const Filters = () => {
     <div className="filter-bar">
       <ComboBox<BranchOption>
         className="filter-combo"
-        placeholder="All branches"
+        placeholder="Default branch"
         multiSelect
         clearable
         creatable
