@@ -27,8 +27,10 @@ export const configureInterceptors = () => {
       // Handle 401 Unauthorized errors
       if (error.response?.status === 401) {
 
-        // Redirect to login
-        window.location.href = '/login/github';
+        // Redirect to login, remembering the current screen so the callback can return here
+        // instead of always landing on the dashboard.
+        const returnUrl = window.location.pathname + window.location.search;
+        window.location.href = `/login/github?returnUrl=${encodeURIComponent(returnUrl)}`;
       }
 
       // Re-throw the error so it can still be handled by individual components if needed

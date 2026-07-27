@@ -26,4 +26,7 @@ public static class SessionKeys
 
     /// <summary>The anti-forgery state value for an in-progress OAuth flow.</summary>
     public const string OAuthState = "oauth_state";
+
+    /// <summary>Local path to return the user to after a successful login (set when login was triggered mid-session).</summary>
+    public const string PostLoginReturnUrl = "post_login_return_url";
 }

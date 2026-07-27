@@ -89,7 +89,11 @@ public static class CallbackHandler
         http.Session.SetString(SessionKeys.User, login ?? "unknown");
         if (!String.IsNullOrEmpty(avatarUrl)) http.Session.SetString(SessionKeys.AvatarUrl, avatarUrl);
 
-        return Results.Redirect("/dashboard");
+        // Return the user to where login was triggered (validated as a safe local path), or the
+        // dashboard when there was no such screen (e.g. an explicit sign-in from the landing page).
+        var returnUrl = http.Session.GetString(SessionKeys.PostLoginReturnUrl);
+        http.Session.Remove(SessionKeys.PostLoginReturnUrl);
+        return Results.Redirect(ReturnUrl.ResolveOrFallback(returnUrl));
     }
 
     private static int? ParseSeconds(IDictionary<string, string> tokenData, string key) =>
