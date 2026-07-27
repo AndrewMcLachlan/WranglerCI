@@ -14,17 +14,17 @@
     "update-moo": "npm install @andrewmclachlan/moo-app@latest @andrewmclachlan/moo-ds@latest @andrewmclachlan/moo-icons@latest"
   },
   "dependencies": {
-    "@andrewmclachlan/moo-app": "^5.2.87",
-    "@andrewmclachlan/moo-ds": "^5.2.87",
-    "@andrewmclachlan/moo-icons": "^5.2.87",
-    "@tanstack/react-query": "^5.101.3",
+    "@andrewmclachlan/moo-app": "^5.2.97",
+    "@andrewmclachlan/moo-ds": "^5.2.97",
+    "@andrewmclachlan/moo-icons": "^5.2.97",
+    "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-router": "^1.170.18",
     "@tanstack/react-router-devtools": "^1.167.0",
     "axios": "^1.18.1",
     "luxon": "^3.7.2",
     "oauth4webapi": "^3.8.6",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "use-debounce": "^10.1.1"
   },
   "overrides": {
