@@ -33,6 +33,28 @@ internal sealed class GitHubWebhookEventProcessor(
         PullRequestAction.ReadyForReview,
     ];
 
+    /// <summary>
+    /// Wraps the per-event dispatch so a transient backend failure — for example Redis being briefly
+    /// unavailable in the delivery-dedupe (<see cref="ClaimAsync"/>) or the cache-version bump — never
+    /// bubbles a 5xx back to GitHub. GitHub auto-disables a webhook after a run of failed deliveries, so
+    /// we log the failure and acknowledge the delivery (200) instead; the client's polling/refetch is the
+    /// backstop for the missed update. Signature validation and deserialisation happen upstream of this
+    /// method and still reject genuinely bad deliveries.
+    /// </summary>
+    public override async ValueTask ProcessWebhookAsync(WebhookHeaders headers, WebhookEvent webhookEvent, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await base.ProcessWebhookAsync(headers, webhookEvent, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex,
+                "Webhook processing failed for delivery {DeliveryId} (event {Event}); acknowledging to keep the webhook enabled.",
+                headers.Delivery, headers.Event);
+        }
+    }
+
     protected override async ValueTask ProcessWorkflowRunWebhookAsync(WebhookHeaders headers, WorkflowRunEvent workflowRunEvent, WorkflowRunAction action, CancellationToken cancellationToken = default)
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
