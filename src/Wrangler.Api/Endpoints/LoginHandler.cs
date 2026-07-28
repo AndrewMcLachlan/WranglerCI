@@ -1,4 +1,6 @@
-﻿namespace Asm.Wrangler.Api.Endpoints;
+﻿using Asm.Wrangler.Api.Authentication;
+
+namespace Asm.Wrangler.Api.Endpoints;
 
 /// <summary>
 /// Handles the GitHub OAuth login flow by redirecting the user to GitHub's authorisation page.
@@ -15,7 +17,15 @@ public static class LoginHandler
 
         // Always generate a fresh state to avoid stale values from previous flows.
         var state = Guid.NewGuid().ToString("N");
-        http.Session.SetString("oauth_state", state);
+        http.Session.SetString(SessionKeys.OAuthState, state);
+
+        // Remember where the user was so the callback can return them there. Only a safe local path is
+        // stored; any stale value from a previous flow is cleared so a plain sign-in still lands home.
+        var returnUrl = http.Request.Query["returnUrl"].ToString();
+        if (ReturnUrl.IsLocalPath(returnUrl))
+            http.Session.SetString(SessionKeys.PostLoginReturnUrl, returnUrl);
+        else
+            http.Session.Remove(SessionKeys.PostLoginReturnUrl);
 
         var url = new UriBuilder("https://github.com/login/oauth/authorize");
         var query = new Dictionary<string, string>
