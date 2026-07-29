@@ -2,6 +2,7 @@ using System.Text.Json;
 using Asm.Wrangler.Api.Services;
 using Asm.Wrangler.Api.Webhooks;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Options;
 
 namespace Asm.Wrangler.Api.Endpoints;
 
@@ -11,13 +12,17 @@ namespace Asm.Wrangler.Api.Endpoints;
 public static class EventStreamHandler
 {
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(25);
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     // Taking ISubscriberAuthorization (which depends on the user's IGitHubClient) also makes this
     // endpoint reject anonymous connections: resolving IGitHubClient throws when there's no session
     // token, which the exception handler turns into a 401 before streaming starts.
-    public static async Task Handle(HttpContext http, IEventBroadcaster broadcaster, ISubscriberAuthorization authorization, CancellationToken cancellationToken)
+    public static async Task Handle(HttpContext http, IEventBroadcaster broadcaster, ISubscriberAuthorization authorization, IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions> jsonOptions, CancellationToken cancellationToken)
     {
+        // Serialize with the app's configured options so the hand-written SSE payload matches the
+        // rest of the API's JSON contract: the registered StringEnum converters emit GitHub's raw
+        // string tokens (e.g. "completed"/"failure") and WorkflowStatus as its enum name ("Red"),
+        // rather than the numbers/objects a bare JsonSerializerDefaults.Web instance would produce.
+        var serializerOptions = jsonOptions.Value.SerializerOptions;
         // Kestrel-level buffering defence; X-Accel-Buffering only signals the
         // reverse proxy (App Service front-end / nginx) and won't stop Kestrel
         // from holding writes itself.
@@ -64,7 +69,7 @@ public static class EventStreamHandler
                     // dropped. In-memory check, no per-event API call.
                     if (!accessible.Contains($"{evt.Owner}/{evt.Repo}".ToLowerInvariant())) continue;
 
-                    var payload = JsonSerializer.Serialize(evt, JsonOptions);
+                    var payload = JsonSerializer.Serialize(evt, serializerOptions);
                     await http.Response.WriteAsync($"event: {evt.Type}\ndata: {payload}\n\n", cancellationToken);
                     await http.Response.Body.FlushAsync(cancellationToken);
                 }

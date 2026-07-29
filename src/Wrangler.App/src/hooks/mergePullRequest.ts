@@ -57,3 +57,24 @@ export const mergePullRequest = (
 
   return prs.map((pr, i) => (i === index ? updated : pr));
 };
+
+// Pure removal of a pushed pull_request from the cached PR list. The PR list is
+// open-only (the server filters ItemStateFilter.Open), so when a delivery reports
+// a non-open state (merged/closed) the PR must leave the list rather than linger
+// with a stale check badge. Matches the same id / number+repository identity as
+// mergePullRequest. Returns the input unchanged (same reference) when the PR
+// isn't cached, so callers can skip a needless cache write.
+export const removePullRequest = (
+  prs: PullRequestModel[],
+  pushed: PushedPullRequest,
+): PullRequestModel[] => {
+  const index = prs.findIndex((pr) =>
+    String(pr.id) === String(pushed.id)
+    || (String(pr.number) === String(pushed.number)
+      && pr.repositoryOwner.toLowerCase() === pushed.repositoryOwner.toLowerCase()
+      && pr.repositoryName.toLowerCase() === pushed.repositoryName.toLowerCase()));
+
+  if (index === -1) return prs;
+
+  return prs.filter((_, i) => i !== index);
+};

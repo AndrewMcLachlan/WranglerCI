@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergePullRequest, type PushedPullRequest } from "./mergePullRequest";
+import { mergePullRequest, removePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import type { PullRequestModel } from "../api";
 
 const makePr = (overrides: Partial<PullRequestModel> = {}): PullRequestModel => ({
@@ -102,5 +102,46 @@ describe("mergePullRequest", () => {
     const result = mergePullRequest(prs, pushed);
 
     expect(result[1]).toBe(sibling);
+  });
+});
+
+describe("removePullRequest", () => {
+  it("removes the matching PR (merged/closed) from the list", () => {
+    const sibling = makePr({ id: 2, number: 7, title: "Sibling" });
+    const prs = [makePr(), sibling];
+    const pushed = makePushed({ state: "closed" });
+
+    const result = removePullRequest(prs, pushed);
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toBe(sibling);
+  });
+
+  it("matches by number + repository when ids differ in type", () => {
+    const prs = [makePr({ id: "1", number: "42" })];
+    const pushed = makePushed({ id: 1, number: 42, state: "closed" });
+
+    const result = removePullRequest(prs, pushed);
+
+    expect(result).toHaveLength(0);
+  });
+
+  it("returns the input unchanged when the PR isn't cached", () => {
+    const prs = [makePr()];
+    const pushed = makePushed({ id: 999, number: 999, state: "closed" });
+
+    const result = removePullRequest(prs, pushed);
+
+    expect(result).toBe(prs);
+    expect(result).toHaveLength(1);
+  });
+
+  it("does not remove a PR from a different repository sharing the same number", () => {
+    const prs = [makePr({ id: 1, number: 42, repositoryOwner: "acme", repositoryName: "widget" })];
+    const pushed = makePushed({ id: 2, number: 42, repositoryOwner: "acme", repositoryName: "gizmo", state: "closed" });
+
+    const result = removePullRequest(prs, pushed);
+
+    expect(result).toBe(prs);
   });
 });

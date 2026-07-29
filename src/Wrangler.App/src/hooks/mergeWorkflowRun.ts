@@ -25,15 +25,20 @@ const worstStatus = (statuses: (WorkflowStatus | undefined)[]): WorkflowStatus |
   }, undefined);
 
 // Pure merge of a pushed workflow run into the cached getWorkflows data, so the
-// dashboard can reflect a live SSE update without a GitHub refetch. The
-// dashboard only ever shows the latest run per workflow, so a matching run
-// replaces the workflow's `runs` entirely rather than being appended.
+// dashboard can reflect a live SSE update without a GitHub refetch. The backend
+// keeps exactly one run per matched branch (the default branch for the empty
+// filter, the matched branches for a filter) and derives overallStatus as the
+// worst across those branches. So the merge matches by (workflowId, headBranch)
+// and replaces ONLY the same-branch run in place: it never drops another
+// branch's run (which would let one branch's green flip the workflow away from
+// another's red) and never introduces a branch the server didn't already show
+// for this view. A branch not already present isn't part of this view, so the
+// run is ignored and the input is returned unchanged.
 export const mergeWorkflowRun = (
   repositories: RepositoryModel[],
   owner: string,
   repo: string,
   run: WorkflowRunModel,
-  branchFilter: string[],
 ): RepositoryModel[] => {
   const repoIndex = repositories.findIndex(
     (r) => r.owner.toLowerCase() === owner.toLowerCase() && r.name.toLowerCase() === repo.toLowerCase(),
@@ -45,12 +50,18 @@ export const mergeWorkflowRun = (
   const workflowIndex = workflows.findIndex((w) => w.id === run.workflowId);
   if (workflowIndex === -1) return repositories;
 
-  if (!branchMatch(run.headBranch, branchFilter)) return repositories;
+  const workflow = workflows[workflowIndex];
+  const runs = workflow.runs ?? [];
+  // Case-sensitive branch-name match: replace only the run for the same branch.
+  const runIndex = runs.findIndex((r) => r.headBranch === run.headBranch);
+  if (runIndex === -1) return repositories;
+
+  const updatedRuns = runs.map((r, i) => (i === runIndex ? run : r));
 
   const updatedWorkflow: WorkflowModel = {
-    ...workflows[workflowIndex],
-    runs: [run],
-    overallStatus: worstStatus([run.workflowStatus]),
+    ...workflow,
+    runs: updatedRuns,
+    overallStatus: worstStatus(updatedRuns.map((r) => r.workflowStatus)),
   };
 
   const updatedWorkflows = workflows.map((w, i) => (i === workflowIndex ? updatedWorkflow : w));

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
-import { mergePullRequest, type PushedPullRequest } from "./mergePullRequest";
+import { mergePullRequest, removePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import type { PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
 interface GitHubEvent {
@@ -44,9 +44,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       if (!run) return;
 
       for (const query of queryClient.getQueryCache().findAll({ queryKey: ["getWorkflows"] })) {
-        const branchFilter = (query.queryKey[2] as string[] | undefined) ?? [];
         queryClient.setQueryData<RepositoryModel[]>(query.queryKey, (data) =>
-          data ? mergeWorkflowRun(data, evt.owner, evt.repo, run, branchFilter) : data);
+          data ? mergeWorkflowRun(data, evt.owner, evt.repo, run) : data);
       }
 
       for (const query of queryClient.getQueryCache().findAll({ queryKey: ["getWorkflowRuns", evt.owner, evt.repo] })) {
@@ -64,14 +63,44 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       }
     };
 
-    // Updates PR metadata in every cached ["pullRequests", ...] variant. No
-    // refetch; checkStatus is left exactly as mergePullRequest leaves it.
+    // Reconciles a pull_request delivery against the open-only PR list caches.
+    // The list only ever holds open PRs (server filters ItemStateFilter.Open):
+    //  - non-open (merged/closed) -> remove it from every cached variant so it
+    //    doesn't linger with a stale check badge;
+    //  - open + already cached -> merge metadata (checkStatus left untouched);
+    //  - open + not cached (newly opened) -> debounced list invalidation so it
+    //    appears, reusing the per-repo check-status timer (no per-event refetch).
     const handlePullRequest = (evt: GitHubEvent) => {
       const pushed = evt.pullRequest;
       if (!pushed) return;
 
-      queryClient.setQueriesData<PullRequestModel[]>({ queryKey: ["pullRequests"] }, (data) =>
-        data ? mergePullRequest(data, pushed) : data);
+      if (pushed.state !== "open") {
+        queryClient.setQueriesData<PullRequestModel[]>({ queryKey: ["pullRequests"] }, (data) =>
+          data ? removePullRequest(data, pushed) : data);
+        return;
+      }
+
+      const isCached = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: ["pullRequests"] })
+        .some((query) => {
+          const data = query.state.data as PullRequestModel[] | undefined;
+          return Array.isArray(data) && data.some((pr) =>
+            String(pr.id) === String(pushed.id)
+            || (String(pr.number) === String(pushed.number)
+              && pr.repositoryOwner.toLowerCase() === pushed.repositoryOwner.toLowerCase()
+              && pr.repositoryName.toLowerCase() === pushed.repositoryName.toLowerCase()));
+        });
+
+      if (isCached) {
+        queryClient.setQueriesData<PullRequestModel[]>({ queryKey: ["pullRequests"] }, (data) =>
+          data ? mergePullRequest(data, pushed) : data);
+        return;
+      }
+
+      // Newly opened PR the caches don't yet know about: fall back to a debounced
+      // list refetch so the aggregate checkStatus/mergeable/labels are computed.
+      scheduleCheckStatusRefetch(evt);
     };
 
     const scheduleCheckStatusRefetch = (evt: GitHubEvent) => {
