@@ -13,10 +13,10 @@ public static class EventStreamHandler
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(25);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    // Taking IRepositoryAccessService (which depends on the user's IGitHubClient) also makes this
+    // Taking ISubscriberAuthorization (which depends on the user's IGitHubClient) also makes this
     // endpoint reject anonymous connections: resolving IGitHubClient throws when there's no session
     // token, which the exception handler turns into a 401 before streaming starts.
-    public static async Task Handle(HttpContext http, IEventBroadcaster broadcaster, IRepositoryAccessService access, CancellationToken cancellationToken)
+    public static async Task Handle(HttpContext http, IEventBroadcaster broadcaster, ISubscriberAuthorization authorization, CancellationToken cancellationToken)
     {
         // Kestrel-level buffering defence; X-Accel-Buffering only signals the
         // reverse proxy (App Service front-end / nginx) and won't stop Kestrel
@@ -29,6 +29,10 @@ public static class EventStreamHandler
         http.Response.Headers["Cache-Control"] = "no-cache, no-transform";
         http.Response.Headers["X-Accel-Buffering"] = "no";
         http.Response.Headers.Connection = "keep-alive";
+
+        // Resolve the user's full accessible-repo set once at connect time (cached), so events are
+        // filtered in-memory below with zero per-event GitHub API calls.
+        var accessible = await authorization.GetAccessibleAsync(cancellationToken);
 
         using var subscription = broadcaster.Subscribe();
         await http.Response.Body.FlushAsync(cancellationToken);
@@ -56,8 +60,9 @@ public static class EventStreamHandler
                     // Authorization gate: only forward events for repositories this user can actually
                     // see. Events are fanned out to every subscriber, so without this a user would
                     // receive activity metadata (repo names, PR/run ids) for repos they have no access
-                    // to. Fails closed — a repo the user can't access (or a failed check) is dropped.
-                    if (!await access.CanAccessAsync(evt.Owner, evt.Repo, cancellationToken)) continue;
+                    // to. Fails closed — a repo not in the accessible set (or a failed resolve) is
+                    // dropped. In-memory check, no per-event API call.
+                    if (!accessible.Contains($"{evt.Owner}/{evt.Repo}".ToLowerInvariant())) continue;
 
                     var payload = JsonSerializer.Serialize(evt, JsonOptions);
                     await http.Response.WriteAsync($"event: {evt.Type}\ndata: {payload}\n\n", cancellationToken);
