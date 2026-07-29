@@ -26,6 +26,33 @@ export const hasDashboardWorkflows = (repo: SelectedRepository): boolean =>
 
 const repoKey = (owner: string, name: string) => `${owner}/${name}`;
 
+/** A repository as it currently exists in the user's GitHub account (owner + name). */
+export interface AvailableRepository {
+  owner: string;
+  name: string;
+}
+
+// Case-insensitive key for matching a selection against the live repo list —
+// GitHub treats owner/repo case-insensitively, and we don't want a case quirk to
+// wrongly prune a still-valid selection.
+const repoMatchKey = (owner: string, name: string) => `${owner}/${name}`.toLowerCase();
+
+/**
+ * Drops selected repositories that no longer appear in the user's current GitHub
+ * repo list — e.g. a repo that was renamed (GitHub keeps redirects, so the old
+ * name still resolves and would surface duplicate items) or one the user lost
+ * access to. Returns the SAME array reference when nothing changed, so callers
+ * can skip a needless storage write.
+ */
+export const pruneSelectedRepositories = (
+  selected: SelectedRepository[],
+  available: AvailableRepository[],
+): SelectedRepository[] => {
+  const availableKeys = new Set(available.map((r) => repoMatchKey(r.owner, r.name)));
+  const pruned = selected.filter((r) => availableKeys.has(repoMatchKey(r.owner, r.name)));
+  return pruned.length === selected.length ? selected : pruned;
+};
+
 const parseArray = <T>(json: string | null): T[] => {
   if (json === null) return [];
   try {
