@@ -4,7 +4,9 @@ import type { RepositoryModel, WorkflowModel, WorkflowRunModel, WorkflowStatus }
 // Not imported from there because that module is route-scoped (under a route's
 // `-hooks` folder) and this hook needs to be usable outside the dashboard route;
 // duplicated deliberately per the plan, kept minimal and in lockstep with the source.
-const branchMatch = (branch: string, filters: string[]): boolean => {
+// Exported so useGitHubEventStream can apply the same filter when merging a
+// pushed run into the drill-down (getWorkflowRuns) cache.
+export const branchMatch = (branch: string, filters: string[]): boolean => {
   if (filters.length === 0) return true;
   if (filters.includes(branch)) return true;
   return filters.filter(f => f.endsWith("*")).map(f => f.slice(0, -1)).some(p => branch.startsWith(p));
