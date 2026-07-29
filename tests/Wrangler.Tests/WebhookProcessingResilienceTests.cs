@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events;
 using Octokit.Webhooks.Events.WorkflowRun;
+using Octokit.Webhooks.Extensions;
 using Octokit.Webhooks.Models;
 using Xunit;
 
@@ -82,6 +83,10 @@ public class WebhookProcessingResilienceTests
             var run = New<WorkflowRun>();
             Set(run, "Id", 10L);
             Set(run, "WorkflowId", 20L);
+            // Status is required by WebhookMapping.ToRunModel (it dereferences .StringValue), so unlike
+            // the other WorkflowRun members it can't stay uninitialised/null the way a real payload
+            // never would.
+            Set(run, "Status", new StringEnum<WorkflowRunStatus>("completed"));
             Set(evt, "WorkflowRun", run);
         }
         return evt;

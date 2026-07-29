@@ -1,4 +1,5 @@
 using Asm.Wrangler.Api.Models;
+using Asm.Wrangler.Api.Models.Dashboard;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events;
 using Octokit.Webhooks.Events.CheckRun;
@@ -62,7 +63,7 @@ internal sealed class GitHubWebhookEventProcessor(
         logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", action, owner, repo, workflowRunEvent.WorkflowRun.Id);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.Workflows, cancellationToken);
-        Broadcast("workflow_run", owner, repo, headers, workflowId: (long)workflowRunEvent.WorkflowRun.WorkflowId, runId: (long)workflowRunEvent.WorkflowRun.Id);
+        Broadcast("workflow_run", owner, repo, headers, workflowId: (long)workflowRunEvent.WorkflowRun.WorkflowId, runId: (long)workflowRunEvent.WorkflowRun.Id, run: WebhookMapping.ToRunModel(workflowRunEvent.WorkflowRun));
     }
 
     protected override async ValueTask ProcessPullRequestWebhookAsync(WebhookHeaders headers, PullRequestEvent pullRequestEvent, PullRequestAction action, CancellationToken cancellationToken = default)
@@ -73,7 +74,10 @@ internal sealed class GitHubWebhookEventProcessor(
         if (InvalidatingPullRequestActions.Contains(action))
         {
             await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
-            Broadcast("pull_request", owner, repo, headers, pullRequestNumber: (int)pullRequestEvent.PullRequest.Number);
+            var pullRequest = owner is not null && repo is not null
+                ? WebhookMapping.ToPullRequestMetadata(pullRequestEvent.PullRequest, owner, repo)
+                : null;
+            Broadcast("pull_request", owner, repo, headers, pullRequestNumber: (int)pullRequestEvent.PullRequest.Number, pullRequest: pullRequest);
         }
     }
 
@@ -97,7 +101,7 @@ internal sealed class GitHubWebhookEventProcessor(
         Broadcast("check_suite", owner, repo, headers);
     }
 
-    private void Broadcast(string type, string? owner, string? repo, WebhookHeaders headers, long? workflowId = null, long? runId = null, int? pullRequestNumber = null)
+    private void Broadcast(string type, string? owner, string? repo, WebhookHeaders headers, long? workflowId = null, long? runId = null, int? pullRequestNumber = null, WorkflowRunModel? run = null, PullRequestEventData? pullRequest = null)
     {
         if (String.IsNullOrEmpty(owner) || String.IsNullOrEmpty(repo)) return;
         broadcaster.Publish(new GitHubEvent
@@ -109,6 +113,8 @@ internal sealed class GitHubWebhookEventProcessor(
             RunId = runId,
             PullRequestNumber = pullRequestNumber,
             DeliveryId = headers.Delivery,
+            Run = run,
+            PullRequest = pullRequest,
         });
     }
 

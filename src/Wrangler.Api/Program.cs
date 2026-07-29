@@ -84,7 +84,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddScoped<ISecurityAlertsService, SecurityAlertsService>();
     builder.Services.AddScoped<IGateService, GateService>();
     builder.Services.AddScoped<IUserSearchService, UserSearchService>();
-    builder.Services.AddScoped<IRepositoryAccessService, RepositoryAccessService>();
+    builder.Services.AddScoped<ISubscriberAuthorization, SubscriberAuthorizationService>();
 
     // Postie CQRS: scans this assembly for IQueryHandler/ICommandHandler implementations
     // and wires the endpoint dispatcher used by MapQuery/MapCommand.
