@@ -1,3 +1,6 @@
+using Asm.Wrangler.Api.Models.Dashboard;
+using Asm.Wrangler.Api.Webhooks;
+
 namespace Asm.Wrangler.Api.Models;
 
 /// <summary>
@@ -14,4 +17,6 @@ public record GitHubEvent
     public long? RunId { get; init; }
     public int? PullRequestNumber { get; init; }
     public string? DeliveryId { get; init; }
+    public WorkflowRunModel? Run { get; init; }
+    public PullRequestEventData? PullRequest { get; init; }
 }
