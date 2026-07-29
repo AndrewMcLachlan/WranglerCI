@@ -13,6 +13,12 @@ public static class EventStreamHandler
 {
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(25);
 
+    // SSE connections are long-lived, so re-resolve the accessible-repo set periodically rather than
+    // only at connect: a user who loses (or gains) repo access has it reflected within this window
+    // instead of only after a reconnect. GetAccessibleAsync is cached (~5 min), so this is a cache hit
+    // most of the time and a real resolve at most once per interval.
+    private static readonly TimeSpan AuthorizationRefreshInterval = TimeSpan.FromMinutes(5);
+
     // Taking ISubscriberAuthorization (which depends on the user's IGitHubClient) also makes this
     // endpoint reject anonymous connections: resolving IGitHubClient throws when there's no session
     // token, which the exception handler turns into a 401 before streaming starts.
@@ -35,9 +41,11 @@ public static class EventStreamHandler
         http.Response.Headers["X-Accel-Buffering"] = "no";
         http.Response.Headers.Connection = "keep-alive";
 
-        // Resolve the user's full accessible-repo set once at connect time (cached), so events are
-        // filtered in-memory below with zero per-event GitHub API calls.
+        // Resolve the user's full accessible-repo set at connect time (cached), so events are filtered
+        // in-memory below with zero per-event GitHub API calls. Re-resolved periodically (see the
+        // heartbeat branch) so access changes are picked up on long-lived connections.
         var accessible = await authorization.GetAccessibleAsync(cancellationToken);
+        var nextAuthorizationRefresh = DateTimeOffset.UtcNow + AuthorizationRefreshInterval;
 
         using var subscription = broadcaster.Subscribe();
         await http.Response.Body.FlushAsync(cancellationToken);
@@ -53,6 +61,15 @@ public static class EventStreamHandler
             if (winner == heartbeatTask)
             {
                 if (!await heartbeatTask) break;
+
+                // Refresh the accessible-repo set on the first heartbeat past the interval, so access
+                // revoked (or granted) mid-connection takes effect without requiring a reconnect.
+                if (DateTimeOffset.UtcNow >= nextAuthorizationRefresh)
+                {
+                    accessible = await authorization.GetAccessibleAsync(cancellationToken);
+                    nextAuthorizationRefresh = DateTimeOffset.UtcNow + AuthorizationRefreshInterval;
+                }
+
                 await http.Response.WriteAsync(": keepalive\n\n", cancellationToken);
                 await http.Response.Body.FlushAsync(cancellationToken);
                 heartbeatTask = heartbeat.WaitForNextTickAsync(cancellationToken).AsTask();

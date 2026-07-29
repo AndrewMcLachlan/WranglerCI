@@ -20,6 +20,17 @@ export interface PushedPullRequest {
   state: string;
 }
 
+// Identity match between a cached PR and a pushed webhook PR. Matches by id first,
+// falling back to number + repository (owner/name) because PullRequestModel's
+// id/number are typed `number | string` while the webhook always sends numbers.
+// Shared by the merge/remove helpers and the stream hook's "is it cached?" check
+// so the three don't drift apart.
+export const isSamePullRequest = (pr: PullRequestModel, pushed: PushedPullRequest): boolean =>
+  String(pr.id) === String(pushed.id)
+  || (String(pr.number) === String(pushed.number)
+    && pr.repositoryOwner.toLowerCase() === pushed.repositoryOwner.toLowerCase()
+    && pr.repositoryName.toLowerCase() === pushed.repositoryName.toLowerCase());
+
 // Pure merge of a pushed pull_request webhook event into the cached PR list,
 // so the PR table can reflect a live SSE update without a GitHub refetch.
 // Matches the cached PR by id first, falling back to number + repository
@@ -33,11 +44,7 @@ export const mergePullRequest = (
   prs: PullRequestModel[],
   pushed: PushedPullRequest,
 ): PullRequestModel[] => {
-  const index = prs.findIndex((pr) =>
-    String(pr.id) === String(pushed.id)
-    || (String(pr.number) === String(pushed.number)
-      && pr.repositoryOwner.toLowerCase() === pushed.repositoryOwner.toLowerCase()
-      && pr.repositoryName.toLowerCase() === pushed.repositoryName.toLowerCase()));
+  const index = prs.findIndex((pr) => isSamePullRequest(pr, pushed));
 
   if (index === -1) return prs;
 
@@ -68,11 +75,7 @@ export const removePullRequest = (
   prs: PullRequestModel[],
   pushed: PushedPullRequest,
 ): PullRequestModel[] => {
-  const index = prs.findIndex((pr) =>
-    String(pr.id) === String(pushed.id)
-    || (String(pr.number) === String(pushed.number)
-      && pr.repositoryOwner.toLowerCase() === pushed.repositoryOwner.toLowerCase()
-      && pr.repositoryName.toLowerCase() === pushed.repositoryName.toLowerCase()));
+  const index = prs.findIndex((pr) => isSamePullRequest(pr, pushed));
 
   if (index === -1) return prs;
 

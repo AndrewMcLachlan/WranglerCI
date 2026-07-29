@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
-import { mergePullRequest, removePullRequest, type PushedPullRequest } from "./mergePullRequest";
+import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import type { PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
 interface GitHubEvent {
@@ -85,11 +85,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
         .findAll({ queryKey: ["pullRequests"] })
         .some((query) => {
           const data = query.state.data as PullRequestModel[] | undefined;
-          return Array.isArray(data) && data.some((pr) =>
-            String(pr.id) === String(pushed.id)
-            || (String(pr.number) === String(pushed.number)
-              && pr.repositoryOwner.toLowerCase() === pushed.repositoryOwner.toLowerCase()
-              && pr.repositoryName.toLowerCase() === pushed.repositoryName.toLowerCase()));
+          return Array.isArray(data) && data.some((pr) => isSamePullRequest(pr, pushed));
         });
 
       if (isCached) {

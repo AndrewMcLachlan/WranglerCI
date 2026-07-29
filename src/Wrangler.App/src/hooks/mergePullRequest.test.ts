@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergePullRequest, removePullRequest, type PushedPullRequest } from "./mergePullRequest";
+import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import type { PullRequestModel } from "../api";
 
 const makePr = (overrides: Partial<PullRequestModel> = {}): PullRequestModel => ({
@@ -36,6 +36,24 @@ const makePushed = (overrides: Partial<PushedPullRequest> = {}): PushedPullReque
   updatedAt: "2026-01-02T00:00:00Z",
   state: "open",
   ...overrides,
+});
+
+describe("isSamePullRequest", () => {
+  it("matches by id even when number/repo differ", () => {
+    expect(isSamePullRequest(makePr({ number: 99, repositoryName: "other" }), makePushed({ id: 1 }))).toBe(true);
+  });
+
+  it("matches by number + repository when ids differ", () => {
+    expect(isSamePullRequest(makePr({ id: 5 }), makePushed({ id: 7, number: 42 }))).toBe(true);
+  });
+
+  it("does not match the same number in a different repository", () => {
+    expect(isSamePullRequest(makePr({ id: 5, repositoryName: "widget" }), makePushed({ id: 7, number: 42, repositoryName: "gadget" }))).toBe(false);
+  });
+
+  it("is case-insensitive on owner/repo", () => {
+    expect(isSamePullRequest(makePr({ id: 5, repositoryOwner: "ACME", repositoryName: "Widget" }), makePushed({ id: 7, repositoryOwner: "acme", repositoryName: "widget" }))).toBe(true);
+  });
 });
 
 describe("mergePullRequest", () => {
