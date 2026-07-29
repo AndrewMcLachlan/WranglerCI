@@ -6,6 +6,7 @@ import {
   upsertRepository,
   isAttentionOptedIn,
   isAttentionItemVisible,
+  pruneSelectedRepositories,
   REPOSITORIES_KEY,
   PR_REPOSITORIES_KEY,
   SCHEMA_VERSION_KEY,
@@ -211,5 +212,39 @@ describe("isAttentionItemVisible", () => {
   it("hides items for unknown repos and unknown types", () => {
     expect(isAttentionItemVisible(item("WorkflowFailure", "missing"), repositories)).toBe(false);
     expect(isAttentionItemVisible(item("SomethingNew", "dash"), repositories)).toBe(false);
+  });
+});
+
+describe("pruneSelectedRepositories", () => {
+  const sel = (owner: string, name: string): SelectedRepository => ({ owner, name, workflows: [1], pullRequests: true, securityAlerts: true });
+
+  it("drops a selected repo no longer in the available list (the renamed-repo case)", () => {
+    // HomeAutomation was renamed to MooAir; GitHub only lists MooAir now.
+    const selected = [sel("AndrewMcLachlan", "HomeAutomation"), sel("AndrewMcLachlan", "MooAir")];
+    const available = [{ owner: "AndrewMcLachlan", name: "MooAir" }];
+
+    const result = pruneSelectedRepositories(selected, available);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe("MooAir");
+  });
+
+  it("keeps every selected repo that is still available", () => {
+    const selected = [sel("acme", "widget"), sel("acme", "gadget")];
+    const available = [{ owner: "acme", name: "widget" }, { owner: "acme", name: "gadget" }, { owner: "acme", name: "other" }];
+
+    expect(pruneSelectedRepositories(selected, available)).toBe(selected); // same reference — nothing pruned
+  });
+
+  it("matches case-insensitively", () => {
+    const selected = [sel("Acme", "Widget")];
+    const available = [{ owner: "acme", name: "widget" }];
+
+    expect(pruneSelectedRepositories(selected, available)).toBe(selected);
+  });
+
+  it("prunes everything when the available list is empty", () => {
+    const selected = [sel("acme", "widget")];
+    expect(pruneSelectedRepositories(selected, [])).toHaveLength(0);
   });
 });
