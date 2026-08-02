@@ -1,5 +1,5 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import { Cog, Dashboard, PullRequest, Stack, UserShield } from "@andrewmclachlan/moo-icons";
+import { Bell, Cog, Dashboard, PullRequest, UserShield } from "@andrewmclachlan/moo-icons";
 import { Link } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
 import { UserMenu } from "./UserMenu";
@@ -26,7 +26,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
             <ul>
               <li>
                 <Link to="/attention" title="Needs your attention" className="attention-link">
-                  <Icon icon={Stack} />
+                  <Icon icon={Bell} />
                   {attentionCount > 0 && <span className="attention-dot" />}
                 </Link>
               </li>
