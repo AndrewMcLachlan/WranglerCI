@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
 import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
+import { createReconnectTracker, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
 import type { PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
 interface GitHubEvent {
@@ -129,6 +130,21 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
         case "check_suite":
           scheduleCheckStatusRefetch(parsed);
           break;
+      }
+    };
+
+    // The stream carries no `id:` field and the broadcaster keeps no buffer, so
+    // there is no Last-Event-ID replay: anything delivered while the connection
+    // was down is lost for good. EventSource reconnects silently, so without this
+    // the gap would leave the caches stale indefinitely — which is what makes the
+    // long staleTimes on the stream-backed queries safe.
+    const reconnect = createReconnectTracker();
+
+    source.onerror = () => reconnect.onError();
+    source.onopen = () => {
+      if (!reconnect.onOpen()) return;
+      for (const queryKey of STREAM_BACKED_QUERY_KEYS) {
+        queryClient.invalidateQueries({ queryKey });
       }
     };
 

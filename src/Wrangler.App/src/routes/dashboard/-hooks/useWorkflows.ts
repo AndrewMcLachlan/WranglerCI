@@ -120,5 +120,12 @@ export const useWorkflows = () => {
     // Status filtering reshapes the fetched data without a refetch, so it is a
     // select rather than part of the query key.
     select: (data) => filterByStatus(data, statusFilter),
+    // Matches usePullRequests. Workflow runs are not cached server-side (only the
+    // workflow definitions are), so each fetch costs a GitHub call per selected
+    // workflow — and the stream pushes runs into this cache anyway. The interval
+    // is the backstop for repos whose webhooks were never wired up.
+    refetchInterval: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 }
