@@ -1,19 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PR_AUTHORS_KEY, prAuthorsQueryOptions } from "./prAuthorsStorage";
 
-const defaultAuthors = ["dependabot[bot]", "renovate[bot]"];
-
-export const usePrAuthors = () => {
-
-  const data = JSON.parse(localStorage.getItem("prAuthors") ?? JSON.stringify(defaultAuthors)) as string[];
-
-  return useQuery({
-    queryKey: ["prAuthors", data],
-    queryFn: () => {
-      return data;
-    },
-    initialData: defaultAuthors,
-  });
-}
+export const usePrAuthors = () => useQuery(prAuthorsQueryOptions(localStorage));
 
 export const useUpdatePrAuthors = () => {
 
@@ -21,11 +9,11 @@ export const useUpdatePrAuthors = () => {
 
   return useMutation({
     mutationFn: async (authors: string[]) => {
-      localStorage.setItem("prAuthors", JSON.stringify(authors));
+      localStorage.setItem(PR_AUTHORS_KEY, JSON.stringify(authors));
     },
     onSettled: () => {
       queryClient.refetchQueries({
-        queryKey: ["prAuthors"],
+        queryKey: [PR_AUTHORS_KEY],
       });
     },
   });

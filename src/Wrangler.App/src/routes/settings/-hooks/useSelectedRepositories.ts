@@ -1,21 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ensureMigrated, REPOSITORIES_KEY, type SelectedRepository } from "./repositoryFeatures";
+import { REPOSITORIES_KEY, selectedRepositoriesQueryOptions, type SelectedRepository } from "./repositoryFeatures";
 
 export type { SelectedRepository } from "./repositoryFeatures";
 
-export const useSelectedRepositories = () => {
-
-  ensureMigrated(localStorage);
-  const data = JSON.parse(localStorage.getItem(REPOSITORIES_KEY) ?? "[]") as SelectedRepository[];
-
-  return useQuery({
-    queryKey: ["selectedRepositories", data],
-    queryFn: () => {
-      return data;
-    },
-    initialData: [],
-  })
-}
+export const useSelectedRepositories = () =>
+  useQuery(selectedRepositoriesQueryOptions(localStorage));
 
 export const useUpdateSelectedRepositories = () => {
 

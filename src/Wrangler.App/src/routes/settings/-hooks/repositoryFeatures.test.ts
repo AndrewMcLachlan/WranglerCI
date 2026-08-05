@@ -7,6 +7,8 @@ import {
   isAttentionOptedIn,
   isAttentionItemVisible,
   pruneSelectedRepositories,
+  readSelectedRepositories,
+  selectedRepositoriesQueryOptions,
   REPOSITORIES_KEY,
   PR_REPOSITORIES_KEY,
   SCHEMA_VERSION_KEY,
@@ -212,6 +214,58 @@ describe("isAttentionItemVisible", () => {
   it("hides items for unknown repos and unknown types", () => {
     expect(isAttentionItemVisible(item("WorkflowFailure", "missing"), repositories)).toBe(false);
     expect(isAttentionItemVisible(item("SomethingNew", "dash"), repositories)).toBe(false);
+  });
+});
+
+describe("readSelectedRepositories", () => {
+  it("returns the stored selection, migrating first", () => {
+    const storage = makeStorage({
+      [REPOSITORIES_KEY]: JSON.stringify([{ owner: "a", name: "one", workflows: [1] }]),
+      [SCHEMA_VERSION_KEY]: SCHEMA_VERSION,
+    });
+    expect(readSelectedRepositories(storage)).toEqual([{ owner: "a", name: "one", workflows: [1] }]);
+  });
+
+  it("returns an empty list for a new user", () => {
+    expect(readSelectedRepositories(makeStorage())).toEqual([]);
+  });
+
+  it("returns an empty list rather than throwing on corrupt JSON", () => {
+    const storage = makeStorage({ [REPOSITORIES_KEY]: "not json", [SCHEMA_VERSION_KEY]: SCHEMA_VERSION });
+    expect(readSelectedRepositories(storage)).toEqual([]);
+  });
+});
+
+describe("selectedRepositoriesQueryOptions", () => {
+  const stored = [
+    { owner: "a", name: "one", workflows: [1], pullRequests: true, securityAlerts: true },
+  ];
+  const storage = () => makeStorage({
+    [REPOSITORIES_KEY]: JSON.stringify(stored),
+    [SCHEMA_VERSION_KEY]: SCHEMA_VERSION,
+  });
+
+  // The regression that emptied every page: initialData was a placeholder ([]),
+  // and react-query stamps initialData with dataUpdatedAt = now. Under a non-zero
+  // staleTime the queryFn never runs to replace it, so the placeholder is served
+  // as if it were the user's saved settings. initialData must BE the stored value.
+  it("uses the stored selection as initialData, not a placeholder", () => {
+    expect(selectedRepositoriesQueryOptions(storage()).initialData).toEqual(stored);
+  });
+
+  it("keeps initialData consistent with the data the query key is built from", () => {
+    const options = selectedRepositoriesQueryOptions(storage());
+    expect(options.initialData).toEqual(options.queryKey[1]);
+  });
+
+  it("resolves the same value from queryFn as from initialData", () => {
+    const options = selectedRepositoriesQueryOptions(storage());
+    expect(options.queryFn()).toEqual(options.initialData);
+  });
+
+  it("still yields an empty selection for a new user", () => {
+    const options = selectedRepositoriesQueryOptions(makeStorage());
+    expect(options.initialData).toEqual([]);
   });
 });
 
