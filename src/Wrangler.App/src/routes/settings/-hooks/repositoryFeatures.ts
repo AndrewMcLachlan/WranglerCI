@@ -116,6 +116,36 @@ export const ensureMigrated = (storage: StorageLike): void => {
 };
 
 /**
+ * Reads the migrated selection out of storage. Tolerates corrupt JSON by
+ * returning an empty list rather than throwing, matching migrateRepositories.
+ */
+export const readSelectedRepositories = (storage: StorageLike): SelectedRepository[] => {
+  ensureMigrated(storage);
+  return parseArray<SelectedRepository>(storage.getItem(REPOSITORIES_KEY));
+};
+
+/**
+ * Query options for the stored selection.
+ *
+ * initialData MUST be the value actually read from storage, never a placeholder.
+ * react-query stamps initialData with dataUpdatedAt = now, so it is only replaced
+ * once the query goes stale. A placeholder therefore survives for the whole
+ * staleTime window, and every page derives its repo scope from this query — so a
+ * placeholder of [] silently empties the dashboard, pull requests and attention
+ * feed while storage still holds the real settings. The read is synchronous, so
+ * there is no reason to serve a placeholder at all.
+ */
+export const selectedRepositoriesQueryOptions = (storage: StorageLike) => {
+  const data = readSelectedRepositories(storage);
+
+  return {
+    queryKey: ["selectedRepositories", data] as const,
+    queryFn: () => data,
+    initialData: data,
+  };
+};
+
+/**
  * Returns a new list with the (owner, name) entry patched, creating it with
  * empty workflows if absent. New entries are appended; existing entries are
  * patched in place so list order (and therefore downstream query-key/card
