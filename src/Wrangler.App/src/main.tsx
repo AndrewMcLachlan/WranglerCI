@@ -14,6 +14,7 @@ import { Spinner } from "./components/Spinner"
 import { LinkProvider, ThemeProvider } from "@andrewmclachlan/moo-ds"
 import { NavLnk } from "./components/NavLink"
 import { client } from "./api/client.gen.ts"
+import { QUERY_DEFAULTS } from "./queryDefaults.ts"
 import { registerServiceWorker } from "./pwa/registerServiceWorker"
 
 library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle);
@@ -36,20 +37,10 @@ declare module "@tanstack/react-router" {
 
 console.log("config", client.getConfig());
 
-// The SSE stream (useGitHubEventStream) pushes workflow and PR updates straight
-// into the caches, so react-query's staleTime: 0 default — which refetches on
-// every mount, and therefore every page switch — spends GitHub quota re-fetching
-// data the stream already keeps current. Defaults here rather than per-hook so a
-// new query can't silently inherit the aggressive behaviour; hooks still override
-// where their freshness contract differs.
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// Defaults live in queryDefaults.ts (and are asserted there) rather than
+// per-hook, so a new query can't silently inherit react-query's aggressive
+// defaults; hooks still override where their freshness contract differs.
+const queryClient = new QueryClient({ defaultOptions: { queries: QUERY_DEFAULTS } });
 
 configureInterceptors();
 
