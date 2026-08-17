@@ -31,7 +31,7 @@ public class WebhookProcessingResilienceTests
             broadcaster: broadcaster);
 
         // Must NOT throw — a throw would surface as a 5xx to GitHub and count as a failed delivery.
-        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent(withRepo: false));
+        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent(withRepo: false), TestContext.Current.CancellationToken);
 
         Assert.False(broadcaster.Published);
     }
@@ -45,7 +45,7 @@ public class WebhookProcessingResilienceTests
             bump: () => throw new InvalidOperationException("redis unavailable"),
             broadcaster: broadcaster);
 
-        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent(withRepo: true));
+        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent(withRepo: true), TestContext.Current.CancellationToken);
 
         Assert.False(broadcaster.Published);
     }
@@ -56,7 +56,7 @@ public class WebhookProcessingResilienceTests
         var broadcaster = new RecordingBroadcaster();
         var processor = Processor(claim: () => true, broadcaster: broadcaster);
 
-        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent(withRepo: true));
+        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent(withRepo: true), TestContext.Current.CancellationToken);
 
         Assert.True(broadcaster.Published);
     }
