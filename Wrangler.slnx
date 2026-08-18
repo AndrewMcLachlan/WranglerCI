@@ -13,6 +13,7 @@
     <File Path=".gitignore" />
     <File Path=".npmrc" />
     <File Path="CLAUDE.md" />
+    <File Path="global.json" />
     <File Path="NuGet.config" />
   </Folder>
   <Folder Name="/Documentation/">
