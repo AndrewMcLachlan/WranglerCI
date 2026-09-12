@@ -45,6 +45,16 @@ describe("createReconnectTracker", () => {
     expect(tracker.onOpen()).toBe(true);
   });
 
+  it("resyncs on the first open when the stream is being rebuilt", () => {
+    // A rebuild only happens because the previous connection went silent, so
+    // its first open is a reconnect and the caches missed whatever fell in the
+    // gap.
+    const tracker = createReconnectTracker(true);
+
+    expect(tracker.onOpen()).toBe(true);
+    expect(tracker.onOpen()).toBe(false);
+  });
+
   it("tracks each stream independently", () => {
     const first = createReconnectTracker();
     const second = createReconnectTracker();

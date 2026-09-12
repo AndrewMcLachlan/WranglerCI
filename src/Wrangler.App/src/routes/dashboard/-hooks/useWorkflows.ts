@@ -3,6 +3,7 @@ import { useSelectedRepositories } from "../../settings/-hooks/useSelectedReposi
 import { useDashboardContext } from "../-providers/DashboardProvider";
 import { postWorkflows } from "../../../api";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
+import { DASHBOARD_STALE_TIME } from "./dashboardFreshness";
 import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
 
 // Keep only workflows whose overall status is selected, and drop repositories
@@ -123,12 +124,12 @@ export const useWorkflows = () => {
     // The filters are part of the query key, so every filter change lands on an
     // empty cache entry: without this the dashboard blanks while it refetches.
     placeholderData: keepPreviousData,
-    // Matches usePullRequests. Workflow runs are not cached server-side (only the
-    // workflow definitions are), so each fetch costs a GitHub call per selected
-    // workflow — and the stream pushes runs into this cache anyway. The interval
-    // is the backstop for repos whose webhooks were never wired up.
+    // Workflow runs are not cached server-side (only the workflow definitions
+    // are), so each fetch costs a GitHub call per selected workflow. The stream
+    // pushes runs into this cache as they happen; the interval is the backstop
+    // for repos whose webhooks were never wired up.
     refetchInterval: 10 * 60 * 1000,
-    staleTime: 10 * 60 * 1000,
+    staleTime: DASHBOARD_STALE_TIME,
     refetchOnWindowFocus: false,
   });
 }

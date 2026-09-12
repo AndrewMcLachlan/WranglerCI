@@ -13,6 +13,14 @@ public static class EventStreamHandler
 {
     private static readonly TimeSpan HeartbeatInterval = TimeSpan.FromSeconds(25);
 
+    /// <summary>
+    /// The idle-stream heartbeat. Must stay a named event with a data line: the client watchdog
+    /// treats silence as a dead connection, and EventSource never surfaces SSE comment lines to
+    /// JavaScript, so a comment heartbeat is indistinguishable from no heartbeat at all.
+    /// </summary>
+    internal static string HeartbeatFrame(DateTimeOffset sentAt) =>
+        $"event: heartbeat\ndata: {{\"sentAt\":\"{sentAt:O}\"}}\n\n";
+
     // SSE connections are long-lived, so re-resolve the accessible-repo set periodically rather than
     // only at connect: a user who loses (or gains) repo access has it reflected within this window
     // instead of only after a reconnect. GetAccessibleAsync is cached (~5 min), so this is a cache hit
@@ -70,7 +78,7 @@ public static class EventStreamHandler
                     nextAuthorizationRefresh = DateTimeOffset.UtcNow + AuthorizationRefreshInterval;
                 }
 
-                await http.Response.WriteAsync(": keepalive\n\n", cancellationToken);
+                await http.Response.WriteAsync(HeartbeatFrame(DateTimeOffset.UtcNow), cancellationToken);
                 await http.Response.Body.FlushAsync(cancellationToken);
                 heartbeatTask = heartbeat.WaitForNextTickAsync(cancellationToken).AsTask();
             }

@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
 import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
-import { createReconnectTracker, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
+import { createReconnectTracker, createStreamWatchdog, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
 import type { PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
 interface GitHubEvent {
@@ -30,12 +30,30 @@ const CHECK_STATUS_DEBOUNCE_MS = 2000;
 
 export const useGitHubEventStream = (enabled: boolean = true) => {
   const queryClient = useQueryClient();
+  const [connection, setConnection] = useState(0);
+  // A ref, not state: resetting this must not re-run the effect, or proving the
+  // stream healthy would tear down the very connection that proved it.
+  const silentRebuildsRef = useRef(0);
 
   useEffect(() => {
     if (!enabled) return;
 
     const source = new EventSource("/api/events/stream", { withCredentials: true });
     const checkStatusTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+    // A connection that dies without erroring still reports OPEN, so silence is
+    // the only evidence. Rebuilding is what recovers it: the reopened stream
+    // resyncs the caches through the reconnect tracker below.
+    const watchdog = createStreamWatchdog(() => {
+      silentRebuildsRef.current += 1;
+      source.close();
+      setConnection((generation) => generation + 1);
+    }, silenceTimeoutFor(silentRebuildsRef.current));
+
+    const recordActivity = () => {
+      silentRebuildsRef.current = 0;
+      watchdog.recordActivity();
+    };
 
     // Merges the pushed run into every cached getWorkflows variant (one per
     // branch-filter combination) and, if present, the drill-down
@@ -112,6 +130,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     };
 
     const handle = (rawEvent: MessageEvent) => {
+      recordActivity();
+
       let parsed: GitHubEvent;
       try {
         parsed = JSON.parse(rawEvent.data);
@@ -138,10 +158,14 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     // was down is lost for good. EventSource reconnects silently, so without this
     // the gap would leave the caches stale indefinitely — which is what makes the
     // long staleTimes on the stream-backed queries safe.
-    const reconnect = createReconnectTracker();
+    const reconnect = createReconnectTracker(connection > 0);
 
     source.onerror = () => reconnect.onError();
     source.onopen = () => {
+      // Restarts the countdown but does not clear the backoff: a proxy can
+      // accept the connection and still swallow every byte of the body, and
+      // only delivered data proves otherwise.
+      watchdog.recordActivity();
       if (!reconnect.onOpen()) return;
       for (const queryKey of STREAM_BACKED_QUERY_KEYS) {
         queryClient.invalidateQueries({ queryKey });
@@ -152,10 +176,16 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       source.addEventListener(type, handle);
     }
 
+    // The server's heartbeat is the only traffic on an idle stream, so it is
+    // what proves the connection is still alive.
+    source.addEventListener("heartbeat", recordActivity);
+
     return () => {
+      watchdog.stop();
+      source.removeEventListener("heartbeat", recordActivity);
       source.close();
       for (const timer of checkStatusTimers.values()) clearTimeout(timer);
       checkStatusTimers.clear();
     };
-  }, [enabled, queryClient]);
+  }, [enabled, queryClient, connection]);
 };
