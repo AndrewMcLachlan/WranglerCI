@@ -22,6 +22,12 @@ export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success"
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
+// A column with a computed `field` selects the union member that carries no
+// key, and `cell` is then left uncontextualised — implicitly `any` under
+// strict. The cells only read `row.original`, so annotate that minimal shape;
+// it is assignable to TanStack's full CellContext.
+type CellProps = { row: { original: PullRequestModel } };
+
 const STATUS_OPTIONS: CheckStatus[] = ["Success", "Failure", "Pending", "Unknown"];
 
 const STATUS_DOT: Record<CheckStatus, string> = {
@@ -244,7 +250,7 @@ export const PullRequests = () => {
       field: () => null,
       id: "select",
       header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0 || isApproving} />,
-      cell: ({ row }) => <input type="checkbox" checked={selected.has(row.original.number)} onChange={() => toggleSelection(row.original)} disabled={!canApprove(row.original) || isApproving} />,
+      cell: ({ row }: CellProps) => <input type="checkbox" checked={selected.has(row.original.number)} onChange={() => toggleSelection(row.original)} disabled={!canApprove(row.original) || isApproving} />,
       enableSorting: false,
     },
     {
@@ -308,7 +314,7 @@ export const PullRequests = () => {
       field: () => null,
       id: "open",
       header: "",
-      cell: ({ row }) => (
+      cell: ({ row }: CellProps) => (
         <a
           className="pr-open-link"
           href={row.original.htmlUrl!}

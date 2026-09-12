@@ -13,6 +13,12 @@ import type { DeploymentGateModel, GateApprovalResult } from "../../../api";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
+// A column with a computed `field` selects the union member that carries no
+// key, and `cell` is then left uncontextualised — implicitly `any` under
+// strict. The cells only read `row.original`, so annotate that minimal shape;
+// it is assignable to TanStack's full CellContext.
+type CellProps = { row: { original: DeploymentGateModel } };
+
 const gateKey = (g: DeploymentGateModel) =>
   `${g.repositoryOwner}/${g.repositoryName}:${g.workflowRunId}:${g.environmentId}`;
 
@@ -123,7 +129,7 @@ export const Gates = () => {
       field: () => null,
       id: "select",
       header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0 || isApproving} />,
-      cell: ({ row }) => <input type="checkbox" checked={selected.has(gateKey(row.original))} onChange={() => toggleSelection(row.original)} disabled={!row.original.currentUserCanApprove || isApproving} />,
+      cell: ({ row }: CellProps) => <input type="checkbox" checked={selected.has(gateKey(row.original))} onChange={() => toggleSelection(row.original)} disabled={!row.original.currentUserCanApprove || isApproving} />,
       enableSorting: false,
     },
     {
@@ -167,7 +173,7 @@ export const Gates = () => {
       field: () => null,
       id: "open",
       header: "",
-      cell: ({ row }) => (
+      cell: ({ row }: CellProps) => (
         <a className="gate-open-link" href={row.original.htmlUrl!} target="_blank" rel="noopener noreferrer" title="Open on GitHub" aria-label="Open run on GitHub">
           <FontAwesomeIcon icon="arrow-up-right-from-square" />
         </a>
