@@ -13,12 +13,6 @@ import type { DeploymentGateModel, GateApprovalResult } from "../../../api";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
-// A column with a computed `field` selects the union member that carries no
-// key, and `cell` is then left uncontextualised — implicitly `any` under
-// strict. The cells only read `row.original`, so annotate that minimal shape;
-// it is assignable to TanStack's full CellContext.
-type CellProps = { row: { original: DeploymentGateModel } };
-
 const gateKey = (g: DeploymentGateModel) =>
   `${g.repositoryOwner}/${g.repositoryName}:${g.workflowRunId}:${g.environmentId}`;
 
@@ -126,14 +120,13 @@ export const Gates = () => {
 
   const columns: ColumnDef<DeploymentGateModel>[] = useMemo(() => [
     {
-      field: () => null,
       id: "select",
       header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0 || isApproving} />,
-      cell: ({ row }: CellProps) => <input type="checkbox" checked={selected.has(gateKey(row.original))} onChange={() => toggleSelection(row.original)} disabled={!row.original.currentUserCanApprove || isApproving} />,
+      cell: ({ row }) => <input type="checkbox" checked={selected.has(gateKey(row))} onChange={() => toggleSelection(row)} disabled={!row.currentUserCanApprove || isApproving} />,
       enableSorting: false,
     },
     {
-      field: (g: DeploymentGateModel) => `${g.repositoryOwner}/${g.repositoryName}`,
+      field: (g) => `${g.repositoryOwner}/${g.repositoryName}`,
       id: "repository",
       header: "Repository",
       enableSorting: true,
@@ -142,8 +135,8 @@ export const Gates = () => {
       field: "workflowName",
       header: "Workflow",
       cell: ({ row }) => (
-        <a href={row.original.htmlUrl!} target="_blank" rel="noopener noreferrer">
-          {row.original.workflowName} #{row.original.runNumber}
+        <a href={row.htmlUrl!} target="_blank" rel="noopener noreferrer">
+          {row.workflowName} #{row.runNumber}
         </a>
       ),
       enableSorting: true,
@@ -151,7 +144,7 @@ export const Gates = () => {
     {
       field: "environmentName",
       header: "Environment",
-      cell: ({ row }) => <Badge className="gate-environment" pill>{row.original.environmentName}</Badge>,
+      cell: ({ row }) => <Badge className="gate-environment" pill>{row.environmentName}</Badge>,
       enableSorting: true,
     },
     {
@@ -162,19 +155,18 @@ export const Gates = () => {
     {
       field: "updatedAt",
       header: "Updated",
-      cell: ({ getValue }) => {
-        const updatedAt = DateTime.fromISO(getValue() as string);
+      cell: ({ value }) => {
+        const updatedAt = DateTime.fromISO(value as string);
         const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
         return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
       },
       enableSorting: true,
     },
     {
-      field: () => null,
       id: "open",
       header: "",
-      cell: ({ row }: CellProps) => (
-        <a className="gate-open-link" href={row.original.htmlUrl!} target="_blank" rel="noopener noreferrer" title="Open on GitHub" aria-label="Open run on GitHub">
+      cell: ({ row }) => (
+        <a className="gate-open-link" href={row.htmlUrl!} target="_blank" rel="noopener noreferrer" title="Open on GitHub" aria-label="Open run on GitHub">
           <FontAwesomeIcon icon="arrow-up-right-from-square" />
         </a>
       ),

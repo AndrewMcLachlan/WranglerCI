@@ -10,65 +10,57 @@ interface WorkflowRunItem {
   run: WorkflowRunModel;
 }
 
-// moo-ds's ColumnDef is a union (keyed vs computed `field`), which the TS6-based
-// compiler used for linting can't use to contextually infer the `cell` callback's
-// argument — it falls back to implicit `any`. The cells only read `row.original`,
-// so annotate that minimal shape explicitly; this is assignable to TanStack's
-// full CellContext and compiles under both compilers.
-type CellProps = { row: { original: WorkflowRunItem } };
-
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
 const columns: ColumnDef<WorkflowRunItem>[] = [
   {
-    field: (item: WorkflowRunItem) => item.run.workflowStatus,
+    field: (item) => item.run.workflowStatus,
     id: "status",
     header: "Status",
-    cell: ({ row }: CellProps) => <Badge className={row.original.run.workflowStatus?.toLowerCase()}>{row.original.run.conclusion || row.original.run.status}</Badge>,
+    cell: ({ row }) => <Badge className={row.run.workflowStatus?.toLowerCase()}>{row.run.conclusion || row.run.status}</Badge>,
     enableSorting: true,
   },
   {
-    field: (item: WorkflowRunItem) => item.workflow.name,
+    field: (item) => item.workflow.name,
     id: "workflow",
     header: "Workflow",
     enableSorting: true,
   },
   {
-    field: (item: WorkflowRunItem) => item.run.headBranch,
+    field: (item) => item.run.headBranch,
     id: "branch",
     header: "Branch",
-    cell: ({ row }: CellProps) => <BranchBadge run={row.original.run} />,
+    cell: ({ row }) => <BranchBadge run={row.run} />,
     enableSorting: true,
   },
   {
-    field: (item: WorkflowRunItem) => item.run.updatedAt,
+    field: (item) => item.run.updatedAt,
     id: "run",
     header: "Run",
-    cell: ({ row }: CellProps) => {
-      const updatedAt = DateTime.fromISO(row.original.run.updatedAt!);
+    cell: ({ row }) => {
+      const updatedAt = DateTime.fromISO(row.run.updatedAt!);
       const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
       return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
     },
     enableSorting: true,
   },
   {
-    field: (item: WorkflowRunItem) => item.repo.owner,
+    field: (item) => item.repo.owner,
     id: "owner",
     header: "Owner",
     enableSorting: true,
   },
   {
-    field: (item: WorkflowRunItem) => item.repo.name,
+    field: (item) => item.repo.name,
     id: "repository",
     header: "Repository",
-    cell: ({ row }: CellProps) => <a href={row.original.repo.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.original.repo.name}</a>,
+    cell: ({ row }) => <a href={row.repo.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.repo.name}</a>,
     enableSorting: true,
   },
   {
-    field: () => null,
     id: "actions",
     header: "",
-    cell: ({ row }: CellProps) => <a href={row.original.run.htmlUrl} target="_blank" rel="noopener noreferrer">View Run</a>,
+    cell: ({ row }) => <a href={row.run.htmlUrl} target="_blank" rel="noopener noreferrer">View Run</a>,
     enableSorting: false,
   },
 ];
