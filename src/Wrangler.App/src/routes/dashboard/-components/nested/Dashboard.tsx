@@ -11,10 +11,12 @@ export const Dashboard = () => {
     return <p>Error loading build info.</p>;
   }
 
+  const showSpinner = isLoading && !repositories;
+
   return (
     <>
-      {isLoading && <Spinner />}
-      {(!isLoading && (!repositories || repositories.length === 0)) && <p>No workflows found.</p>}
+      {showSpinner && <Spinner />}
+      {(!showSpinner && (!repositories || repositories.length === 0)) && <p>No workflows found.</p>}
       {repositories && <RepositoryList repositories={repositories} />}
     </>
   );

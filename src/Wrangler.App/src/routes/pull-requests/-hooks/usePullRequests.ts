@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { usePrAuthors } from "./usePrAuthors";
 import { postPullRequests } from "../../../api";
+import { PAGE_STALE_TIME } from "../../../pageFreshness";
 
 export const usePullRequests = () => {
 
@@ -24,8 +25,11 @@ export const usePullRequests = () => {
       return result.data;
     },
     enabled: repositories.length > 0 && authors.length > 0,
+    // The author filter is part of the query key, so every change to it lands
+    // on an empty cache entry: without this the list blanks while it refetches.
+    placeholderData: keepPreviousData,
     // SSE drives freshness; polling is a safety net for missed events.
     refetchInterval: 10 * 60 * 1000,
-    staleTime: 10 * 60 * 1000,
+    staleTime: PAGE_STALE_TIME,
   });
 }
