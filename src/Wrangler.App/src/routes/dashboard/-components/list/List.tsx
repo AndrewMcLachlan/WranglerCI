@@ -87,13 +87,15 @@ export const List = () => {
     ) ?? []
   ) ?? [];
 
+  const showLoading = isLoading && !repositories;
+
   return (
     <DataGrid
       className="workflow-run-table"
       data={list}
       columns={columns}
       sortable
-      loading={isLoading}
+      loading={showLoading}
       emptyMessage="No workflows found."
     />
   );

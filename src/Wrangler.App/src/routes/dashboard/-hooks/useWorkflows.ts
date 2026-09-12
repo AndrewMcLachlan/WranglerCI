@@ -1,8 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { useDashboardContext } from "../-providers/DashboardProvider";
 import { postWorkflows } from "../../../api";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
+import { PAGE_STALE_TIME } from "../../../pageFreshness";
 import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
 
 // Keep only workflows whose overall status is selected, and drop repositories
@@ -120,12 +121,15 @@ export const useWorkflows = () => {
     // Status filtering reshapes the fetched data without a refetch, so it is a
     // select rather than part of the query key.
     select: (data) => filterByStatus(data, statusFilter),
-    // Matches usePullRequests. Workflow runs are not cached server-side (only the
-    // workflow definitions are), so each fetch costs a GitHub call per selected
-    // workflow — and the stream pushes runs into this cache anyway. The interval
-    // is the backstop for repos whose webhooks were never wired up.
+    // The filters are part of the query key, so every filter change lands on an
+    // empty cache entry: without this the dashboard blanks while it refetches.
+    placeholderData: keepPreviousData,
+    // Workflow runs are not cached server-side (only the workflow definitions
+    // are), so each fetch costs a GitHub call per selected workflow. The stream
+    // pushes runs into this cache as they happen; the interval is the backstop
+    // for repos whose webhooks were never wired up.
     refetchInterval: 10 * 60 * 1000,
-    staleTime: 10 * 60 * 1000,
+    staleTime: PAGE_STALE_TIME,
     refetchOnWindowFocus: false,
   });
 }

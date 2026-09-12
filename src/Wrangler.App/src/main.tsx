@@ -15,6 +15,7 @@ import { LinkProvider, ThemeProvider } from "@andrewmclachlan/moo-ds"
 import { NavLnk } from "./components/NavLink"
 import { client } from "./api/client.gen.ts"
 import { QUERY_DEFAULTS } from "./queryDefaults.ts"
+import { restoreQueryCache, startPersistingQueryCache } from "./queryCachePersistence.ts"
 import { registerServiceWorker } from "./pwa/registerServiceWorker"
 
 library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle);
@@ -41,6 +42,11 @@ console.log("config", client.getConfig());
 // per-hook, so a new query can't silently inherit react-query's aggressive
 // defaults; hooks still override where their freshness contract differs.
 const queryClient = new QueryClient({ defaultOptions: { queries: QUERY_DEFAULTS } });
+
+// Must stay ahead of the render below — a restore after it cannot spare the
+// first paint its spinner.
+restoreQueryCache(queryClient, localStorage);
+startPersistingQueryCache(queryClient, localStorage);
 
 configureInterceptors();
 
