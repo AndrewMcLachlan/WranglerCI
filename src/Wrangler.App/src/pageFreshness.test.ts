@@ -1,27 +1,29 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { QueryClient, QueryObserver, type QueryObserverResult } from "@tanstack/react-query";
-import { QUERY_DEFAULTS } from "../../../queryDefaults";
-import { DASHBOARD_STALE_TIME } from "./dashboardFreshness";
+import { QUERY_DEFAULTS } from "./queryDefaults";
+import { PAGE_STALE_TIME } from "./pageFreshness";
 
 /**
- * The requirement these protect: landing on the dashboard shows current data.
- * The stream keeps the cache live while the page is open, but it carries only
- * workflow_run deliveries and only for repos whose webhooks are wired, so
- * arriving at the page must also refetch. Flipping between the three views is
- * not an arrival.
+ * The requirement these protect: landing on a list page shows current data.
+ * The stream keeps the workflow and pull request caches live while a page is
+ * open, but it carries no gate events at all and only reaches repos whose
+ * webhooks are wired, so arriving at a page must also refetch.
+ *
+ * The dashboard is the worked example; the same staleTime drives pull requests
+ * and gates.
  */
 
 const client = () => new QueryClient({ defaultOptions: { queries: QUERY_DEFAULTS } });
 
-const dashboardQuery = (queryFn: () => Promise<string[]>) => ({
+const listQuery = (queryFn: () => Promise<string[]>) => ({
   queryKey: ["getWorkflows", [{ owner: "acme", name: "site" }], []],
   queryFn,
-  staleTime: DASHBOARD_STALE_TIME,
+  staleTime: PAGE_STALE_TIME,
 });
 
-/** Mounting one of the dashboard views. */
+/** Mounting a page that reads the list. */
 const land = (queryClient: QueryClient, queryFn: () => Promise<string[]>) => {
-  const observer = new QueryObserver<string[]>(queryClient, dashboardQuery(queryFn) as never);
+  const observer = new QueryObserver<string[]>(queryClient, listQuery(queryFn) as never);
   const unsubscribe = observer.subscribe(() => { });
   return { observer, leave: unsubscribe };
 };
@@ -30,7 +32,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe("landing on the dashboard", () => {
+describe("landing on a list page", () => {
   it("refetches in the background, with the previous data still on screen", async () => {
     vi.useFakeTimers();
     const queryFn = vi.fn(async () => ["run:green"]);
@@ -52,7 +54,7 @@ describe("landing on the dashboard", () => {
     second.leave();
   });
 
-  it("does not refetch when flipping between the three views", async () => {
+  it("does not refetch when swapping views of the same data", async () => {
     vi.useFakeTimers();
     const queryFn = vi.fn(async () => ["run:green"]);
     const queryClient = client();
@@ -61,7 +63,7 @@ describe("landing on the dashboard", () => {
     await vi.advanceTimersByTimeAsync(0);
     overview.leave();
 
-    // Overview -> nested -> list, as fast as the router can swap them.
+    // The dashboard's overview -> nested -> list, as fast as the router swaps them.
     const nested = land(queryClient, queryFn);
     nested.leave();
     const list = land(queryClient, queryFn);
@@ -79,7 +81,7 @@ describe("landing on the dashboard", () => {
     await vi.advanceTimersByTimeAsync(0);
     first.leave();
 
-    await vi.advanceTimersByTimeAsync(DASHBOARD_STALE_TIME + 1);
+    await vi.advanceTimersByTimeAsync(PAGE_STALE_TIME + 1);
     const second = land(queryClient, queryFn);
 
     expect(queryFn).toHaveBeenCalledTimes(2);
@@ -89,6 +91,6 @@ describe("landing on the dashboard", () => {
   it("keeps the guard window short enough to feel like a fresh page", () => {
     // Anything approaching the old 10 minute staleTime reintroduces the stale
     // landing this exists to fix.
-    expect(DASHBOARD_STALE_TIME).toBeLessThanOrEqual(60 * 1000);
+    expect(PAGE_STALE_TIME).toBeLessThanOrEqual(60 * 1000);
   });
 });

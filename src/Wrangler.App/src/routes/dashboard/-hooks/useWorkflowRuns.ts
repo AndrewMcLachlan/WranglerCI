@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns } from "../../../api";
-import { DASHBOARD_STALE_TIME } from "./dashboardFreshness";
+import { PAGE_STALE_TIME } from "../../../pageFreshness";
 
 export const useWorkflowRuns = (owner: string, repo: string, workflowId: number, branchFilters: string[]) => {
   return useQuery({
@@ -24,6 +24,6 @@ export const useWorkflowRuns = (owner: string, repo: string, workflowId: number,
     placeholderData: keepPreviousData,
     // SSE drives freshness; polling is a safety net for missed events.
     refetchInterval: 1000 * 60 * 10, // 10 minutes
-    staleTime: DASHBOARD_STALE_TIME,
+    staleTime: PAGE_STALE_TIME,
   });
 }

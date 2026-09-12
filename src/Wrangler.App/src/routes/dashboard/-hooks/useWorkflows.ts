@@ -3,7 +3,7 @@ import { useSelectedRepositories } from "../../settings/-hooks/useSelectedReposi
 import { useDashboardContext } from "../-providers/DashboardProvider";
 import { postWorkflows } from "../../../api";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
-import { DASHBOARD_STALE_TIME } from "./dashboardFreshness";
+import { PAGE_STALE_TIME } from "../../../pageFreshness";
 import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
 
 // Keep only workflows whose overall status is selected, and drop repositories
@@ -129,7 +129,7 @@ export const useWorkflows = () => {
     // pushes runs into this cache as they happen; the interval is the backstop
     // for repos whose webhooks were never wired up.
     refetchInterval: 10 * 60 * 1000,
-    staleTime: DASHBOARD_STALE_TIME,
+    staleTime: PAGE_STALE_TIME,
     refetchOnWindowFocus: false,
   });
 }
