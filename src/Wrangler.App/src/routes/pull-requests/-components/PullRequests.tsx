@@ -22,12 +22,6 @@ export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success"
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
-// A column with a computed `field` selects the union member that carries no
-// key, and `cell` is then left uncontextualised — implicitly `any` under
-// strict. The cells only read `row.original`, so annotate that minimal shape;
-// it is assignable to TanStack's full CellContext.
-type CellProps = { row: { original: PullRequestModel } };
-
 const STATUS_OPTIONS: CheckStatus[] = ["Success", "Failure", "Pending", "Unknown"];
 
 const STATUS_DOT: Record<CheckStatus, string> = {
@@ -247,14 +241,13 @@ export const PullRequests = () => {
 
   const columns: ColumnDef<PullRequestModel>[] = useMemo(() => [
     {
-      field: () => null,
       id: "select",
       header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0 || isApproving} />,
-      cell: ({ row }: CellProps) => <input type="checkbox" checked={selected.has(row.original.number)} onChange={() => toggleSelection(row.original)} disabled={!canApprove(row.original) || isApproving} />,
+      cell: ({ row }) => <input type="checkbox" checked={selected.has(row.number)} onChange={() => toggleSelection(row)} disabled={!canApprove(row) || isApproving} />,
       enableSorting: false,
     },
     {
-      field: (pr: PullRequestModel) => `${pr.repositoryOwner}/${pr.repositoryName}`,
+      field: (pr) => `${pr.repositoryOwner}/${pr.repositoryName}`,
       id: "repository",
       header: "Repository",
       enableSorting: true,
@@ -264,10 +257,10 @@ export const PullRequests = () => {
       header: "Title",
       cell: ({ row }) => (
         <div className="pr-title-cell">
-          <a href={row.original.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.original.title}</a>
-          {row.original.labels && row.original.labels.length > 0 && (
+          <a href={row.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.title}</a>
+          {row.labels && row.labels.length > 0 && (
             <span className="pr-labels">
-              {row.original.labels.map((label) => (
+              {row.labels.map((label) => (
                 <Badge
                   key={label.name}
                   className="pr-label"
@@ -294,8 +287,8 @@ export const PullRequests = () => {
       header: "Status",
       cell: ({ row }) => (
         <>
-          <CheckStatusBadge status={row.original.checkStatus} />
-          {row.original.mergeable === false && <Badge className="red">Conflict</Badge>}
+          <CheckStatusBadge status={row.checkStatus} />
+          {row.mergeable === false && <Badge className="red">Conflict</Badge>}
         </>
       ),
       enableSorting: true,
@@ -303,21 +296,20 @@ export const PullRequests = () => {
     {
       field: "updatedAt",
       header: "Updated",
-      cell: ({ getValue }) => {
-        const updatedAt = DateTime.fromISO(getValue() as string);
+      cell: ({ value }) => {
+        const updatedAt = DateTime.fromISO(value as string);
         const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
         return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
       },
       enableSorting: true,
     },
     {
-      field: () => null,
       id: "open",
       header: "",
-      cell: ({ row }: CellProps) => (
+      cell: ({ row }) => (
         <a
           className="pr-open-link"
-          href={row.original.htmlUrl!}
+          href={row.htmlUrl!}
           target="_blank"
           rel="noopener noreferrer"
           title="Open on GitHub"
