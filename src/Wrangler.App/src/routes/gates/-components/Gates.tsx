@@ -9,6 +9,8 @@ import { useGateEnvironmentFilter, useGateBranchFilter, useGateRepositoryFilter,
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { NoRepositories } from "../../../components/NoRepositories";
+import { useIsNarrow } from "../../../hooks/useIsNarrow";
+import { GateCards } from "./GateCards";
 import type { DeploymentGateModel, GateApprovalResult } from "../../../api";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
@@ -23,6 +25,7 @@ const optionsFrom = (gates: DeploymentGateModel[], field: (g: DeploymentGateMode
   [...new Set(gates.map(field).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b));
 
 export const Gates = () => {
+  const isNarrow = useIsNarrow();
   const { data: selectedRepositories } = useSelectedRepositories();
   const { data: gates, isLoading, isError, error } = useGates();
   const [alerts, setAlerts] = useState<GateApprovalResult[]>([]);
@@ -96,6 +99,10 @@ export const Gates = () => {
       return next;
     });
   };
+
+  const emptyMessage = (gates?.length ?? 0) > 0
+    ? "No gates match the current filters."
+    : "No deployment gates are waiting for approval.";
 
   const allSelected = approvable.length > 0 && approvable.every((g) => selected.has(gateKey(g)));
 
@@ -226,14 +233,26 @@ export const Gates = () => {
         </Alert>
       ))}
 
-      <DataGrid
-        className="gate-table"
-        data={visibleGates}
-        columns={columns}
-        sortable
-        loading={isLoading}
-        emptyMessage={(gates?.length ?? 0) > 0 ? "No gates match the current filters." : "No deployment gates are waiting for approval."}
-      />
+      {isNarrow ? (
+        <GateCards
+          gates={visibleGates}
+          gateKey={gateKey}
+          selected={selected}
+          onToggle={toggleSelection}
+          disabled={isApproving}
+          loading={isLoading}
+          emptyMessage={emptyMessage}
+        />
+      ) : (
+        <DataGrid
+          className="gate-table"
+          data={visibleGates}
+          columns={columns}
+          sortable
+          loading={isLoading}
+          emptyMessage={emptyMessage}
+        />
+      )}
     </article>
   );
 };

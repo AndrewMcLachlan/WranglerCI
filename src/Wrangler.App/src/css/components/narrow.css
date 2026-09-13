@@ -1,0 +1,55 @@
+/* Narrow-viewport overrides. Kept together rather than spread across each
+   component's file so the phone layout can be read in one place.
+   The breakpoint matches --narrow (768px) and NARROW_BREAKPOINT. */
+
+@media (max-width: 767px) {
+    /* Filters and the page's actions stack instead of competing for one row. */
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.625rem;
+    }
+
+    .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    /* A filter is easier to hit and read at full width; the min-width that keeps
+       it from collapsing on desktop would otherwise overflow a phone. */
+    .filter-combo {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+    }
+
+    .controls .actions {
+        margin-left: 0;
+
+        .btn {
+            width: 100%;
+            min-height: var(--touch-target);
+        }
+    }
+
+    /* The dashboard's view switcher sits with the filters rather than opposite them. */
+    .controls .views {
+        justify-content: flex-end;
+
+        a {
+            width: var(--touch-target);
+            height: var(--touch-target);
+        }
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Empty and loading states for the card lists, which have no table to host them. */
+.row-card-message {
+    color: rgba(255, 255, 255, 0.45);
+    padding: 1rem 0;
+}

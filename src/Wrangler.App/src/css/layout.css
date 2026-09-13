@@ -117,3 +117,35 @@ h1 {
 .pr-icon {
     font-size: 22px;
 }
+
+@media (max-width: 767px) {
+    .layout > header {
+        /* Clear the notch and the rounded corners in a standalone PWA. */
+        padding: 0.5rem max(0.75rem, env(safe-area-inset-right)) 0.5rem max(0.75rem, env(safe-area-inset-left));
+        padding-top: max(0.5rem, env(safe-area-inset-top));
+        gap: 0.5rem;
+    }
+
+    /* The wordmark is the first thing to go: the logo alone identifies the app,
+       and the nav needs the width more than the name does. */
+    .wordmark {
+        display: none;
+    }
+
+    .header-end {
+        gap: 0.25rem;
+    }
+
+    .top-nav ul {
+        gap: 0.125rem;
+
+        li a {
+            width: var(--touch-target);
+            height: var(--touch-target);
+        }
+    }
+
+    article {
+        padding: 0.75rem max(0.75rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-right));
+    }
+}

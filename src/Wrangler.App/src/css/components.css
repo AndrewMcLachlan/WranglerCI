@@ -6,6 +6,8 @@
 @import "./components/status-indicator.css";
 @import "./components/spinner.css";
 @import "./components/no-repositories.css";
+@import "./components/row-card.css";
+@import "./components/narrow.css";
 @import "./components/user-menu.css";
 @import "./components/attention.css";
 @import "./components/gates.css";

@@ -16,6 +16,8 @@ import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { Badge } from "@andrewmclachlan/moo-ds";
 import { CheckStatusBadge } from "./CheckStatusBadge";
 import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
+import { useIsNarrow } from "../../../hooks/useIsNarrow";
+import { PullRequestCards } from "./PullRequestCards";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
 export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
@@ -62,6 +64,7 @@ const FALLBACK_TAG_COLOUR = "6e7681";
 export const PullRequests = () => {
 
   const queryClient = useQueryClient();
+  const isNarrow = useIsNarrow();
   const { data: selectedRepositories } = useSelectedRepositories();
   const prRepositories = useMemo(
     () => selectedRepositories.filter((r) => r.pullRequests === true),
@@ -416,14 +419,25 @@ export const PullRequests = () => {
         </Alert>
       ))}
 
-      <DataGrid
-        className="pull-request-table"
-        data={visiblePullRequests}
-        columns={columns}
-        sortable
-        loading={isLoading}
-        emptyMessage="No open pull requests found."
-      />
+      {isNarrow ? (
+        <PullRequestCards
+          pullRequests={visiblePullRequests}
+          selected={selected}
+          onToggle={toggleSelection}
+          disabled={isApproving}
+          loading={isLoading}
+          emptyMessage="No open pull requests found."
+        />
+      ) : (
+        <DataGrid
+          className="pull-request-table"
+          data={visiblePullRequests}
+          columns={columns}
+          sortable
+          loading={isLoading}
+          emptyMessage="No open pull requests found."
+        />
+      )}
     </article>
   );
 };
