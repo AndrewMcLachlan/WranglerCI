@@ -7,7 +7,7 @@ import { configureInterceptors } from "./utils/axiosInterceptors.ts"
 
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faFilter, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 import { routeTree } from './routeTree.gen'
 import { Spinner } from "./components/Spinner"
@@ -18,7 +18,8 @@ import { QUERY_DEFAULTS } from "./queryDefaults.ts"
 import { restoreQueryCache, startPersistingQueryCache } from "./queryCachePersistence.ts"
 import { registerServiceWorker } from "./pwa/registerServiceWorker"
 
-library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle);
+// An icon missing from the library renders as nothing at all.
+library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faFilter, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle, faXmark);
 
 registerServiceWorker();
 
@@ -38,9 +39,8 @@ declare module "@tanstack/react-router" {
 
 console.log("config", client.getConfig());
 
-// Defaults live in queryDefaults.ts (and are asserted there) rather than
-// per-hook, so a new query can't silently inherit react-query's aggressive
-// defaults; hooks still override where their freshness contract differs.
+// Defaults live in queryDefaults.ts, where they are asserted. Hooks override
+// where their freshness contract differs.
 const queryClient = new QueryClient({ defaultOptions: { queries: QUERY_DEFAULTS } });
 
 // Must stay ahead of the render below — a restore after it cannot spare the

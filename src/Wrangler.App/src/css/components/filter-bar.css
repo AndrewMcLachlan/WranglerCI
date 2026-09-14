@@ -1,9 +1,11 @@
 /* Shared filter conventions: every page's filters are labelled ComboBox
-   groups inside a .filter-bar row, with the page's action buttons pinned to
-   the right edge of the surrounding .controls row. */
+   groups inside a .filter-row, with the page's action buttons pinned to the
+   right edge of the surrounding .controls row. `.filter-bar` belongs to
+   moo-ds's FilterBar component. */
 
-.filter-bar {
+.filter-row {
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
     gap: 0.5rem 1.5rem;
     align-items: center;
@@ -12,7 +14,7 @@
 /* Inside a .controls row the bar takes the space the action buttons leave,
    but ONLY there — as a direct child of a page's column layout (Attention),
    growing would stretch it vertically instead. */
-.controls .filter-bar {
+.controls .filter-row {
     flex: 1 1 auto;
     min-width: 0;
 }

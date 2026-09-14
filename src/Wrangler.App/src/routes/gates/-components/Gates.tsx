@@ -9,6 +9,9 @@ import { useGateEnvironmentFilter, useGateBranchFilter, useGateRepositoryFilter,
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { NoRepositories } from "../../../components/NoRepositories";
+import { NarrowFilters, type AppliedFilter } from "../../../components/filters/NarrowFilters";
+import { useIsNarrow } from "../../../hooks/useIsNarrow";
+import { GateCards } from "./GateCards";
 import type { DeploymentGateModel, GateApprovalResult } from "../../../api";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
@@ -23,6 +26,7 @@ const optionsFrom = (gates: DeploymentGateModel[], field: (g: DeploymentGateMode
   [...new Set(gates.map(field).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b));
 
 export const Gates = () => {
+  const isNarrow = useIsNarrow();
   const { data: selectedRepositories } = useSelectedRepositories();
   const { data: gates, isLoading, isError, error } = useGates();
   const [alerts, setAlerts] = useState<GateApprovalResult[]>([]);
@@ -96,6 +100,10 @@ export const Gates = () => {
       return next;
     });
   };
+
+  const emptyMessage = (gates?.length ?? 0) > 0
+    ? "No gates match the current filters."
+    : "No deployment gates are waiting for approval.";
 
   const allSelected = approvable.length > 0 && approvable.every((g) => selected.has(gateKey(g)));
 
@@ -183,30 +191,48 @@ export const Gates = () => {
     return <p>Error loading deployment gates.</p>;
   }
 
+  const gateCombos = gateFilters.map((filter) => (
+    <ComboBox<string>
+      key={filter.placeholder}
+      className="filter-combo"
+      placeholder={filter.placeholder}
+      multiSelect
+      clearable
+      creatable
+      createLabel={(input) => `Add "${input.trim()}"`}
+      items={filter.options}
+      selectedItems={filter.selected}
+      labelField={(value) => value}
+      valueField={(value) => value}
+      onCreate={addFilterValue(filter.selected, filter.set)}
+      onChange={filter.set}
+    />
+  ));
+
+  // One chip per applied value, across all four filter kinds.
+  const appliedFilters: AppliedFilter[] = gateFilters.flatMap((filter) =>
+    filter.selected.map((value) => ({
+      key: `${filter.placeholder}:${value}`,
+      label: value,
+      onRemove: () => filter.set(filter.selected.filter((v) => v !== value)),
+    })));
+
+  const clearAllFilters = () => {
+    for (const filter of gateFilters) filter.set([]);
+  };
+
   return (
     <article className="gates">
       <h2>Deployment Gates</h2>
 
       <div className="controls">
-        <div className="filter-bar">
-          {gateFilters.map((filter) => (
-            <ComboBox<string>
-              key={filter.placeholder}
-              className="filter-combo"
-              placeholder={filter.placeholder}
-              multiSelect
-              clearable
-              creatable
-              createLabel={(input) => `Add "${input.trim()}"`}
-              items={filter.options}
-              selectedItems={filter.selected}
-              labelField={(value) => value}
-              valueField={(value) => value}
-              onCreate={addFilterValue(filter.selected, filter.set)}
-              onChange={filter.set}
-            />
-          ))}
-        </div>
+        {isNarrow ? (
+          <NarrowFilters applied={appliedFilters} onClearAll={clearAllFilters}>
+            {gateCombos}
+          </NarrowFilters>
+        ) : (
+          <div className="filter-row">{gateCombos}</div>
+        )}
         <div className="actions">
           <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving}>
             {isApproving ? "Approving..." : "Approve Selected"}
@@ -226,14 +252,26 @@ export const Gates = () => {
         </Alert>
       ))}
 
-      <DataGrid
-        className="gate-table"
-        data={visibleGates}
-        columns={columns}
-        sortable
-        loading={isLoading}
-        emptyMessage={(gates?.length ?? 0) > 0 ? "No gates match the current filters." : "No deployment gates are waiting for approval."}
-      />
+      {isNarrow ? (
+        <GateCards
+          gates={visibleGates}
+          gateKey={gateKey}
+          selected={selected}
+          onToggle={toggleSelection}
+          disabled={isApproving}
+          loading={isLoading}
+          emptyMessage={emptyMessage}
+        />
+      ) : (
+        <DataGrid
+          className="gate-table"
+          data={visibleGates}
+          columns={columns}
+          sortable
+          loading={isLoading}
+          emptyMessage={emptyMessage}
+        />
+      )}
     </article>
   );
 };

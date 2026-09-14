@@ -18,7 +18,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
               <source srcSet="/logo-white.svg" media="(prefers-color-scheme: dark)" />
               <img src="/logo.svg" className="logo" />
             </picture>
-            Wrangler CI
+            <span className="wordmark">Wrangler CI</span>
           </Link>
         </h1>
         <div className="header-end">

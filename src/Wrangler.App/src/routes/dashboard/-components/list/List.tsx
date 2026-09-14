@@ -1,14 +1,14 @@
 import { Badge, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { DateTime } from "luxon";
 import type { RepositoryModel, WorkflowModel, WorkflowRunModel } from "../../../../api";
-import { useWorkflows } from "../../-hooks/useWorkflows";
-import { BranchBadge } from "../shared/BranchBadge";
 
 interface WorkflowRunItem {
   repo: RepositoryModel;
   workflow: WorkflowModel;
   run: WorkflowRunModel;
 }
+import { useWorkflows } from "../../-hooks/useWorkflows";
+import { BranchBadge } from "../shared/BranchBadge";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 

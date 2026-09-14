@@ -28,6 +28,15 @@ export default tseslint.config(
         },
     },
     {
+        // Build scripts run under Node, not in a browser.
+        files: ["scripts/**/*.mjs"],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+    },
+    {
         files: ["**/*.{ts,tsx}"],
         extends: [
             react.configs["recommended-typescript"],

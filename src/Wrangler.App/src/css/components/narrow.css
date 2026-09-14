@@ -1,0 +1,53 @@
+/* Narrow-viewport overrides, at the breakpoint --narrow and NARROW_BREAKPOINT
+   also use. */
+
+@media (max-width: 767px) {
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.625rem;
+    }
+
+    /* Without this the controls keep their desktop min-width and overflow
+       the sheet. */
+    .filter-combo {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+    }
+
+    .filter-drawer .offcanvas-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+
+    .controls .actions {
+        margin-left: 0;
+
+        .btn {
+            width: 100%;
+            min-height: var(--touch-target);
+        }
+    }
+
+    .controls .views {
+        justify-content: flex-end;
+
+        a {
+            width: var(--touch-target);
+            height: var(--touch-target);
+        }
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Empty and loading states for the card lists. */
+.row-card-message {
+    color: rgba(255, 255, 255, 0.45);
+    padding: 1rem 0;
+}

@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "generate": "openapi-ts",
     "test": "vitest run",
-    "update-moo": "npm install @andrewmclachlan/moo-app@latest @andrewmclachlan/moo-ds@latest @andrewmclachlan/moo-icons@latest"
+    "update-moo": "npm install @andrewmclachlan/moo-app@latest @andrewmclachlan/moo-ds@latest @andrewmclachlan/moo-icons@latest",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@andrewmclachlan/moo-app": "^5.2.337",
@@ -46,6 +47,7 @@
     "eslint": "^10.10.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.12.0",
+    "sharp": "^0.35.4",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.70.0",
     "vite": "^8.3.0",

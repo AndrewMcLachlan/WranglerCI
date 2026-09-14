@@ -89,8 +89,7 @@ describe("landing on a list page", () => {
   });
 
   it("keeps the guard window short enough to feel like a fresh page", () => {
-    // Anything approaching the old 10 minute staleTime reintroduces the stale
-    // landing this exists to fix.
+    // A window approaching a minute stops feeling like a fresh page.
     expect(PAGE_STALE_TIME).toBeLessThanOrEqual(60 * 1000);
   });
 });

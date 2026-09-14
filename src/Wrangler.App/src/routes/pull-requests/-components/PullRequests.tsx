@@ -16,6 +16,9 @@ import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
 import { Badge } from "@andrewmclachlan/moo-ds";
 import { CheckStatusBadge } from "./CheckStatusBadge";
 import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
+import { useIsNarrow } from "../../../hooks/useIsNarrow";
+import { PullRequestCards } from "./PullRequestCards";
+import { NarrowFilters, type AppliedFilter } from "../../../components/filters/NarrowFilters";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
 export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
@@ -62,6 +65,7 @@ const FALLBACK_TAG_COLOUR = "6e7681";
 export const PullRequests = () => {
 
   const queryClient = useQueryClient();
+  const isNarrow = useIsNarrow();
   const { data: selectedRepositories } = useSelectedRepositories();
   const prRepositories = useMemo(
     () => selectedRepositories.filter((r) => r.pullRequests === true),
@@ -331,71 +335,131 @@ export const PullRequests = () => {
     );
   }
 
+  // Every applied filter as a chip, so the narrow bar shows what is in force
+  // while the controls themselves stay in the sheet.
+  const appliedFilters: AppliedFilter[] = [
+    ...authors.map((login) => ({
+      key: `author:${login}`,
+      label: login,
+      onRemove: () => updateAuthors(authors.filter((a) => a !== login)),
+    })),
+    ...statusFilter.map((status) => ({
+      key: `status:${status}`,
+      label: status,
+      onRemove: () => setStatusFilter(statusFilter.filter((s) => s !== status)),
+    })),
+    ...includeTags.map((tag) => ({
+      key: `include:${tag}`,
+      label: tag,
+      onRemove: () => setIncludeTags(includeTags.filter((t) => t !== tag)),
+    })),
+    ...excludeTags.map((tag) => ({
+      key: `exclude:${tag}`,
+      label: `not ${tag}`,
+      onRemove: () => setExcludeTags(excludeTags.filter((t) => t !== tag)),
+    })),
+  ];
+
+  const clearAllFilters = () => {
+    setStatusFilter([]);
+    setIncludeTags([]);
+    setExcludeTags([]);
+  };
+
+  const authorCombo = (
+    <ComboBox<AuthorOption>
+      className="filter-combo"
+      placeholder="Authors..."
+      multiSelect
+      clearable
+      creatable
+      createLabel={(input) => `Add "${input.trim()}"`}
+      items={authorItems}
+      selectedItems={selectedAuthorItems}
+      labelField={(o) => o.login}
+      valueField={(o) => o.login}
+      search={authorSearch}
+      onCreate={addAuthor}
+      onChange={(items) => updateAuthors(items.map((o) => o.login))}
+    />
+  );
+
+  const statusCombo = (
+    <ComboBox<CheckStatus>
+      className="filter-combo status-combo"
+      placeholder="Any status"
+      multiSelect
+      clearable
+      items={STATUS_OPTIONS}
+      selectedItems={statusFilter}
+      labelField={statusLabel}
+      valueField={(s) => s}
+      colourField={(s) => STATUS_COLOUR[s]}
+      search={statusSearch}
+      onChange={(items) => setStatusFilter(items)}
+    />
+  );
+
+  const includeCombo = (
+    <ComboBox<TagOption>
+      className="filter-combo"
+      placeholder="Include tags..."
+      multiSelect
+      clearable
+      creatable
+      createLabel={(input) => `Include "${input.trim()}"`}
+      items={availableTags}
+      selectedItems={includeTagOptions}
+      labelField={(t) => t.name}
+      valueField={(t) => t.name}
+      colourField={(t) => `#${t.color}`}
+      onCreate={addIncludeTag}
+      onChange={(items) => setIncludeTags(items.map((t) => t.name))}
+    />
+  );
+
+  const excludeCombo = (
+    <ComboBox<TagOption>
+      className="filter-combo"
+      placeholder="Exclude tags..."
+      multiSelect
+      clearable
+      creatable
+      createLabel={(input) => `Exclude "${input.trim()}"`}
+      items={availableTags}
+      selectedItems={excludeTagOptions}
+      labelField={(t) => t.name}
+      valueField={(t) => t.name}
+      colourField={(t) => `#${t.color}`}
+      onCreate={addExcludeTag}
+      onChange={(items) => setExcludeTags(items.map((t) => t.name))}
+    />
+  );
+
   return (
     <article className="pull-requests">
       <h2>Pull Requests</h2>
 
       <div className="controls">
-        <div className="filter-bar">
-          <ComboBox<AuthorOption>
-            className="filter-combo"
-            placeholder="Authors..."
-            multiSelect
-            clearable
-            creatable
-            createLabel={(input) => `Add "${input.trim()}"`}
-            items={authorItems}
-            selectedItems={selectedAuthorItems}
-            labelField={(o) => o.login}
-            valueField={(o) => o.login}
-            search={authorSearch}
-            onCreate={addAuthor}
-            onChange={(items) => updateAuthors(items.map((o) => o.login))}
-          />
-          <ComboBox<CheckStatus>
-            className="filter-combo status-combo"
-            placeholder="Any status"
-            multiSelect
-            clearable
-            items={STATUS_OPTIONS}
-            selectedItems={statusFilter}
-            labelField={statusLabel}
-            valueField={(s) => s}
-            colourField={(s) => STATUS_COLOUR[s]}
-            search={statusSearch}
-            onChange={(items) => setStatusFilter(items)}
-          />
-          <ComboBox<TagOption>
-            className="filter-combo"
-            placeholder="Include tags..."
-            multiSelect
-            clearable
-            creatable
-            createLabel={(input) => `Include "${input.trim()}"`}
-            items={availableTags}
-            selectedItems={includeTagOptions}
-            labelField={(t) => t.name}
-            valueField={(t) => t.name}
-            colourField={(t) => `#${t.color}`}
-            onCreate={addIncludeTag}
-            onChange={(items) => setIncludeTags(items.map((t) => t.name))}
-          />
-          <ComboBox<TagOption>
-            className="filter-combo"
-            placeholder="Exclude tags..."
-            multiSelect
-            clearable
-            creatable
-            createLabel={(input) => `Exclude "${input.trim()}"`}
-            items={availableTags}
-            selectedItems={excludeTagOptions}
-            labelField={(t) => t.name}
-            valueField={(t) => t.name}
-            colourField={(t) => `#${t.color}`}
-            onCreate={addExcludeTag}
-            onChange={(items) => setExcludeTags(items.map((t) => t.name))}
-          />
-        </div>
+        {isNarrow ? (
+          <NarrowFilters
+            primary={statusCombo}
+            applied={appliedFilters}
+            onClearAll={clearAllFilters}
+          >
+            {authorCombo}
+            {statusCombo}
+            {includeCombo}
+            {excludeCombo}
+          </NarrowFilters>
+        ) : (
+          <div className="filter-row">
+            {authorCombo}
+            {statusCombo}
+            {includeCombo}
+            {excludeCombo}
+          </div>
+        )}
         <div className="actions">
           <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving}>
             {isApproving ? "Approving..." : "Approve & Merge Selected"}
@@ -416,14 +480,25 @@ export const PullRequests = () => {
         </Alert>
       ))}
 
-      <DataGrid
-        className="pull-request-table"
-        data={visiblePullRequests}
-        columns={columns}
-        sortable
-        loading={isLoading}
-        emptyMessage="No open pull requests found."
-      />
+      {isNarrow ? (
+        <PullRequestCards
+          pullRequests={visiblePullRequests}
+          selected={selected}
+          onToggle={toggleSelection}
+          disabled={isApproving}
+          loading={isLoading}
+          emptyMessage="No open pull requests found."
+        />
+      ) : (
+        <DataGrid
+          className="pull-request-table"
+          data={visiblePullRequests}
+          columns={columns}
+          sortable
+          loading={isLoading}
+          emptyMessage="No open pull requests found."
+        />
+      )}
     </article>
   );
 };

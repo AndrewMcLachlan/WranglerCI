@@ -108,9 +108,8 @@ export const useWorkflows = () => {
     queryFn: async () => {
       const result = await postWorkflows({
         body: {
-          // A repo with no selected workflows has nothing to show on the
-          // dashboard, so exclude it here rather than fetch and render an
-          // empty card (issue #172). The entry stays in settings/PR scope.
+          // A repo with no selected workflows has nothing to show here. The
+          // entry stays in settings/PR scope.
           repositories: selectedRepositories.filter(hasDashboardWorkflows),
           branchFilters: branchFilter?.length ? branchFilter : undefined,
         }
@@ -118,8 +117,7 @@ export const useWorkflows = () => {
       const data = result.data ?? [];
       return includeFakeData ? [...data, buildFakeRepo(branchFilter ?? [])] : data;
     },
-    // Status filtering reshapes the fetched data without a refetch, so it is a
-    // select rather than part of the query key.
+    // Status filtering reshapes fetched data without a refetch.
     select: (data) => filterByStatus(data, statusFilter),
     // The filters are part of the query key, so every filter change lands on an
     // empty cache entry: without this the dashboard blanks while it refetches.

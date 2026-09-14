@@ -9,30 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as GatesRouteImport } from './routes/gates'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AttentionRouteImport } from './routes/attention'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as PullRequestsIndexRouteImport } from './routes/pull-requests/index'
+import { Route as AttentionRouteImport } from './routes/attention'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as GatesRouteImport } from './routes/gates'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as DashboardNestedRouteImport } from './routes/dashboard/nested'
 import { Route as DashboardListRouteImport } from './routes/dashboard/list'
+import { Route as DashboardNestedRouteImport } from './routes/dashboard/nested'
+import { Route as PullRequestsIndexRouteImport } from './routes/pull-requests/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GatesRoute = GatesRouteImport.update({
-  id: '/gates',
-  path: '/gates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AttentionRoute = AttentionRouteImport.update({
@@ -40,19 +30,19 @@ const AttentionRoute = AttentionRouteImport.update({
   path: '/attention',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
+const GatesRoute = GatesRouteImport.update({
+  id: '/gates',
+  path: '/gates',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PullRequestsIndexRoute = PullRequestsIndexRouteImport.update({
-  id: '/pull-requests/',
-  path: '/pull-requests/',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -60,15 +50,25 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardListRoute = DashboardListRouteImport.update({
+  id: '/list',
+  path: '/list',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardNestedRoute = DashboardNestedRouteImport.update({
   id: '/nested',
   path: '/nested',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardListRoute = DashboardListRouteImport.update({
-  id: '/list',
-  path: '/list',
-  getParentRoute: () => DashboardRoute,
+const PullRequestsIndexRoute = PullRequestsIndexRouteImport.update({
+  id: '/pull-requests/',
+  path: '/pull-requests/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -157,25 +157,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gates': {
-      id: '/gates'
-      path: '/gates'
-      fullPath: '/gates'
-      preLoaderRoute: typeof GatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/attention': {
@@ -185,25 +171,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AttentionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/': {
-      id: '/settings/'
-      path: '/settings'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
+    '/gates': {
+      id: '/gates'
+      path: '/gates'
+      fullPath: '/gates'
+      preLoaderRoute: typeof GatesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pull-requests/': {
-      id: '/pull-requests/'
-      path: '/pull-requests'
-      fullPath: '/pull-requests/'
-      preLoaderRoute: typeof PullRequestsIndexRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -213,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/list': {
+      id: '/dashboard/list'
+      path: '/list'
+      fullPath: '/dashboard/list'
+      preLoaderRoute: typeof DashboardListRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/nested': {
       id: '/dashboard/nested'
       path: '/nested'
@@ -220,12 +213,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardNestedRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/list': {
-      id: '/dashboard/list'
-      path: '/list'
-      fullPath: '/dashboard/list'
-      preLoaderRoute: typeof DashboardListRouteImport
-      parentRoute: typeof DashboardRoute
+    '/pull-requests/': {
+      id: '/pull-requests/'
+      path: '/pull-requests'
+      fullPath: '/pull-requests/'
+      preLoaderRoute: typeof PullRequestsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }

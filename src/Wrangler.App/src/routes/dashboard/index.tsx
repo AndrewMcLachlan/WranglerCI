@@ -1,12 +1,17 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Overview } from "./-components/overview/Overview";
 import { DASHBOARD_VIEW_STORAGE_KEY } from "./-hooks/useDashboardView";
+import { isNarrowViewport } from "../../hooks/useIsNarrow";
 
 export const Route = createFileRoute("/dashboard/")({
   beforeLoad: () => {
     // moo-ds useLocalStorage JSON-encodes values, so the literal stored
     // string is e.g. "\"nested\"" — parse before comparing.
-    const raw = typeof window !== "undefined" ? window.localStorage.getItem(DASHBOARD_VIEW_STORAGE_KEY) : null;
+    if (typeof window === "undefined") return;
+    // A narrow viewport has no view switcher, so a stored table view must not
+    // drag it somewhere it cannot get back from.
+    if (isNarrowViewport()) return;
+    const raw = window.localStorage.getItem(DASHBOARD_VIEW_STORAGE_KEY);
     if (!raw) return;
     try {
       const view = JSON.parse(raw);
