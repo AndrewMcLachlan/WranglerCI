@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { useIsNarrow } from "../../../../hooks/useIsNarrow";
+import { NarrowFilters, type AppliedFilter } from "../../../../components/filters/NarrowFilters";
 import { ComboBox } from "@andrewmclachlan/moo-ds";
 import { useDashboardContext } from "../../-providers/DashboardProvider";
 import { dotLabel, optionSearch } from "../../../../components/filters/filterOptions";
@@ -21,9 +23,8 @@ const STATUS_NAME: Record<string, string> = {
   Waiting: "Waiting",
 };
 
-// The .dot class per status. Cancelled (Amber) uses grey rather than the
-// amber-yellow, which was too close to Waiting's orange — grey also reads as
-// "inactive/dismissed", matching cancelled/skipped/action_required.
+// The .dot class per status. Amber maps to grey, which reads as
+// "inactive/dismissed" for cancelled, skipped and action_required runs.
 const STATUS_DOT: Record<string, string> = {
   Green: "green",
   Red: "red",
@@ -51,9 +52,28 @@ export const Filters = () => {
   const { branchFilter, addBranchFilter, setBranchFilter, statusFilter, setStatusFilter } = useDashboardContext();
 
   const selectedBranches = useMemo<BranchOption[]>(() => branchFilter.map((name) => ({ name })), [branchFilter]);
+  const isNarrow = useIsNarrow();
 
-  return (
-    <div className="filter-bar">
+  const applied: AppliedFilter[] = [
+    ...branchFilter.map((name) => ({
+      key: `branch:${name}`,
+      label: name,
+      onRemove: () => setBranchFilter(branchFilter.filter((b) => b !== name)),
+    })),
+    ...statusFilter.map((status) => ({
+      key: `status:${status}`,
+      label: STATUS_NAME[status] ?? status,
+      onRemove: () => setStatusFilter(statusFilter.filter((s) => s !== status)),
+    })),
+  ];
+
+  const clearAll = () => {
+    setBranchFilter([]);
+    setStatusFilter([]);
+  };
+
+  const controls = (
+    <>
       <ComboBox<BranchOption>
         className="filter-combo"
         placeholder="Default branch"
@@ -81,6 +101,14 @@ export const Filters = () => {
         search={statusSearch}
         onChange={(items) => setStatusFilter(items)}
       />
-    </div>
+    </>
   );
+
+  // A phone shows what is filtered, not the controls that set it: the combos
+  // move into the sheet and the applied values stay visible as chips.
+  if (isNarrow) {
+    return <NarrowFilters applied={applied} onClearAll={clearAll}>{controls}</NarrowFilters>;
+  }
+
+  return <div className="filter-row">{controls}</div>;
 }

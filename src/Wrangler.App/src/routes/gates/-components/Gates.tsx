@@ -9,6 +9,7 @@ import { useGateEnvironmentFilter, useGateBranchFilter, useGateRepositoryFilter,
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { NoRepositories } from "../../../components/NoRepositories";
+import { NarrowFilters, type AppliedFilter } from "../../../components/filters/NarrowFilters";
 import { useIsNarrow } from "../../../hooks/useIsNarrow";
 import { GateCards } from "./GateCards";
 import type { DeploymentGateModel, GateApprovalResult } from "../../../api";
@@ -190,30 +191,48 @@ export const Gates = () => {
     return <p>Error loading deployment gates.</p>;
   }
 
+  const gateCombos = gateFilters.map((filter) => (
+    <ComboBox<string>
+      key={filter.placeholder}
+      className="filter-combo"
+      placeholder={filter.placeholder}
+      multiSelect
+      clearable
+      creatable
+      createLabel={(input) => `Add "${input.trim()}"`}
+      items={filter.options}
+      selectedItems={filter.selected}
+      labelField={(value) => value}
+      valueField={(value) => value}
+      onCreate={addFilterValue(filter.selected, filter.set)}
+      onChange={filter.set}
+    />
+  ));
+
+  // One chip per applied value, across all four filter kinds.
+  const appliedFilters: AppliedFilter[] = gateFilters.flatMap((filter) =>
+    filter.selected.map((value) => ({
+      key: `${filter.placeholder}:${value}`,
+      label: value,
+      onRemove: () => filter.set(filter.selected.filter((v) => v !== value)),
+    })));
+
+  const clearAllFilters = () => {
+    for (const filter of gateFilters) filter.set([]);
+  };
+
   return (
     <article className="gates">
       <h2>Deployment Gates</h2>
 
       <div className="controls">
-        <div className="filter-bar">
-          {gateFilters.map((filter) => (
-            <ComboBox<string>
-              key={filter.placeholder}
-              className="filter-combo"
-              placeholder={filter.placeholder}
-              multiSelect
-              clearable
-              creatable
-              createLabel={(input) => `Add "${input.trim()}"`}
-              items={filter.options}
-              selectedItems={filter.selected}
-              labelField={(value) => value}
-              valueField={(value) => value}
-              onCreate={addFilterValue(filter.selected, filter.set)}
-              onChange={filter.set}
-            />
-          ))}
-        </div>
+        {isNarrow ? (
+          <NarrowFilters applied={appliedFilters} onClearAll={clearAllFilters}>
+            {gateCombos}
+          </NarrowFilters>
+        ) : (
+          <div className="filter-row">{gateCombos}</div>
+        )}
         <div className="actions">
           <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving}>
             {isApproving ? "Approving..." : "Approve Selected"}

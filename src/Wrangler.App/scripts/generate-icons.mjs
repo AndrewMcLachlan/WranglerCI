@@ -7,9 +7,7 @@ import sharp from "sharp";
  * Regenerates the PWA raster icons from the SVG logo. Run with `npm run icons`
  * after changing the logo; the output is committed.
  *
- * Rasters exist because SVG is not enough: iOS ignores an SVG apple-touch-icon
- * and substitutes a screenshot of the page, and Android's launcher wants a
- * maskable PNG it can crop to whatever shape the device uses.
+ * iOS ignores an SVG apple-touch-icon and substitutes a screenshot of the page.
  */
 
 const here = dirname(fileURLToPath(import.meta.url));

@@ -4,7 +4,7 @@ import type { AttentionItemType } from "../../../api";
 /**
  * The attention item types to show in the feed. An empty array means "show
  * everything" (the default); otherwise only the selected types are shown — e.g.
- * select "PullRequestReview" for a focused "awaiting my review" cut (issue #146).
+ * select "PullRequestReview" for a focused "awaiting my review" cut.
  */
 export const useAttentionTypeFilter = () =>
   useLocalStorage<AttentionItemType[]>("attentionTypeFilter", []);

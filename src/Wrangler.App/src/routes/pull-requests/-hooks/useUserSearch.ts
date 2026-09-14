@@ -11,13 +11,11 @@ export interface UserSearchResult {
 const MIN_QUERY_LENGTH = 2;
 
 /**
- * Debounced GitHub-user search for the PR author typeahead (issue #143).
+ * Debounced GitHub-user search for the PR author typeahead.
  *
- * Called through the shared generated axios `client` (same baseURL/credentials
- * as the generated SDK) rather than a generated `getUsersSearch`, because
- * `npm run generate` is currently broken by the TypeScript 7 bump on main
- * (@hey-api/openapi-ts is incompatible with TS 7). Switch to the generated SDK
- * function once client generation is restored.
+ * Calls the shared axios `client` directly: `npm run generate` is blocked by
+ * the TypeScript 7 bump (@hey-api/openapi-ts is incompatible), so there is no
+ * generated function for this endpoint yet.
  */
 export const useUserSearch = (query: string) => {
   const [debounced] = useDebounce(query.trim(), 300);

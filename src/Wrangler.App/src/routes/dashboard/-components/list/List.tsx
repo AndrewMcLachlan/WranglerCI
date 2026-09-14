@@ -1,7 +1,12 @@
 import { Badge, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { DateTime } from "luxon";
-import { useIsNarrow } from "../../../../hooks/useIsNarrow";
-import { WorkflowRunCards, type WorkflowRunItem } from "./WorkflowRunCards";
+import type { RepositoryModel, WorkflowModel, WorkflowRunModel } from "../../../../api";
+
+interface WorkflowRunItem {
+  repo: RepositoryModel;
+  workflow: WorkflowModel;
+  run: WorkflowRunModel;
+}
 import { useWorkflows } from "../../-hooks/useWorkflows";
 import { BranchBadge } from "../shared/BranchBadge";
 
@@ -62,7 +67,6 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
 
 export const List = () => {
 
-  const isNarrow = useIsNarrow();
   const { data: repositories, isLoading } = useWorkflows();
 
   const list: WorkflowRunItem[] = repositories?.flatMap(repo =>
@@ -76,10 +80,6 @@ export const List = () => {
   ) ?? [];
 
   const showLoading = isLoading && !repositories;
-
-  if (isNarrow) {
-    return <WorkflowRunCards items={list} loading={showLoading} emptyMessage="No workflows found." />;
-  }
 
   return (
     <DataGrid

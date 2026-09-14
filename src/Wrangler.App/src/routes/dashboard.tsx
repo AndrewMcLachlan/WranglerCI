@@ -1,4 +1,5 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { DashboardProvider } from "./dashboard/-providers/DashboardProvider";
 import { Filters } from "./dashboard/-components/shared/Filters";
 import { Icon } from "@andrewmclachlan/moo-ds";
@@ -6,6 +7,7 @@ import { Dashboard, NestedList, List } from "../assets";
 import { useSelectedRepositories } from "./settings/-hooks/useSelectedRepositories";
 import { NoRepositories } from "../components/NoRepositories";
 import { useDashboardView } from "./dashboard/-hooks/useDashboardView";
+import { useIsNarrow } from "../hooks/useIsNarrow";
 import { hasDashboardWorkflows } from "./settings/-hooks/repositoryFeatures";
 
 
@@ -15,6 +17,14 @@ const DashboardRoute = () => {
     // repos with selected workflows.
     const hasRepos = selectedRepositories?.some(hasDashboardWorkflows) ?? false;
     const [, setView] = useDashboardView();
+    const isNarrow = useIsNarrow();
+    const navigate = useNavigate();
+    const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+    // Catches a window that becomes narrow while a table view is open.
+    useEffect(() => {
+        if (isNarrow && pathname !== "/dashboard") navigate({ to: "/dashboard" });
+    }, [isNarrow, pathname, navigate]);
 
     return (
         <DashboardProvider>
@@ -22,11 +32,13 @@ const DashboardRoute = () => {
                 {hasRepos && (
                     <section className="controls">
                         <Filters />
-                        <div className="views">
-                            <Link to="/dashboard" onClick={() => setView("overview")}><Icon icon={Dashboard} title="Card view" /></Link>
-                            <Link to="/dashboard/nested" onClick={() => setView("nested")}><Icon icon={NestedList} title="Nested list view" /></Link>
-                            <Link to="/dashboard/list" onClick={() => setView("list")}><Icon icon={List} title="List view" /></Link>
-                        </div>
+                        {!isNarrow && (
+                            <div className="views">
+                                <Link to="/dashboard" onClick={() => setView("overview")}><Icon icon={Dashboard} title="Card view" /></Link>
+                                <Link to="/dashboard/nested" onClick={() => setView("nested")}><Icon icon={NestedList} title="Nested list view" /></Link>
+                                <Link to="/dashboard/list" onClick={() => setView("list")}><Icon icon={List} title="List view" /></Link>
+                            </div>
+                        )}
                     </section>
                 )}
                 <section className="content">

@@ -19,9 +19,8 @@ export interface RowCardProps {
 }
 
 /**
- * One record as a card, for the narrow layout the three tables fall back to.
- * Every value carries its own label, because a card has no column header to
- * inherit meaning from.
+ * One record as a card, for the narrow layout. Every value carries its own
+ * label, because a card has no column header to inherit meaning from.
  */
 export const RowCard: React.FC<RowCardProps> = ({
   onSelect, selected = false, selectDisabled = false, selectLabel,
