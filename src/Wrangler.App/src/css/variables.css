@@ -1,8 +1,4 @@
 :root {
-    /* Below this the layout is single-column and tables render as cards.
-       Kept in step with NARROW_BREAKPOINT in hooks/useIsNarrow.ts. */
-    --narrow: 768px;
-
     --red: red;
     --green: chartreuse;
     --amber: rgb(255, 191, 0);

@@ -1,7 +1,7 @@
-import { useSyncExternalStore } from "react";
+import { breakpoints, useIsAtLeast } from "@andrewmclachlan/moo-ds";
 
-/** The viewport width below which the narrow layout applies. Matches `--narrow` in css/variables.css. */
-export const NARROW_BREAKPOINT = 768;
+/** The width at and above which the wide layout applies. */
+export const NARROW_BREAKPOINT = breakpoints.md;
 
 const query = `(max-width: ${NARROW_BREAKPOINT - 1}px)`;
 
@@ -15,17 +15,5 @@ const query = `(max-width: ${NARROW_BREAKPOINT - 1}px)`;
 export const isNarrowViewport = (): boolean =>
     typeof window !== "undefined" && window.matchMedia(query).matches;
 
-const subscribe = (onChange: () => void) => {
-    const media = window.matchMedia(query);
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-};
-
-/** True while the viewport is narrower than the breakpoint. Re-renders on resize and rotation. */
-export const useIsNarrow = (): boolean =>
-    useSyncExternalStore(
-        subscribe,
-        () => window.matchMedia(query).matches,
-        // No viewport to measure during a prerender; wide is the default.
-        () => false,
-    );
+/** True while the viewport is narrower than the breakpoint. */
+export const useIsNarrow = (): boolean => !useIsAtLeast("md");

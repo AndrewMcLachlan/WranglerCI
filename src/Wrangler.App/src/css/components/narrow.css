@@ -1,5 +1,4 @@
-/* Narrow-viewport overrides, at the breakpoint --narrow and NARROW_BREAKPOINT
-   also use. */
+/* Narrow-viewport overrides, below moo-ds's md breakpoint. */
 
 @media (max-width: 767px) {
     .controls {
