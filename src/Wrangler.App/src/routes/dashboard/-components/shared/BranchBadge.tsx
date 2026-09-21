@@ -1,19 +1,17 @@
 import type { MouseEventHandler } from "react";
 import { Badge } from "@andrewmclachlan/moo-ds";
-import type { WorkflowRunModel } from "../../../../api";
+import { branchRunsUrl } from "./workflowUrls";
+import type { WorkflowModel, WorkflowRunModel } from "../../../../api";
 
-// run.htmlUrl looks like https://github.com/{owner}/{repo}/actions/runs/{id}.
-// The repo base is everything before /actions/, which we turn into the Actions
-// list filtered to the run's head branch.
-const actionsUrl = (run: WorkflowRunModel): string | undefined => {
-  const repoBase = run.htmlUrl?.split("/actions/")[0];
-  if (!repoBase || !run.headBranch) return undefined;
-  const query = encodeURIComponent(`branch:${run.headBranch}`);
-  return `${repoBase}/actions?query=${query}`;
-};
+interface BranchBadgeProps {
+  run: WorkflowRunModel;
+  /** Scopes the link to one workflow's runs; without it the link covers the repository. */
+  workflow?: WorkflowModel;
+  className?: string;
+}
 
-export const BranchBadge: React.FC<{ run: WorkflowRunModel; className?: string }> = ({ run, className }) => {
-  const url = actionsUrl(run);
+export const BranchBadge: React.FC<BranchBadgeProps> = ({ run, workflow, className }) => {
+  const url = branchRunsUrl(run, workflow);
   const badge = <Badge className={className}>{run.headBranch}</Badge>;
 
   if (!url) return badge;
@@ -27,7 +25,9 @@ export const BranchBadge: React.FC<{ run: WorkflowRunModel; className?: string }
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      title={`View workflow runs for ${run.headBranch}`}
+      title={workflow
+        ? `View ${workflow.name} runs for ${run.headBranch}`
+        : `View workflow runs for ${run.headBranch}`}
       onClick={onClick}
     >
       {badge}
