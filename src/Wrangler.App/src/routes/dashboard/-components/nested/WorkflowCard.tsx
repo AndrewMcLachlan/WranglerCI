@@ -14,7 +14,7 @@ export const WorkflowCard: React.FC<WorkflowCardProps> = ({ workflow }) => {
         <span><a href={workflow.htmlUrl?.replace("blob/main/.github", "actions")} target="_blank"><Icon icon="arrow-up-right-from-square" /></a></span>
       </>
     }>
-      <WorkflowRunList runs={workflow.runs} />
+      <WorkflowRunList runs={workflow.runs} workflow={workflow} />
     </Collapsible>
   );
 };
