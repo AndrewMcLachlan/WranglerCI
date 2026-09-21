@@ -70,7 +70,13 @@ export const saveQueryCache = (queryClient: QueryClient, storage: StorageLike): 
     return false;
   }
 
-  if (json.length > QUERY_CACHE_MAX_CHARS) return false;
+  if (json.length > QUERY_CACHE_MAX_CHARS) {
+    // Worth saying out loud: the symptom is a spinner on the next visit, with
+    // nothing else to attribute it to.
+    console.warn(
+      `Query cache snapshot is ${json.length} chars, over the ${QUERY_CACHE_MAX_CHARS} budget; not persisting. The next visit will load cold.`);
+    return false;
+  }
 
   try {
     storage.setItem(QUERY_CACHE_STORAGE_KEY, json);
