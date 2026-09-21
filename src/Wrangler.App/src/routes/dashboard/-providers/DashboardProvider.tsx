@@ -1,6 +1,7 @@
 import { useLocalStorage } from "@andrewmclachlan/moo-ds";
 import { createContext, useContext, type PropsWithChildren } from "react";
 import type { WorkflowStatus } from "../../../api";
+import { BRANCH_FILTER_KEY } from "./branchFilterStorage";
 
 interface DashboardContextType {
   branchFilter: string[];
@@ -18,7 +19,7 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 // other's writes — the provider owns a single instance and shares it.
 export const DashboardProvider: React.FC<PropsWithChildren<unknown>> = ({ children }) => {
 
-  const [branchFilter, setBranchFilter] = useLocalStorage<string[]>("branchFilter", []);
+  const [branchFilter, setBranchFilter] = useLocalStorage<string[]>(BRANCH_FILTER_KEY, []);
   const [statusFilter, setStatusFilter] = useLocalStorage<WorkflowStatus[]>("dashboardStatusFilter", []);
 
   const addBranchFilter = (branch: string) => {
