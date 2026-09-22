@@ -168,3 +168,19 @@ describe("mergeWorkflowRun", () => {
     expect(widget.overallStatus).toBe("Amber");
   });
 });
+
+describe("ids arriving as a different type", () => {
+  // The models type both ids `number | string`, so the same workflow can be a
+  // number on the cached row and a string on the pushed run. Compared with
+  // `===` the push is dropped, and the dashboard just stops updating.
+  it("matches a string workflowId against a numeric one", () => {
+    const cached = makeRepositories();
+    const pushed = makeRun({ workflowId: "10", workflowStatus: "Red", status: "completed", conclusion: "failure" });
+
+    const result = mergeWorkflowRun(cached, "acme", "widget", pushed);
+
+    expect(result).not.toBe(cached);
+    expect(result[0].workflows?.[0].runs?.[0].workflowStatus).toBe("Red");
+    expect(result[0].workflows?.[0].overallStatus).toBe("Red");
+  });
+});

@@ -1,10 +1,10 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import type { WorkflowRunModel } from "../../../../api";
+import type { WorkflowModel, WorkflowRunModel } from "../../../../api";
 import { BranchBadge } from "../shared/BranchBadge";
 import StatusIndicator from "../shared/StatusIndicator";
 import { DateTime } from "luxon";
 
-export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun }) => {
+export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun, workflow }) => {
 
   const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: 'long' });
 
@@ -15,7 +15,7 @@ export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun })
     <section className="workflow-run-card">
       <StatusIndicator status={workflowRun.workflowStatus} />
       <span className="conclusion">{workflowRun.conclusion}</span>
-      <BranchBadge run={workflowRun} className="branch" />
+      <BranchBadge run={workflowRun} workflow={workflow} className="branch" />
       <span>{workflowRun.event}</span>
       <span>{workflowRun.runNumber}</span>
       <span>{workflowRun.triggeringActor}</span>
@@ -29,4 +29,5 @@ export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun })
 
 interface WorkflowRunCardProps {
   workflowRun: WorkflowRunModel;
+  workflow?: WorkflowModel;
 }

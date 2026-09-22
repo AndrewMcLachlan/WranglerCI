@@ -30,7 +30,7 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
     field: (item) => item.run.headBranch,
     id: "branch",
     header: "Branch",
-    cell: ({ row }) => <BranchBadge run={row.run} />,
+    cell: ({ row }) => <BranchBadge run={row.run} workflow={row.workflow} />,
     enableSorting: true,
   },
   {

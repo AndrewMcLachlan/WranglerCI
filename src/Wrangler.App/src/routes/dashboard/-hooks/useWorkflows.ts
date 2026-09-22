@@ -5,6 +5,7 @@ import { postWorkflows } from "../../../api";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { PAGE_STALE_TIME } from "../../../pageFreshness";
 import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
+import type { SelectedRepository } from "../../settings/-hooks/repositoryFeatures";
 
 // Keep only workflows whose overall status is selected, and drop repositories
 // left with none. An empty filter is no constraint. Client-side so it reshapes
@@ -98,36 +99,44 @@ const buildFakeRepo = (filters: string[]): RepositoryModel => {
   };
 };
 
+/**
+ * What the dashboard fetches, without the view's own concerns, so the cache
+ * can be warmed for a page nobody is looking at yet.
+ */
+export const workflowsQueryOptions = (selectedRepositories: SelectedRepository[], branchFilter: string[]) => ({
+  queryKey: ["getWorkflows", selectedRepositories, branchFilter],
+  queryFn: async () => {
+    const result = await postWorkflows({
+      body: {
+        // A repo with no selected workflows has nothing to show here. The
+        // entry stays in settings/PR scope.
+        repositories: selectedRepositories.filter(hasDashboardWorkflows),
+        branchFilters: branchFilter?.length ? branchFilter : undefined,
+      }
+    })
+    const data = result.data ?? [];
+    return includeFakeData ? [...data, buildFakeRepo(branchFilter ?? [])] : data;
+  },
+  // Workflow runs are not cached server-side (only the workflow definitions
+  // are), so each fetch costs a GitHub call per selected workflow. The stream
+  // pushes runs into this cache as they happen; the interval is the backstop
+  // for repos whose webhooks were never wired up.
+  refetchInterval: 10 * 60 * 1000,
+  staleTime: PAGE_STALE_TIME,
+  refetchOnWindowFocus: false,
+});
+
 export const useWorkflows = () => {
 
   const { data: selectedRepositories } = useSelectedRepositories();
   const { branchFilter, statusFilter } = useDashboardContext();
 
   return useQuery({
-    queryKey: ["getWorkflows", selectedRepositories, branchFilter],
-    queryFn: async () => {
-      const result = await postWorkflows({
-        body: {
-          // A repo with no selected workflows has nothing to show here. The
-          // entry stays in settings/PR scope.
-          repositories: selectedRepositories.filter(hasDashboardWorkflows),
-          branchFilters: branchFilter?.length ? branchFilter : undefined,
-        }
-      })
-      const data = result.data ?? [];
-      return includeFakeData ? [...data, buildFakeRepo(branchFilter ?? [])] : data;
-    },
+    ...workflowsQueryOptions(selectedRepositories, branchFilter),
     // Status filtering reshapes fetched data without a refetch.
     select: (data) => filterByStatus(data, statusFilter),
     // The filters are part of the query key, so every filter change lands on an
     // empty cache entry: without this the dashboard blanks while it refetches.
     placeholderData: keepPreviousData,
-    // Workflow runs are not cached server-side (only the workflow definitions
-    // are), so each fetch costs a GitHub call per selected workflow. The stream
-    // pushes runs into this cache as they happen; the interval is the backstop
-    // for repos whose webhooks were never wired up.
-    refetchInterval: 10 * 60 * 1000,
-    staleTime: PAGE_STALE_TIME,
-    refetchOnWindowFocus: false,
   });
 }

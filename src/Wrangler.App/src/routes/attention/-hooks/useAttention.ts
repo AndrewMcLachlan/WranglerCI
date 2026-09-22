@@ -3,6 +3,17 @@ import { postAttention } from "../../../api";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { isAttentionOptedIn } from "../../settings/-hooks/repositoryFeatures";
 
+/** What the attention feed fetches, so the cache can be warmed for it. */
+export const attentionQueryOptions = (repositories: { owner: string; name: string }[]) => ({
+  queryKey: ["attention", repositories],
+  queryFn: async () => {
+    const result = await postAttention({ body: { repositories } });
+    return result.data ?? [];
+  },
+  refetchInterval: 10 * 60 * 1000,
+  staleTime: 10 * 60 * 1000,
+});
+
 export const useAttention = () => {
   const { data: selectedRepositories } = useSelectedRepositories();
   // Union of every opted-in repo; the component filters items per type on the
@@ -12,13 +23,7 @@ export const useAttention = () => {
     .map((r) => ({ owner: r.owner, name: r.name }));
 
   return useQuery({
-    queryKey: ["attention", repositories],
-    queryFn: async () => {
-      const result = await postAttention({ body: { repositories } });
-      return result.data ?? [];
-    },
+    ...attentionQueryOptions(repositories),
     enabled: repositories.length > 0,
-    refetchInterval: 10 * 60 * 1000,
-    staleTime: 10 * 60 * 1000,
   });
 };

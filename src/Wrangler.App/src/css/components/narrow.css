@@ -43,6 +43,16 @@
     h2 {
         font-size: 1.5rem;
     }
+
+    /* The account heading stays put while its repositories scroll past, so a
+       run is never orphaned from the account it belongs to. */
+    .account-section-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        /* Opaque: a translucent heading with rows sliding under it is unreadable. */
+        background-color: var(--card-bg);
+    }
 }
 
 /* Empty and loading states for the card lists. */
