@@ -45,6 +45,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     // the only evidence. Rebuilding is what recovers it: the reopened stream
     // resyncs the caches through the reconnect tracker below.
     const watchdog = createStreamWatchdog(() => {
+      console.debug("Event stream silent past the heartbeat; rebuilding it.");
       silentRebuildsRef.current += 1;
       source.close();
       setConnection((generation) => generation + 1);
@@ -66,6 +67,11 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
         console.debug(`workflow_run for ${evt.owner}/${evt.repo} arrived with no run payload.`);
         return;
       }
+
+      // Logged on arrival as well as on failure: without this, an event that
+      // never reached the browser and one that merged silently look the same.
+      console.debug(
+        `workflow_run for ${evt.owner}/${evt.repo}: workflow ${run.workflowId}, branch ${run.headBranch}, ${run.status}/${run.conclusion ?? "no conclusion"} -> ${run.workflowStatus}`);
 
       let merged = false;
       for (const query of queryClient.getQueryCache().findAll({ queryKey: ["getWorkflows"] })) {
@@ -183,13 +189,18 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     // long staleTimes on the stream-backed queries safe.
     const reconnect = createReconnectTracker(connection > 0);
 
-    source.onerror = () => reconnect.onError();
+    source.onerror = () => {
+      console.debug("Event stream dropped; EventSource will retry.");
+      reconnect.onError();
+    };
     source.onopen = () => {
       // Restarts the countdown but does not clear the backoff: a proxy can
       // accept the connection and still swallow every byte of the body, and
       // only delivered data proves otherwise.
       watchdog.recordActivity();
+      console.debug("Event stream open.");
       if (!reconnect.onOpen()) return;
+      console.debug("Reconnected after a drop; resyncing the stream-backed caches.");
       for (const queryKey of STREAM_BACKED_QUERY_KEYS) {
         queryClient.invalidateQueries({ queryKey });
       }
