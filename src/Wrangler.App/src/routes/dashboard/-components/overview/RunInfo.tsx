@@ -1,17 +1,17 @@
 import { DateTime } from "luxon";
-import type { WorkflowRunModel } from "../../../../api";
+import type { WorkflowModel, WorkflowRunModel } from "../../../../api";
 import StatusIndicator from "../shared/StatusIndicator";
 import { BranchBadge } from "../shared/BranchBadge";
 import classNames from "classnames";
 
-export const RunInfo: React.FC<{ run: WorkflowRunModel; orientation?: "left" | "right" }> = ({ run, orientation = "left" }) => {
+export const RunInfo: React.FC<{ run: WorkflowRunModel; workflow?: WorkflowModel; orientation?: "left" | "right" }> = ({ run, workflow, orientation = "left" }) => {
   const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
   const timeAgo = DateTime.fromISO(run.updatedAt).toRelative({ style: "long" }) || formatter.format(0, "seconds");
 
   return (
     <div className={classNames("workflow-run-info", orientation)}>
       {orientation === "left" && <StatusIndicator status={run.workflowStatus} />}
-      <BranchBadge run={run} className="branch" />
+      <BranchBadge run={run} workflow={workflow} className="branch" />
       <a
         className="workflow-time"
         href={run.htmlUrl}

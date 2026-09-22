@@ -60,16 +60,36 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     // getWorkflowRuns cache for that specific workflow. No refetch.
     const handleWorkflowRun = (evt: GitHubEvent) => {
       const run = evt.run;
-      if (!run) return;
+      if (!run) {
+        // The delivery carries the run itself; without it there is nothing to
+        // merge and the dashboard waits for a poll instead.
+        console.debug(`workflow_run for ${evt.owner}/${evt.repo} arrived with no run payload.`);
+        return;
+      }
 
+      let merged = false;
       for (const query of queryClient.getQueryCache().findAll({ queryKey: ["getWorkflows"] })) {
-        queryClient.setQueryData<RepositoryModel[]>(query.queryKey, (data) =>
-          data ? mergeWorkflowRun(data, evt.owner, evt.repo, run) : data);
+        queryClient.setQueryData<RepositoryModel[]>(query.queryKey, (data) => {
+          if (!data) return data;
+          const next = mergeWorkflowRun(data, evt.owner, evt.repo, run);
+          merged ||= next !== data;
+          return next;
+        });
+      }
+
+      // A push that matches nothing is dropped on purpose — a branch outside
+      // this view, say — but it is also what a broken match looks like, and
+      // silence makes the two indistinguishable.
+      if (!merged) {
+        console.debug(
+          `workflow_run for ${evt.owner}/${evt.repo} (workflow ${run.workflowId}, branch ${run.headBranch}) matched no cached row.`);
       }
 
       for (const query of queryClient.getQueryCache().findAll({ queryKey: ["getWorkflowRuns", evt.owner, evt.repo] })) {
-        const workflowId = query.queryKey[3];
-        if (workflowId !== run.workflowId) continue;
+        // Ids come through as number or string depending on the path; compare
+        // them as text so a type difference cannot drop the update.
+        const workflowId = query.queryKey[3] as number | string | undefined;
+        if (String(workflowId) !== String(run.workflowId)) continue;
         const branchFilter = (query.queryKey[4] as string[] | undefined) ?? [];
         if (!branchMatch(run.headBranch, branchFilter)) continue;
 

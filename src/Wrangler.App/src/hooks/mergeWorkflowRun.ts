@@ -34,6 +34,16 @@ const worstStatus = (statuses: (WorkflowStatus | undefined)[]): WorkflowStatus |
 // another's red) and never introduces a branch the server didn't already show
 // for this view. A branch not already present isn't part of this view, so the
 // run is ignored and the input is returned unchanged.
+/**
+ * Whether two ids refer to the same thing.
+ *
+ * GitHub ids are longs, and the generated models type them `number | string`,
+ * so the same id can arrive as either. `===` between 1 and "1" is false, and a
+ * pushed run that matches nothing is dropped without a sound.
+ */
+const sameId = (a: number | string | undefined, b: number | string | undefined): boolean =>
+  a !== undefined && b !== undefined && String(a) === String(b);
+
 export const mergeWorkflowRun = (
   repositories: RepositoryModel[],
   owner: string,
@@ -47,7 +57,7 @@ export const mergeWorkflowRun = (
 
   const targetRepo = repositories[repoIndex];
   const workflows = targetRepo.workflows ?? [];
-  const workflowIndex = workflows.findIndex((w) => w.id === run.workflowId);
+  const workflowIndex = workflows.findIndex((w) => sameId(w.id, run.workflowId));
   if (workflowIndex === -1) return repositories;
 
   const workflow = workflows[workflowIndex];
