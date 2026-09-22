@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeWorkflowRun } from "./mergeWorkflowRun";
+import { describeMergeMiss, mergeWorkflowRun } from "./mergeWorkflowRun";
 import type { RepositoryModel, WorkflowRunModel } from "../api";
 
 const makeRun = (overrides: Partial<WorkflowRunModel> = {}): WorkflowRunModel => ({
@@ -182,5 +182,30 @@ describe("ids arriving as a different type", () => {
     expect(result).not.toBe(cached);
     expect(result[0].workflows?.[0].runs?.[0].workflowStatus).toBe("Red");
     expect(result[0].workflows?.[0].overallStatus).toBe("Red");
+  });
+});
+
+describe("describeMergeMiss", () => {
+  it("names a repository the dashboard is not showing", () => {
+    expect(describeMergeMiss(makeRepositories(), "acme", "other", makeRun()))
+      .toContain("is not on the dashboard");
+  });
+
+  it("names a workflow that was not selected, and what was", () => {
+    const reason = describeMergeMiss(makeRepositories(), "acme", "widget", makeRun({ workflowId: 999 }));
+
+    expect(reason).toContain("workflow 999");
+    expect(reason).toContain("10");
+  });
+
+  it("names a branch outside the current view, and what is in it", () => {
+    const reason = describeMergeMiss(makeRepositories(), "acme", "widget", makeRun({ headBranch: "feature/x" }));
+
+    expect(reason).toContain("feature/x");
+    expect(reason).toContain("main");
+  });
+
+  it("says nothing when the run does match", () => {
+    expect(describeMergeMiss(makeRepositories(), "acme", "widget", makeRun())).toBeUndefined();
   });
 });

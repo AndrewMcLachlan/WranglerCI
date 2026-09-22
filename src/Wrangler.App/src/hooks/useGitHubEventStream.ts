@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
+import { mergeWorkflowRun, branchMatch, describeMergeMiss } from "./mergeWorkflowRun";
 import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import { createReconnectTracker, createStreamWatchdog, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
 import type { PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
@@ -81,8 +81,11 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       // this view, say — but it is also what a broken match looks like, and
       // silence makes the two indistinguishable.
       if (!merged) {
+        const reasons = queryClient.getQueryCache().findAll({ queryKey: ["getWorkflows"] })
+          .map((query) => describeMergeMiss((query.state.data as RepositoryModel[]) ?? [], evt.owner, evt.repo, run))
+          .filter((reason): reason is string => reason !== undefined);
         console.debug(
-          `workflow_run for ${evt.owner}/${evt.repo} (workflow ${run.workflowId}, branch ${run.headBranch}) matched no cached row.`);
+          `workflow_run for ${evt.owner}/${evt.repo} (workflow ${run.workflowId}, branch ${run.headBranch}) changed nothing: ${reasons.join("; ") || "no cached dashboard data"}`);
       }
 
       for (const query of queryClient.getQueryCache().findAll({ queryKey: ["getWorkflowRuns", evt.owner, evt.repo] })) {
