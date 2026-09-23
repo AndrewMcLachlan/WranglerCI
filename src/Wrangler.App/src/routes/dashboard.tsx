@@ -24,7 +24,7 @@ const DashboardRoute = () => {
 
     // Catches a window that becomes narrow while a table view is open.
     useEffect(() => {
-        if (isNarrow && pathname !== "/dashboard") navigate({ to: "/dashboard" });
+        if (isNarrow && pathname.startsWith("/dashboard/")) navigate({ to: "/dashboard" });
     }, [isNarrow, pathname, navigate]);
 
     return (
