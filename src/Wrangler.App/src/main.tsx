@@ -7,7 +7,7 @@ import { configureInterceptors } from "./utils/axiosInterceptors.ts"
 
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faFilter, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCircleCheck, faCodePullRequest, faFilter, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle, faXmark } from "@fortawesome/free-solid-svg-icons";
 
 import { routeTree } from './routeTree.gen'
 import { Spinner } from "./components/Spinner"
@@ -19,7 +19,7 @@ import { restoreQueryCache, startPersistingQueryCache } from "./queryCachePersis
 import { registerServiceWorker } from "./pwa/registerServiceWorker"
 
 // An icon missing from the library renders as nothing at all.
-library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCodePullRequest, faFilter, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle, faXmark);
+library.add(faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCircleCheck, faCodePullRequest, faFilter, faGauge, faListUl, faLongArrowDown, faLongArrowUp, faShieldHalved, faTimesCircle, faXmark);
 
 registerServiceWorker();
 

@@ -2,6 +2,7 @@ import { DateTime } from "luxon";
 import type { WorkflowModel, WorkflowRunModel } from "../../../../api";
 import StatusIndicator from "../shared/StatusIndicator";
 import { BranchBadge } from "../shared/BranchBadge";
+import { GateApproval } from "../shared/GateApproval";
 import classNames from "classnames";
 
 export const RunInfo: React.FC<{ run: WorkflowRunModel; workflow?: WorkflowModel; orientation?: "left" | "right" }> = ({ run, workflow, orientation = "left" }) => {
@@ -21,6 +22,7 @@ export const RunInfo: React.FC<{ run: WorkflowRunModel; workflow?: WorkflowModel
       >
         {timeAgo}
       </a>
+      <GateApproval run={run} />
       {orientation === "right" && <StatusIndicator status={run.workflowStatus} />}
     </div>
   );

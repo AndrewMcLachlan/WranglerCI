@@ -2,6 +2,7 @@ import { Icon } from "@andrewmclachlan/moo-ds";
 import type { WorkflowModel, WorkflowRunModel } from "../../../../api";
 import { BranchBadge } from "../shared/BranchBadge";
 import StatusIndicator from "../shared/StatusIndicator";
+import { GateApproval } from "../shared/GateApproval";
 import { DateTime } from "luxon";
 
 export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun, workflow }) => {
@@ -20,6 +21,7 @@ export const WorkflowRunCard: React.FC<WorkflowRunCardProps> = ({ workflowRun, w
       <span>{workflowRun.runNumber}</span>
       <span>{workflowRun.triggeringActor}</span>
 
+      <GateApproval run={workflowRun} />
       <span className={`run-status ${workflowRun.status}`}>{workflowRun.status}</span>
       <span className="run-timestamp" title={DateTime.fromISO(workflowRun.updatedAt!).toFormat('yyyy-MM-dd HH:mm:ss')}>{timeAgo}</span>
       <span><a href={workflowRun.htmlUrl!} target="_blank"><Icon icon="arrow-up-right-from-square" /></a></span>
