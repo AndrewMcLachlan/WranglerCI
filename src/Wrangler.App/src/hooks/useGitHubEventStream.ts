@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
 import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
+import { withoutGatesForRun } from "./gateStatus";
 import { createReconnectTracker, createStreamWatchdog, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
-import type { PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
+import type { DeploymentGateModel, PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
 interface GitHubEvent {
   type: string;
@@ -81,6 +82,11 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
           if (existingIndex !== -1) return data.map((r, i) => (i === existingIndex ? run : r));
           return [run, ...data];
         });
+      }
+
+      if (run.status === "completed") {
+        queryClient.setQueriesData<DeploymentGateModel[]>({ queryKey: ["gates"] }, (data) =>
+          data ? withoutGatesForRun(data, run.id) : data);
       }
     };
 

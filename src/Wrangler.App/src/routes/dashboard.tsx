@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { DashboardProvider } from "./dashboard/-providers/DashboardProvider";
 import { Filters } from "./dashboard/-components/shared/Filters";
+import { DashboardGateSync } from "./dashboard/-components/shared/DashboardGateSync";
 import { Icon } from "@andrewmclachlan/moo-ds";
 import { Dashboard, NestedList, List } from "../assets";
 import { useSelectedRepositories } from "./settings/-hooks/useSelectedRepositories";
@@ -28,6 +29,7 @@ const DashboardRoute = () => {
 
     return (
         <DashboardProvider>
+            {hasRepos && <DashboardGateSync />}
             <article>
                 {hasRepos && (
                     <section className="controls">

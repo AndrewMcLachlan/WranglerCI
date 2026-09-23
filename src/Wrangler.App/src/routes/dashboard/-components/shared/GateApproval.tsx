@@ -4,11 +4,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
 import { useGates } from "../../../gates/-hooks/useGates";
 import { useApproveGates } from "../../../gates/-hooks/useApproveGates";
+import { pendingGatesForRun } from "../../../../hooks/gateStatus";
 import type { DeploymentGateModel, WorkflowRunModel } from "../../../../api";
-
-/** Gates are keyed to a run by id, which reaches us as a number or a string. */
-const isForRun = (gate: DeploymentGateModel, run: WorkflowRunModel): boolean =>
-  String(gate.workflowRunId) === String(run.id);
 
 const toGateRef = (gate: DeploymentGateModel) => ({
   owner: gate.repositoryOwner,
@@ -41,7 +38,7 @@ export const GateApproval: React.FC<{ run: WorkflowRunModel }> = ({ run }) => {
     },
   });
 
-  const pending = (gates ?? []).filter((gate) => isForRun(gate, run) && gate.currentUserCanApprove);
+  const pending = pendingGatesForRun(gates ?? [], run);
   if (pending.length === 0) return null;
 
   const openDialog = () => {
