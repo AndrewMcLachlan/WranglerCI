@@ -28,7 +28,7 @@ const optionsFrom = (gates: DeploymentGateModel[], field: (g: DeploymentGateMode
 export const Gates = () => {
   const isNarrow = useIsNarrow();
   const { data: selectedRepositories } = useSelectedRepositories();
-  const { data: gates, isLoading, isError, error } = useGates();
+  const { data: gates, isLoading, isError, error, refetch } = useGates();
   const [alerts, setAlerts] = useState<GateApprovalResult[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -111,6 +111,15 @@ export const Gates = () => {
     if (isApproving) return;
     setSelected(allSelected ? new Set() : new Set(approvable.map(gateKey)));
   };
+
+  // Swiping one gate approves that gate alone, leaving the bulk selection be.
+  const approveOne = (gate: DeploymentGateModel) => approveGates([{
+    owner: gate.repositoryOwner,
+    repo: gate.repositoryName,
+    runId: gate.workflowRunId,
+    environmentId: gate.environmentId,
+    environmentName: gate.environmentName,
+  }]);
 
   const handleApprove = () => {
     if (!gates) return;
@@ -258,6 +267,8 @@ export const Gates = () => {
           gateKey={gateKey}
           selected={selected}
           onToggle={toggleSelection}
+          onApprove={approveOne}
+          onRefresh={refetch}
           disabled={isApproving}
           loading={isLoading}
           emptyMessage={emptyMessage}

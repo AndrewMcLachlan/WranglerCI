@@ -15,9 +15,9 @@
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
-    "@andrewmclachlan/moo-app": "^5.2.343",
-    "@andrewmclachlan/moo-ds": "^5.2.343",
-    "@andrewmclachlan/moo-icons": "^5.2.343",
+    "@andrewmclachlan/moo-app": "^5.2.350",
+    "@andrewmclachlan/moo-ds": "^5.2.350",
+    "@andrewmclachlan/moo-icons": "^5.2.350",
     "@tanstack/react-query": "^5.103.1",
     "@tanstack/react-router": "^1.170.38",
     "@tanstack/react-router-devtools": "^1.167.2",

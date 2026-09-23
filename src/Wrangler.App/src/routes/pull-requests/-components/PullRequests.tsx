@@ -72,7 +72,7 @@ export const PullRequests = () => {
     [selectedRepositories]);
   const { data: authors } = usePrAuthors();
   const { mutate: updateAuthors } = useUpdatePrAuthors();
-  const { data: pullRequests, isLoading, isError, error } = usePullRequests();
+  const { data: pullRequests, isLoading, isError, error, refetch } = usePullRequests();
   const [statusFilter, setStatusFilter] = usePrStatusFilter();
   const [includeTags, setIncludeTags] = usePrIncludeTags();
   const [excludeTags, setExcludeTags] = usePrExcludeTags();
@@ -196,6 +196,11 @@ export const PullRequests = () => {
       setSelected(new Set(approvable.map(pr => pr.number)));
     }
   };
+
+  // Swiping a single row approves just that one, without disturbing whatever
+  // is selected for the bulk action.
+  const approveOne = (pr: PullRequestModel) =>
+    approvePullRequests([{ owner: pr.repositoryOwner, repo: pr.repositoryName, number: pr.number }]);
 
   const handleApprove = () => {
     if (!pullRequests) return;
@@ -485,6 +490,8 @@ export const PullRequests = () => {
           pullRequests={visiblePullRequests}
           selected={selected}
           onToggle={toggleSelection}
+          onApprove={approveOne}
+          onRefresh={refetch}
           disabled={isApproving}
           loading={isLoading}
           emptyMessage="No open pull requests found."
