@@ -127,7 +127,12 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
             results.Add(new RepositoryModel
             {
                 Name = workflowRepo.Key.Name,
-                Owner = (await ownerNameTasks[workflowRepo.Key.Owner.Login]) ?? workflowRepo.Key.Owner.Login,
+                // Owner is the login, as the contract says: the stream's events
+                // identify a repository by login, and a display name here means
+                // a pushed run matches nothing for every account whose name and
+                // login differ.
+                Owner = workflowRepo.Key.Owner.Login,
+                OwnerName = (await ownerNameTasks[workflowRepo.Key.Owner.Login]) ?? workflowRepo.Key.Owner.Login,
                 NodeId = workflowRepo.Key.NodeId,
                 HtmlUrl = workflowRepo.Key.HtmlUrl,
                 Workflows = workflowRepo.Value.Select(workflow => workflow with { Runs = [.. workflowRuns.Where(run => run.WorkflowId == workflow.Id)] }).OrderBy(workflow => workflow.Name),

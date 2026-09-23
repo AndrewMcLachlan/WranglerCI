@@ -217,6 +217,7 @@ export type Repository = {
 };
 
 export type RepositoryModel = {
+    ownerName: string;
     overallStatus?: WorkflowStatus;
     workflows?: Array<WorkflowModel>;
     name: string;

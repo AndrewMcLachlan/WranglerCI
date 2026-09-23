@@ -18,14 +18,18 @@ export const Overview = () => {
     (acc[repo.owner] ??= []).push(repo);
     return acc;
   }, {});
-  const sortedGroups = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+  // Grouped by login, which is what identifies an account; headed by the
+  // display name, which is what people call it.
+  const sortedGroups = Object.entries(grouped)
+    .map(([owner, repos]) => ({ owner, title: repos[0].ownerName || owner, repos }))
+    .sort((a, b) => a.title.localeCompare(b.title));
 
   return (
     <div className="overview">
       {showSpinner && <Spinner />}
       {!showSpinner && (!repositories || repositories.length === 0) && <p>No workflows found.</p>}
-      {sortedGroups.map(([owner, repos]) => (
-        <AccountSection key={owner} owner={owner} repositories={repos} />
+      {sortedGroups.map(({ owner, title, repos }) => (
+        <AccountSection key={owner} owner={title} repositories={repos} />
       ))}
     </div>
   );

@@ -22,6 +22,7 @@ const makeRepositories = (): RepositoryModel[] => [
   {
     name: "widget",
     owner: "acme",
+  ownerName: "Acme",
     nodeId: "repo-widget",
     htmlUrl: "https://github.com/acme/widget",
     overallStatus: "Green",
@@ -47,6 +48,7 @@ const makeRepositories = (): RepositoryModel[] => [
   {
     name: "gizmo",
     owner: "acme",
+  ownerName: "Acme",
     nodeId: "repo-gizmo",
     htmlUrl: "https://github.com/acme/gizmo",
     overallStatus: "Green",

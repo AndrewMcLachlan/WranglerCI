@@ -5,6 +5,7 @@ import type { RepositoryModel } from "../../../api";
 const repo = (name: string, statuses: (RepositoryModel["overallStatus"])[]): RepositoryModel => ({
   name,
   owner: "acme",
+  ownerName: "Acme",
   nodeId: `node-${name}`,
   htmlUrl: `https://github.com/acme/${name}`,
   overallStatus: statuses[0],

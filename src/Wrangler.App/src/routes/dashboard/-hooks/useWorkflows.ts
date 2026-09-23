@@ -92,6 +92,7 @@ const buildFakeRepo = (filters: string[]): RepositoryModel => {
   return {
     name: "big-repo",
     owner: "FakeOrg",
+    ownerName: "Fake Org",
     nodeId: "fake-repo-node",
     htmlUrl: "https://github.com/FakeOrg/big-repo",
     overallStatus: overallStatus as RepositoryModel["overallStatus"],

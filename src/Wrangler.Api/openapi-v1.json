@@ -1369,6 +1369,7 @@
       },
       "RepositoryModel": {
         "required": [
+          "ownerName",
           "name",
           "owner",
           "nodeId",
@@ -1376,6 +1377,9 @@
         ],
         "type": "object",
         "properties": {
+          "ownerName": {
+            "type": "string"
+          },
           "overallStatus": {
             "$ref": "#/components/schemas/WorkflowStatus"
           },

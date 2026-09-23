@@ -8,6 +8,12 @@ namespace Asm.Wrangler.Api.Models.Dashboard;
 public record RepositoryModel : Models.RepositoryBase
 {
     /// <summary>
+    /// The account's display name, for grouping repositories on screen. Falls back to the login.
+    /// </summary>
+    public required string OwnerName { get; init; }
+
+
+    /// <summary>
     /// The overall RAG status computed from the most recent run of each workflow branch.
     /// </summary>
     public WorkflowStatus OverallStatus
