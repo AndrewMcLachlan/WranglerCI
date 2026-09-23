@@ -32,6 +32,7 @@ const run = (overrides: Partial<WorkflowRunModel> = {}): WorkflowRunModel => ({
 const repositories = (): RepositoryModel[] => [{
   name: "widget",
   owner: "acme",
+  ownerName: "Acme",
   nodeId: "repo-widget",
   htmlUrl: "https://github.com/acme/widget",
   overallStatus: "Green",

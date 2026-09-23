@@ -37,6 +37,7 @@ public class RepositoryOverallStatusTests
     {
         Name = "test-repo",
         Owner = "owner",
+        OwnerName = "Owner",
         NodeId = "repo1",
         HtmlUrl = "https://github.com",
         Workflows = workflows,
