@@ -146,3 +146,16 @@ h1 {
         padding: 0.75rem max(0.75rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-right));
     }
 }
+
+/* iOS blurs the top edge of an installed app, through the header, unless a
+   fixed box touches that edge. */
+@media (display-mode: standalone) {
+    .layout::before {
+        content: "";
+        position: fixed;
+        inset: 0 0 auto 0;
+        height: env(safe-area-inset-top);
+        background: rgb(8, 8, 13);
+        z-index: 1;
+    }
+}
