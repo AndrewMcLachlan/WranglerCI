@@ -4,6 +4,7 @@ using Octokit.Webhooks;
 using Octokit.Webhooks.Events;
 using Octokit.Webhooks.Events.CheckRun;
 using Octokit.Webhooks.Events.CheckSuite;
+using Octokit.Webhooks.Events.DeploymentReview;
 using Octokit.Webhooks.Events.Installation;
 using Octokit.Webhooks.Events.InstallationRepositories;
 using Octokit.Webhooks.Events.PullRequest;
@@ -99,6 +100,19 @@ internal sealed class GitHubWebhookEventProcessor(
         await BumpAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         Broadcast("check_suite", owner, repo, headers);
+    }
+
+    // A run that reaches an environment with required reviewers pauses without any workflow_run
+    // delivery: that event only reports requested, in_progress and completed. deployment_review is the
+    // only signal that a run is now waiting, and again when a reviewer approves or rejects it. It
+    // carries no run model, so the client refetches.
+    protected override async ValueTask ProcessDeploymentReviewWebhookAsync(WebhookHeaders headers, DeploymentReviewEvent deploymentReviewEvent, DeploymentReviewAction action, CancellationToken cancellationToken = default)
+    {
+        if (!await ClaimAsync(headers, cancellationToken)) return;
+        var (owner, repo) = RepoOf(deploymentReviewEvent.Repository);
+        logger.LogInformation("deployment_review.{Action} {Owner}/{Repo}", action, owner, repo);
+        await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
+        Broadcast("deployment_review", owner, repo, headers);
     }
 
     private void Broadcast(string type, string? owner, string? repo, WebhookHeaders headers, long? workflowId = null, long? runId = null, int? pullRequestNumber = null, WorkflowRunModel? run = null, PullRequestEventData? pullRequest = null)
