@@ -84,3 +84,35 @@ export const mergeWorkflowRun = (
 
   return repositories.map((r, i) => (i === repoIndex ? updatedRepo : r));
 };
+
+/**
+ * Why a pushed run changed nothing, for the log.
+ *
+ * Three quite different situations look identical from outside: a repository
+ * the dashboard is not showing, a workflow that was not selected for it, and a
+ * branch outside the current view. Only the last is routine.
+ */
+export const describeMergeMiss = (
+  repositories: RepositoryModel[],
+  owner: string,
+  repo: string,
+  run: WorkflowRunModel,
+): string | undefined => {
+  const targetRepo = repositories.find(
+    (r) => r.owner.toLowerCase() === owner.toLowerCase() && r.name.toLowerCase() === repo.toLowerCase(),
+  );
+  if (!targetRepo) return `repository ${owner}/${repo} is not on the dashboard`;
+
+  const workflows = targetRepo.workflows ?? [];
+  const workflow = workflows.find((w) => sameId(w.id, run.workflowId));
+  if (!workflow) {
+    return `workflow ${run.workflowId} is not among the cached workflows [${workflows.map((w) => w.id).join(", ")}]`;
+  }
+
+  const runs = workflow.runs ?? [];
+  if (!runs.some((r) => r.headBranch === run.headBranch)) {
+    return `branch ${run.headBranch} is not among the cached branches [${runs.map((r) => r.headBranch).join(", ")}] for ${workflow.name}`;
+  }
+
+  return undefined;
+};
