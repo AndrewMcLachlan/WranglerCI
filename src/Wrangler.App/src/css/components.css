@@ -11,6 +11,7 @@
 @import "./components/user-menu.css";
 @import "./components/attention.css";
 @import "./components/gates.css";
+@import "./components/gate-approve.css";
 
 /* Dashboard views */
 @import "./components/overview/overview.css";

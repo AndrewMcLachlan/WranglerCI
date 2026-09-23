@@ -158,7 +158,7 @@ GitHub Actions Dashboard (GAD) is a web application for monitoring GitHub Action
 **Declared GitHub App permissions:**
 - Actions (Read)
 - Contents (Read/Write)
-- Deployments (Read)
+- Deployments (Read/Write) — write is required to approve a pending deployment
 - Environments (Read)
 - Checks (Read)
 - Commit Statuses (Read)

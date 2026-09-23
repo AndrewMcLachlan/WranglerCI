@@ -65,7 +65,9 @@ dotnet user-secrets set "ClientSecret" "YOUR_CLIENT_SECRET"
 
 If you're setting up your own GitHub App, create one at [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps) with:
 - **Callback URL:** `http://localhost:3010/callback/github`
-- **Permissions:** Actions (Read), Contents (Read/Write), Pull Requests (Read/Write), Checks (Read), Commit Statuses (Read)
+- **Permissions:** Actions (Read), Contents (Read/Write), Deployments (Read/Write), Pull Requests (Read/Write), Checks (Read), Commit Statuses (Read)
+
+  Deployments needs write to approve a deployment gate: the `pending_deployments` endpoint requires it, and with read only GitHub answers "Resource not accessible by integration".
 
 Then update `ClientId` and `RedirectUri` in `appsettings.json` and set your client secret via user-secrets as above.
 
