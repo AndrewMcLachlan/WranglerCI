@@ -17,7 +17,7 @@ export const branchMatch = (branch: string, filters: string[]): boolean => {
 // worst, Green/None are best.
 const STATUS_PRIORITY: Record<WorkflowStatus, number> = { Red: 0, Amber: 1, Running: 2, Waiting: 3, None: 4, Green: 5 };
 
-const worstStatus = (statuses: (WorkflowStatus | undefined)[]): WorkflowStatus | undefined =>
+export const worstStatus = (statuses: (WorkflowStatus | undefined)[]): WorkflowStatus | undefined =>
   statuses.reduce<WorkflowStatus | undefined>((worst, status) => {
     if (!status) return worst;
     if (!worst) return status;

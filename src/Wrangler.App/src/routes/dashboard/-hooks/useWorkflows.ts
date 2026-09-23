@@ -4,6 +4,8 @@ import { useDashboardContext } from "../-providers/DashboardProvider";
 import { postWorkflows } from "../../../api";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { PAGE_STALE_TIME } from "../../../pageFreshness";
+import { applyPendingGates } from "../../../hooks/gateStatus";
+import { useGates } from "../../gates/-hooks/useGates";
 import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
 import type { SelectedRepository } from "../../settings/-hooks/repositoryFeatures";
 
@@ -131,11 +133,13 @@ export const useWorkflows = () => {
 
   const { data: selectedRepositories } = useSelectedRepositories();
   const { branchFilter, statusFilter } = useDashboardContext();
+  const { data: gates } = useGates();
 
   return useQuery({
     ...workflowsQueryOptions(selectedRepositories, branchFilter),
-    // Status filtering reshapes fetched data without a refetch.
-    select: (data) => filterByStatus(data, statusFilter),
+    // GitHub sends no webhook when a run pauses at a gate, so the gate list is
+    // the only evidence a run is Waiting.
+    select: (data) => filterByStatus(applyPendingGates(data, gates ?? []), statusFilter),
     // The filters are part of the query key, so every filter change lands on an
     // empty cache entry: without this the dashboard blanks while it refetches.
     placeholderData: keepPreviousData,

@@ -17,7 +17,7 @@ export const gatesQueryOptions = (repositories: { owner: string; name: string }[
   staleTime: PAGE_STALE_TIME,
 });
 
-export const useGates = () => {
+export const useGates = (refetchInterval?: number) => {
   const { data: selectedRepositories } = useSelectedRepositories();
   // Gates follows the dashboard: only repos with selected workflows. The
   // unified list also holds PR-only/security-only entries, which have no
@@ -28,6 +28,7 @@ export const useGates = () => {
 
   return useQuery({
     ...gatesQueryOptions(repositories),
+    ...(refetchInterval ? { refetchInterval } : {}),
     enabled: repositories.length > 0,
   });
 };
