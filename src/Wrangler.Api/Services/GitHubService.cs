@@ -12,6 +12,11 @@ internal abstract class GitHubService(IDistributedCache cache, ILogger logger)
         const int baseMs = 250;
         const int capMs = 8000;
 
+        // Every wait is drawn from one budget, and a wait that would overspend it is not taken: the
+        // failure goes straight through instead. A primary rate limit, which resets in minutes, fails
+        // at once rather than holding the request open past the proxy's timeout.
+        var waited = TimeSpan.Zero;
+
         for (int attempt = 0; attempt < maxAttempts; attempt++)
         {
             try
@@ -21,29 +26,32 @@ internal abstract class GitHubService(IDistributedCache cache, ILogger logger)
             catch (AbuseException ex) when (attempt < maxAttempts - 1)
             {
                 // Secondary rate-limit; honor Retry-After if present.
-                var delay = ex.RetryAfterSeconds.HasValue
-                    ? TimeSpan.FromSeconds(Math.Clamp(ex.RetryAfterSeconds.Value, 1, 60))
+                var proposed = ex.RetryAfterSeconds.HasValue
+                    ? TimeSpan.FromSeconds(Math.Max(1, ex.RetryAfterSeconds.Value))
                     : FullJitter(attempt, baseMs, capMs);
+                if (RetryBudget.NextDelay(proposed, waited) is not { } delay) throw;
+                waited += delay;
                 await Task.Delay(delay, cancellationToken);
-                continue;
             }
             catch (RateLimitExceededException ex) when (attempt < maxAttempts - 1)
             {
-                // Core rate limit; wait until reset.
-                var delay = ex.Reset - DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1);
-                if (delay < TimeSpan.Zero) delay = FullJitter(attempt, baseMs, capMs);
+                var proposed = ex.Reset - DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1);
+                if (proposed < TimeSpan.Zero) proposed = FullJitter(attempt, baseMs, capMs);
+                if (RetryBudget.NextDelay(proposed, waited) is not { } delay) throw;
+                waited += delay;
                 await Task.Delay(delay, cancellationToken);
-                continue;
             }
             catch (ApiException ex) when (attempt < maxAttempts - 1 && IsRetryable(ex))
             {
-                await Task.Delay(FullJitter(attempt, baseMs, capMs), cancellationToken);
-                continue;
+                if (RetryBudget.NextDelay(FullJitter(attempt, baseMs, capMs), waited) is not { } delay) throw;
+                waited += delay;
+                await Task.Delay(delay, cancellationToken);
             }
             catch (HttpRequestException) when (attempt < maxAttempts - 1)
             {
-                await Task.Delay(FullJitter(attempt, baseMs, capMs), cancellationToken);
-                continue;
+                if (RetryBudget.NextDelay(FullJitter(attempt, baseMs, capMs), waited) is not { } delay) throw;
+                waited += delay;
+                await Task.Delay(delay, cancellationToken);
             }
         }
 
