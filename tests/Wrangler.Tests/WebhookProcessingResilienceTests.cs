@@ -4,6 +4,7 @@ using Asm.Wrangler.Api.Webhooks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events;
+using Octokit.Webhooks.Events.DeploymentReview;
 using Octokit.Webhooks.Events.WorkflowRun;
 using Octokit.Webhooks.Extensions;
 using Octokit.Webhooks.Models;
@@ -61,6 +62,24 @@ public class WebhookProcessingResilienceTests
         Assert.True(broadcaster.Published);
     }
 
+    // workflow_run never reports a run pausing at an environment gate, so this delivery is the only
+    // way the dashboard learns a run is now waiting. Dropping it leaves the run showing as running.
+    [Fact]
+    public async Task Deployment_review_is_broadcast_as_its_own_event()
+    {
+        var broadcaster = new RecordingBroadcaster();
+        var processor = Processor(claim: () => true, broadcaster: broadcaster);
+
+        await processor.ProcessWebhookAsync(
+            new WebhookHeaders { Event = "deployment_review", Delivery = "delivery-2" },
+            DeploymentReviewEvent(),
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal("deployment_review", broadcaster.LastType);
+        Assert.Equal("owner", broadcaster.LastOwner);
+        Assert.Equal("repo", broadcaster.LastRepo);
+    }
+
     private static GitHubWebhookEventProcessor Processor(Func<bool> claim, Func<bool>? bump = null, RecordingBroadcaster? broadcaster = null) =>
         new(new FakeRegistry(claim), new FakeVersions(bump), broadcaster ?? new RecordingBroadcaster(),
             NullLogger<GitHubWebhookEventProcessor>.Instance);
@@ -92,6 +111,18 @@ public class WebhookProcessingResilienceTests
         return evt;
     }
 
+    private static DeploymentReviewEvent DeploymentReviewEvent()
+    {
+        var evt = New<DeploymentReviewRequestedEvent>();
+        var owner = New<User>();
+        Set(owner, "Login", "owner");
+        var repo = New<Repository>();
+        Set(repo, "Name", "repo");
+        Set(repo, "Owner", owner);
+        Set(evt, "Repository", repo);
+        return evt;
+    }
+
     private static T New<T>() => (T)RuntimeHelpers.GetUninitializedObject(typeof(T));
     private static void Set(object target, string property, object value) =>
         target.GetType().GetProperty(property)!.SetValue(target, value);
@@ -120,7 +151,16 @@ public class WebhookProcessingResilienceTests
     private sealed class RecordingBroadcaster : IEventBroadcaster
     {
         public bool Published { get; private set; }
-        public void Publish(GitHubEvent evt) => Published = true;
+        public string? LastType { get; private set; }
+        public string? LastOwner { get; private set; }
+        public string? LastRepo { get; private set; }
+        public void Publish(GitHubEvent evt)
+        {
+            Published = true;
+            LastType = evt.Type;
+            LastOwner = evt.Owner;
+            LastRepo = evt.Repo;
+        }
         public EventSubscription Subscribe() => throw new NotSupportedException("The processor never subscribes.");
     }
 }

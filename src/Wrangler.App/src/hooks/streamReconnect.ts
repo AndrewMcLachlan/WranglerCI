@@ -5,16 +5,17 @@
  */
 
 /**
- * The query caches the stream writes into (see useGitHubEventStream). A missed
- * event can only leave these stale, so they are the only ones worth resyncing on
- * reconnect. Attention and Gates are not stream-backed and self-heal via their
- * own refetchInterval, so refetching them here would spend GitHub quota for
- * nothing.
+ * The query caches the stream writes into or refetches (see
+ * useGitHubEventStream). A missed event can only leave these stale, so they are
+ * the only ones worth resyncing on reconnect. Attention is not stream-backed
+ * and self-heals via its own refetchInterval, so refetching it here would spend
+ * GitHub quota for nothing.
  */
 export const STREAM_BACKED_QUERY_KEYS: readonly (readonly string[])[] = [
   ["getWorkflows"],
   ["getWorkflowRuns"],
   ["pullRequests"],
+  ["gates"],
 ];
 
 /**

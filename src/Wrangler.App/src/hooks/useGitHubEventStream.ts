@@ -131,6 +131,14 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       }, CHECK_STATUS_DEBOUNCE_MS));
     };
 
+    // A run pausing at an environment gate, or a reviewer answering one, sends
+    // no workflow_run: this is the only signal. It carries no run, so the
+    // workflows and gates are refetched rather than merged.
+    const handleDeploymentReview = () => {
+      queryClient.invalidateQueries({ queryKey: ["getWorkflows"] });
+      queryClient.invalidateQueries({ queryKey: ["gates"] });
+    };
+
     const handle = (rawEvent: MessageEvent) => {
       recordActivity();
 
@@ -151,6 +159,9 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
         case "check_run":
         case "check_suite":
           scheduleCheckStatusRefetch(parsed);
+          break;
+        case "deployment_review":
+          handleDeploymentReview();
           break;
       }
     };
@@ -174,7 +185,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       }
     };
 
-    for (const type of ["workflow_run", "check_run", "check_suite", "pull_request"]) {
+    for (const type of ["workflow_run", "check_run", "check_suite", "pull_request", "deployment_review"]) {
       source.addEventListener(type, handle);
     }
 
