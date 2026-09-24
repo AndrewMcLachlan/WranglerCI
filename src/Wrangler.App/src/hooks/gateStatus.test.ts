@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { applyPendingGates, gatesAheadOfDashboard, pendingGatesForRun, withoutGatesForRun } from "./gateStatus";
-import type { DeploymentGateModel, RepositoryModel, WorkflowRunModel } from "../api";
+import { applyPendingGates, gatesAheadOfDashboard, pendingGatesForRun, restoreFailedApprovals, withoutApprovedGates, withoutGatesForRun } from "./gateStatus";
+import type { DeploymentGateModel, GateApprovalResult, GateRef, RepositoryModel, WorkflowRunModel } from "../api";
 
 const run = (overrides: Partial<WorkflowRunModel> = {}): WorkflowRunModel => ({
   id: 1,
@@ -123,5 +123,61 @@ describe("withoutGatesForRun", () => {
     const gates = [gate()];
 
     expect(withoutGatesForRun(gates, 999)).toBe(gates);
+  });
+});
+
+const ref = (gate: DeploymentGateModel): GateRef => ({
+  owner: gate.repositoryOwner,
+  repo: gate.repositoryName,
+  runId: gate.workflowRunId,
+  environmentId: gate.environmentId,
+  environmentName: gate.environmentName,
+});
+
+const result = (gate: DeploymentGateModel, approved: boolean): GateApprovalResult => ({
+  repositoryOwner: gate.repositoryOwner,
+  repositoryName: gate.repositoryName,
+  workflowRunId: gate.workflowRunId,
+  environmentName: gate.environmentName,
+  approved,
+});
+
+describe("withoutApprovedGates", () => {
+  it("drops exactly the gates being approved, matching ids as text", () => {
+    const production = gate({ environmentId: 1, environmentName: "Production" });
+    const staging = gate({ environmentId: 2, environmentName: "Staging" });
+
+    expect(withoutApprovedGates([production, staging], [{ ...ref(production), runId: "1", environmentId: "1" }])).toEqual([staging]);
+  });
+
+  it("matches the repository whatever its case", () => {
+    expect(withoutApprovedGates([gate()], [{ ...ref(gate()), owner: "ACME", repo: "Site" }])).toEqual([]);
+  });
+
+  it("returns the same list when none of them are being approved", () => {
+    const gates = [gate()];
+
+    expect(withoutApprovedGates(gates, [ref(gate({ workflowRunId: 99 }))])).toBe(gates);
+  });
+});
+
+describe("restoreFailedApprovals", () => {
+  it("puts back a gate whose approval failed", () => {
+    const failed = gate({ environmentId: 1, environmentName: "Production" });
+    const approved = gate({ environmentId: 2, environmentName: "Staging" });
+
+    expect(restoreFailedApprovals([], [failed, approved], [result(failed, false), result(approved, true)])).toEqual([failed]);
+  });
+
+  it("leaves the list alone when every approval succeeded", () => {
+    const current: DeploymentGateModel[] = [];
+
+    expect(restoreFailedApprovals(current, [gate()], [result(gate(), true)])).toBe(current);
+  });
+
+  it("does not duplicate a failed gate a refetch already brought back", () => {
+    const failed = gate();
+
+    expect(restoreFailedApprovals([failed], [failed], [result(failed, false)])).toEqual([failed]);
   });
 });

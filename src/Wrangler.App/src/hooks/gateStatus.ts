@@ -1,5 +1,5 @@
 import { worstStatus } from "./mergeWorkflowRun";
-import type { DeploymentGateModel, RepositoryModel, WorkflowModel, WorkflowRunModel } from "../api";
+import type { DeploymentGateModel, GateApprovalResult, GateRef, RepositoryModel, WorkflowModel, WorkflowRunModel } from "../api";
 
 const isForRun = (gate: DeploymentGateModel, runId: number | string): boolean =>
   String(gate.workflowRunId) === String(runId);
@@ -60,3 +60,35 @@ export const gatesAheadOfDashboard = (repositories: RepositoryModel[], gates: De
 
 export const withoutGatesForRun = (gates: DeploymentGateModel[], runId: number | string): DeploymentGateModel[] =>
   gates.some((gate) => isForRun(gate, runId)) ? gates.filter((gate) => !isForRun(gate, runId)) : gates;
+
+const sameName = (a: string, b: string): boolean => a.toLowerCase() === b.toLowerCase();
+
+const isRef = (gate: DeploymentGateModel, ref: GateRef): boolean =>
+  sameName(gate.repositoryOwner, ref.owner) &&
+  sameName(gate.repositoryName, ref.repo) &&
+  isForRun(gate, ref.runId) &&
+  String(gate.environmentId) === String(ref.environmentId);
+
+const isResultFor = (gate: DeploymentGateModel, result: GateApprovalResult): boolean =>
+  sameName(gate.repositoryOwner, result.repositoryOwner) &&
+  sameName(gate.repositoryName, result.repositoryName) &&
+  isForRun(gate, result.workflowRunId) &&
+  gate.environmentName === result.environmentName;
+
+/** The gate list as it will be once these approvals go through. */
+export const withoutApprovedGates = (gates: DeploymentGateModel[], approving: GateRef[]): DeploymentGateModel[] =>
+  gates.some((gate) => approving.some((ref) => isRef(gate, ref)))
+    ? gates.filter((gate) => !approving.some((ref) => isRef(gate, ref)))
+    : gates;
+
+/** Puts back the gates from before the approval whose results say it failed. */
+export const restoreFailedApprovals = (
+  current: DeploymentGateModel[],
+  previous: DeploymentGateModel[],
+  results: GateApprovalResult[],
+): DeploymentGateModel[] => {
+  const failed = previous.filter((gate) =>
+    results.some((result) => !result.approved && isResultFor(gate, result)) &&
+    !current.some((existing) => isForRun(existing, gate.workflowRunId) && String(existing.environmentId) === String(gate.environmentId)));
+  return failed.length === 0 ? current : [...current, ...failed];
+};
