@@ -101,14 +101,14 @@ internal abstract class GitHubService(IDistributedCache cache, ILogger logger)
         }
     }
 
-    protected async Task TryCache<T>(string cacheKey, IEnumerable<T> workflows, CancellationToken cancellationToken)
+    protected async Task TryCache<T>(string cacheKey, IEnumerable<T> workflows, CancellationToken cancellationToken, TimeSpan? lifetime = null)
     {
         try
         {
             var json = JsonSerializer.Serialize(workflows);
             await cache.SetStringAsync(cacheKey, json, new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+                AbsoluteExpirationRelativeToNow = lifetime ?? TimeSpan.FromMinutes(30)
             }, cancellationToken);
         }
         catch (JsonException jex)

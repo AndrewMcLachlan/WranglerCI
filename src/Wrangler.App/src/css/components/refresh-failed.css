@@ -1,0 +1,7 @@
+@scope (.refresh-failed) {
+  :scope {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--warning, #d4a24e);
+  }
+}

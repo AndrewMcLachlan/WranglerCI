@@ -1,6 +1,7 @@
 using Asm.Wrangler.Api.Models.Gates;
 using Asm.Wrangler.Api.Commands;
 using Asm.Wrangler.Api.Queries;
+using Asm.Wrangler.Api.Webhooks;
 using Microsoft.Extensions.Caching.Distributed;
 using Octokit;
 
@@ -16,9 +17,15 @@ public interface IGateService
     Task<IEnumerable<GateApprovalResult>> ApproveGatesAsync(ApproveGates request, CancellationToken cancellationToken);
 }
 
-internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, ILogger<GateService> logger)
+internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, ICacheKeyService cacheKeyService, IRepoVersionService versions, ILogger<GateService> logger)
     : GitHubService(cache, logger), IGateService
 {
+    /// <summary>
+    /// How long a repo's gates are trusted without a webhook saying otherwise. Bounds how late a gate
+    /// shows up for a repo whose deployment_review deliveries never arrive.
+    /// </summary>
+    internal static readonly TimeSpan GateCacheLifetime = TimeSpan.FromMinutes(2);
+
     private readonly SemaphoreSlim _gate = new(8);
 
     public async Task<IEnumerable<DeploymentGateModel>> GetGatesAsync(Gates request, CancellationToken cancellationToken)
@@ -32,6 +39,19 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
     }
 
     private async Task<IEnumerable<DeploymentGateModel>> GetRepoGatesAsync(string owner, string repo, CancellationToken cancellationToken)
+    {
+        var version = await versions.GetVersionAsync(owner, repo, RepoDataKind.Gates, cancellationToken);
+        var cacheKey = cacheKeyService.GetCacheKey($"gh:gates:{owner}/{repo}:v{version}");
+
+        var cached = await TryGetFromCache<DeploymentGateModel>(cacheKey, cancellationToken);
+        if (cached is not null) return cached;
+
+        var gates = (await FetchRepoGatesAsync(owner, repo, cancellationToken)).ToList();
+        await TryCache(cacheKey, gates, cancellationToken, GateCacheLifetime);
+        return gates;
+    }
+
+    private async Task<IEnumerable<DeploymentGateModel>> FetchRepoGatesAsync(string owner, string repo, CancellationToken cancellationToken)
     {
         WorkflowRunsResponse waitingRuns;
         await _gate.WaitAsync(cancellationToken);
@@ -113,6 +133,7 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
             {
                 await OctoCall(() => gitHubClient.Actions.Workflows.Runs.ReviewPendingDeployments(
                     group.Owner, group.Repo, group.RunId, review), cancellationToken);
+                await versions.BumpAsync(group.Owner, group.Repo, RepoDataKind.Gates, cancellationToken);
 
                 return group.Gates.Select(g => new GateApprovalResult
                 {

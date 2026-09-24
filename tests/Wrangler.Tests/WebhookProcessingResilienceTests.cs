@@ -80,8 +80,33 @@ public class WebhookProcessingResilienceTests
         Assert.Equal("repo", broadcaster.LastRepo);
     }
 
-    private static GitHubWebhookEventProcessor Processor(Func<bool> claim, Func<bool>? bump = null, RecordingBroadcaster? broadcaster = null) =>
-        new(new FakeRegistry(claim), new FakeVersions(bump), broadcaster ?? new RecordingBroadcaster(),
+    [Fact]
+    public async Task Deployment_review_invalidates_the_repo_gates()
+    {
+        var versions = new FakeVersions(null);
+        var processor = Processor(claim: () => true, versions: versions);
+
+        await processor.ProcessWebhookAsync(
+            new WebhookHeaders { Event = "deployment_review", Delivery = "delivery-3" },
+            DeploymentReviewEvent(),
+            TestContext.Current.CancellationToken);
+
+        Assert.Contains(RepoDataKind.Gates, versions.Bumped);
+    }
+
+    [Fact]
+    public async Task Workflow_run_invalidates_the_repo_gates()
+    {
+        var versions = new FakeVersions(null);
+        var processor = Processor(claim: () => true, versions: versions);
+
+        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent(withRepo: true), TestContext.Current.CancellationToken);
+
+        Assert.Contains(RepoDataKind.Gates, versions.Bumped);
+    }
+
+    private static GitHubWebhookEventProcessor Processor(Func<bool> claim, Func<bool>? bump = null, RecordingBroadcaster? broadcaster = null, FakeVersions? versions = null) =>
+        new(new FakeRegistry(claim), versions ?? new FakeVersions(bump), broadcaster ?? new RecordingBroadcaster(),
             NullLogger<GitHubWebhookEventProcessor>.Instance);
 
     // WorkflowRunEvent is abstract (one concrete subclass per action, with Action fixed); build the
@@ -140,10 +165,12 @@ public class WebhookProcessingResilienceTests
 
     private sealed class FakeVersions(Func<bool>? bump) : IRepoVersionService
     {
+        public List<RepoDataKind> Bumped { get; } = [];
         public Task<long> GetVersionAsync(string owner, string repo, RepoDataKind kind, CancellationToken cancellationToken) => Task.FromResult(0L);
         public Task BumpAsync(string owner, string repo, RepoDataKind kind, CancellationToken cancellationToken)
         {
             bump?.Invoke();
+            Bumped.Add(kind);
             return Task.CompletedTask;
         }
     }

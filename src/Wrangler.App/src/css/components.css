@@ -12,6 +12,7 @@
 @import "./components/attention.css";
 @import "./components/gates.css";
 @import "./components/gate-approve.css";
+@import "./components/refresh-failed.css";
 
 /* Dashboard views */
 @import "./components/overview/overview.css";

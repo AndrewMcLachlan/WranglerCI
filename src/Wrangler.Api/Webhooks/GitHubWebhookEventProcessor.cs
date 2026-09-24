@@ -64,6 +64,7 @@ internal sealed class GitHubWebhookEventProcessor(
         logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", action, owner, repo, workflowRunEvent.WorkflowRun.Id);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.Workflows, cancellationToken);
+        await BumpAsync(owner, repo, RepoDataKind.Gates, cancellationToken);
         Broadcast("workflow_run", owner, repo, headers, workflowId: (long)workflowRunEvent.WorkflowRun.WorkflowId, runId: (long)workflowRunEvent.WorkflowRun.Id, run: WebhookMapping.ToRunModel(workflowRunEvent.WorkflowRun));
     }
 
@@ -112,6 +113,7 @@ internal sealed class GitHubWebhookEventProcessor(
         var (owner, repo) = RepoOf(deploymentReviewEvent.Repository);
         logger.LogInformation("deployment_review.{Action} {Owner}/{Repo}", action, owner, repo);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
+        await BumpAsync(owner, repo, RepoDataKind.Gates, cancellationToken);
         Broadcast("deployment_review", owner, repo, headers);
     }
 

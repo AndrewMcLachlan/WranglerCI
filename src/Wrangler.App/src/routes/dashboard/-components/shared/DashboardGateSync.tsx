@@ -5,23 +5,14 @@ import { useSelectedRepositories } from "../../../settings/-hooks/useSelectedRep
 import { useDashboardContext } from "../../-providers/DashboardProvider";
 import { workflowsQueryOptions } from "../../-hooks/useWorkflows";
 import { gatesAheadOfDashboard } from "../../../../hooks/gateStatus";
-import type { RepositoryModel } from "../../../../api";
 
-const ACTIVE_GATE_POLL_MS = 30 * 1000;
-
-const hasActiveRuns = (repositories: RepositoryModel[]): boolean =>
-  repositories.some((repo) => repo.workflows?.some((workflow) =>
-    workflow.runs?.some((run) => run.status !== "completed")));
-
-/** Keeps the dashboard and the gate list in step while either has news for the other. */
+/** Refetches the dashboard once for each gate on a run it isn't showing yet. */
 export const DashboardGateSync: React.FC = () => {
   const queryClient = useQueryClient();
   const { data: selectedRepositories } = useSelectedRepositories();
   const { branchFilter } = useDashboardContext();
   const { data: repositories } = useQuery(workflowsQueryOptions(selectedRepositories, branchFilter));
-
-  const active = hasActiveRuns(repositories ?? []);
-  const { data: gates } = useGates(active ? ACTIVE_GATE_POLL_MS : undefined);
+  const { data: gates } = useGates();
 
   const refetchedForRef = useRef(new Set<string>());
 

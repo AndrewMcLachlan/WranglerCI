@@ -10,4 +10,5 @@ public enum RepoDataKind
     WorkflowRuns,
     Pulls,
     Checks,
+    Gates,
 }
