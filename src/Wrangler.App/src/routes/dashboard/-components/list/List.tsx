@@ -8,6 +8,7 @@ interface WorkflowRunItem {
   run: WorkflowRunModel;
 }
 import { useWorkflows } from "../../-hooks/useWorkflows";
+import { RefreshFailed } from "../shared/RefreshFailed";
 import { BranchBadge } from "../shared/BranchBadge";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
@@ -67,7 +68,7 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
 
 export const List = () => {
 
-  const { data: repositories, isLoading } = useWorkflows();
+  const { data: repositories, isLoading, isError } = useWorkflows();
 
   const list: WorkflowRunItem[] = repositories?.flatMap(repo =>
     repo.workflows?.flatMap(workflow =>
@@ -82,13 +83,16 @@ export const List = () => {
   const showLoading = isLoading && !repositories;
 
   return (
-    <DataGrid
-      className="workflow-run-table"
-      data={list}
-      columns={columns}
-      sortable
-      loading={showLoading}
-      emptyMessage="No workflows found."
-    />
+    <>
+      {isError && <RefreshFailed />}
+      <DataGrid
+        className="workflow-run-table"
+        data={list}
+        columns={columns}
+        sortable
+        loading={showLoading}
+        emptyMessage="No workflows found."
+      />
+    </>
   );
 };

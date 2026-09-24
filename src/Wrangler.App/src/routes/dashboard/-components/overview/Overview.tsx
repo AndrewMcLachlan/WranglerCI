@@ -2,11 +2,12 @@ import type { RepositoryModel } from "../../../../api";
 import { useWorkflows } from "../../-hooks/useWorkflows";
 import { Spinner } from "../../../../components/Spinner";
 import { AccountSection } from "./AccountSection";
+import { RefreshFailed } from "../shared/RefreshFailed";
 
 export const Overview = () => {
   const { data: repositories, isLoading, isError, error } = useWorkflows();
 
-  if (isError) {
+  if (isError && !repositories) {
     console.error("Error fetching dashboard data:", error);
     return <p>Error loading build info.</p>;
   }
@@ -26,6 +27,7 @@ export const Overview = () => {
 
   return (
     <div className="overview">
+      {isError && <RefreshFailed />}
       {showSpinner && <Spinner />}
       {!showSpinner && (!repositories || repositories.length === 0) && <p>No workflows found.</p>}
       {sortedGroups.map(({ owner, title, repos }) => (

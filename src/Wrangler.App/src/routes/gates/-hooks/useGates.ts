@@ -11,13 +11,12 @@ export const gatesQueryOptions = (repositories: { owner: string; name: string }[
     const result = await postGates({ body: { repositories } });
     return result.data ?? [];
   },
-  // No webhook carries gate state, so this poll is the only live path while
-  // the page is open; arriving refetches regardless.
+  // Backstop for a deployment_review the stream never delivered.
   refetchInterval: 5 * 60 * 1000,
   staleTime: PAGE_STALE_TIME,
 });
 
-export const useGates = (refetchInterval?: number) => {
+export const useGates = () => {
   const { data: selectedRepositories } = useSelectedRepositories();
   // Gates follows the dashboard: only repos with selected workflows. The
   // unified list also holds PR-only/security-only entries, which have no
@@ -28,7 +27,6 @@ export const useGates = (refetchInterval?: number) => {
 
   return useQuery({
     ...gatesQueryOptions(repositories),
-    ...(refetchInterval ? { refetchInterval } : {}),
     enabled: repositories.length > 0,
   });
 };

@@ -10,6 +10,7 @@ internal class RepoVersionService(IDistributedCache cache) : IRepoVersionService
         RepoDataKind.WorkflowRuns => "workflow_runs",
         RepoDataKind.Pulls => "pulls",
         RepoDataKind.Checks => "checks",
+        RepoDataKind.Gates => "gates",
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 
