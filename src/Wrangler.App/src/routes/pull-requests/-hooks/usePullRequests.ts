@@ -12,7 +12,7 @@ export const pullRequestsQueryOptions = (repositories: { owner: string; name: st
     return result.data;
   },
   // SSE drives freshness; polling is a safety net for missed events.
-  refetchInterval: 10 * 60 * 1000,
+  refetchInterval: 30 * 60 * 1000,
   staleTime: PAGE_STALE_TIME,
 });
 

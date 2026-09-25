@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { QueryClient, QueryObserver, type QueryObserverResult } from "@tanstack/react-query";
-import { QUERY_DEFAULTS } from "./queryDefaults";
+import { QUERY_DEFAULTS, isRateLimited } from "./queryDefaults";
 
 /**
  * The scenario these protect: Wrangler left open in a tab for hours, revisited
@@ -94,5 +94,25 @@ describe("a detour longer than react-query's default gcTime", () => {
     expect(queryClient.getQueryCache().findAll({ queryKey: ["getWorkflows"] })).toHaveLength(0);
     pushStreamEvent(queryClient);
     expect(queryClient.getQueryData(["getWorkflows"])).toBeUndefined();
+  });
+});
+
+describe("retry", () => {
+  const retry = QUERY_DEFAULTS!.retry as (failureCount: number, error: unknown) => boolean;
+
+  it("never retries a rate-limited call", () => {
+    expect(retry(0, { status: 429, title: "Too Many Requests" })).toBe(false);
+  });
+
+  it("retries any other failure up to three times", () => {
+    expect(retry(0, { status: 500 })).toBe(true);
+    expect(retry(2, new Error("network"))).toBe(true);
+    expect(retry(3, { status: 500 })).toBe(false);
+  });
+
+  it("recognises only a 429 as a rate limit", () => {
+    expect(isRateLimited({ status: 429 })).toBe(true);
+    expect(isRateLimited({ status: 403 })).toBe(false);
+    expect(isRateLimited(null)).toBe(false);
   });
 });

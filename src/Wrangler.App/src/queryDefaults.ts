@@ -1,5 +1,9 @@
 import type { QueryClientConfig } from "@tanstack/react-query";
 
+/** The API reports GitHub's rate limit as a 429 problem-details body. */
+export const isRateLimited = (error: unknown): boolean =>
+  typeof error === "object" && error !== null && (error as { status?: unknown }).status === 429;
+
 /** Cache defaults for the app's QueryClient. Exported so tests can assert them. */
 export const QUERY_DEFAULTS: NonNullable<QueryClientConfig["defaultOptions"]>["queries"] = {
   // The SSE stream (useGitHubEventStream) pushes workflow and PR updates
@@ -14,4 +18,7 @@ export const QUERY_DEFAULTS: NonNullable<QueryClientConfig["defaultOptions"]>["q
 
   // Data is kept current by the stream, so a focus refetch is redundant cost.
   refetchOnWindowFocus: false,
+
+  // Retrying a rate-limited call only spends the quota as soon as it returns.
+  retry: (failureCount, error) => !isRateLimited(error) && failureCount < 3,
 };
