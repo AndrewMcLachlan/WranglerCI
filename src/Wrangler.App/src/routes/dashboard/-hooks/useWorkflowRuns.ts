@@ -23,7 +23,7 @@ export const useWorkflowRuns = (owner: string, repo: string, workflowId: number,
     // collapses while the filtered runs load.
     placeholderData: keepPreviousData,
     // SSE drives freshness; polling is a safety net for missed events.
-    refetchInterval: 1000 * 60 * 10, // 10 minutes
+    refetchInterval: 30 * 60 * 1000,
     staleTime: PAGE_STALE_TIME,
   });
 }

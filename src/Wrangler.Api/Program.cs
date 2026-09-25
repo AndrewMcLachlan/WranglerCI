@@ -227,6 +227,7 @@ static void AddServices(WebApplicationBuilder builder)
         options.StatusCodeSelector = (ex) =>
         {
             if (ex is UnauthorizedException or AuthorizationException) return StatusCodes.Status401Unauthorized;
+            if (ex is RateLimitExceededException or SecondaryRateLimitExceededException) return StatusCodes.Status429TooManyRequests;
             return StatusCodes.Status500InternalServerError;
         };
     });

@@ -124,7 +124,7 @@ export const workflowsQueryOptions = (selectedRepositories: SelectedRepository[]
   // are), so each fetch costs a GitHub call per selected workflow. The stream
   // pushes runs into this cache as they happen; the interval is the backstop
   // for repos whose webhooks were never wired up.
-  refetchInterval: 10 * 60 * 1000,
+  refetchInterval: 30 * 60 * 1000,
   staleTime: PAGE_STALE_TIME,
   refetchOnWindowFocus: false,
 });

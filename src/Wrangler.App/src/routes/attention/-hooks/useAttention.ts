@@ -10,7 +10,7 @@ export const attentionQueryOptions = (repositories: { owner: string; name: strin
     const result = await postAttention({ body: { repositories } });
     return result.data ?? [];
   },
-  refetchInterval: 10 * 60 * 1000,
+  refetchInterval: 30 * 60 * 1000,
   staleTime: 10 * 60 * 1000,
 });
 
