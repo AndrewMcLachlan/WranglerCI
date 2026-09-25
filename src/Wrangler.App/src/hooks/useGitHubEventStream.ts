@@ -8,6 +8,7 @@ import type { DeploymentGateModel, PullRequestModel, RepositoryModel, WorkflowRu
 
 interface GitHubEvent {
   type: string;
+  action?: string;
   owner: string;
   repo: string;
   workflowId?: number;
@@ -28,6 +29,8 @@ interface GitHubEvent {
 // refetch of the PR list. Debounced per owner/repo so a burst of per-check
 // deliveries for the same repo collapses into a single refetch.
 const CHECK_STATUS_DEBOUNCE_MS = 2000;
+
+const GATES_REFETCH_DEBOUNCE_MS = 2000;
 
 export const useGitHubEventStream = (enabled: boolean = true) => {
   const queryClient = useQueryClient();
@@ -137,12 +140,19 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       }, CHECK_STATUS_DEBOUNCE_MS));
     };
 
-    // A run pausing at an environment gate, or a reviewer answering one, sends
-    // no workflow_run: this is the only signal. It carries no run, so the
-    // workflows and gates are refetched rather than merged.
-    const handleDeploymentReview = () => {
-      queryClient.invalidateQueries({ queryKey: ["getWorkflows"] });
-      queryClient.invalidateQueries({ queryKey: ["gates"] });
+    // A run pausing at a gate sends no workflow_run, so a requested review is
+    // the only news of a new gate. A burst of them costs one refetch.
+    let gatesRefetchTimer: ReturnType<typeof setTimeout> | undefined;
+    const handleDeploymentReview = (evt: GitHubEvent) => {
+      if (evt.action === "requested") {
+        clearTimeout(gatesRefetchTimer);
+        gatesRefetchTimer = setTimeout(() => queryClient.invalidateQueries({ queryKey: ["gates"] }), GATES_REFETCH_DEBOUNCE_MS);
+        return;
+      }
+      if (evt.runId === undefined) return;
+      const runId = evt.runId;
+      queryClient.setQueriesData<DeploymentGateModel[]>({ queryKey: ["gates"] }, (data) =>
+        data ? withoutGatesForRun(data, runId) : data);
     };
 
     const handle = (rawEvent: MessageEvent) => {
@@ -167,7 +177,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
           scheduleCheckStatusRefetch(parsed);
           break;
         case "deployment_review":
-          handleDeploymentReview();
+          handleDeploymentReview(parsed);
           break;
       }
     };
@@ -204,6 +214,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       source.removeEventListener("heartbeat", recordActivity);
       source.close();
       for (const timer of checkStatusTimers.values()) clearTimeout(timer);
+      clearTimeout(gatesRefetchTimer);
       checkStatusTimers.clear();
     };
   }, [enabled, queryClient, connection]);

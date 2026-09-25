@@ -11,6 +11,8 @@ namespace Asm.Wrangler.Api.Models;
 public record GitHubEvent
 {
     public required string Type { get; init; }
+    /// <summary>The webhook action, where the client acts on it (deployment_review).</summary>
+    public string? Action { get; init; }
     public required string Owner { get; init; }
     public required string Repo { get; init; }
     public long? WorkflowId { get; init; }

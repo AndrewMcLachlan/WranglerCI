@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 import { postPullRequestsApprove, type ApprovalResult } from "../../../api";
 
 interface UseApprovePullRequestsOptions {
@@ -23,6 +24,9 @@ export const useApprovePullRequests = (options?: UseApprovePullRequestsOptions) 
         queryKey: ["pullRequests"],
       });
       options?.onResults?.(data as ApprovalResult[]);
+    },
+    onError: (error) => {
+      toast.error(`Approval failed: ${error.message}`);
     },
   });
 }

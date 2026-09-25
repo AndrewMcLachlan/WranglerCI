@@ -78,6 +78,7 @@ public class WebhookProcessingResilienceTests
         Assert.Equal("deployment_review", broadcaster.LastType);
         Assert.Equal("owner", broadcaster.LastOwner);
         Assert.Equal("repo", broadcaster.LastRepo);
+        Assert.Equal("requested", broadcaster.LastAction);
     }
 
     [Fact]
@@ -181,12 +182,14 @@ public class WebhookProcessingResilienceTests
         public string? LastType { get; private set; }
         public string? LastOwner { get; private set; }
         public string? LastRepo { get; private set; }
+        public string? LastAction { get; private set; }
         public void Publish(GitHubEvent evt)
         {
             Published = true;
             LastType = evt.Type;
             LastOwner = evt.Owner;
             LastRepo = evt.Repo;
+            LastAction = evt.Action;
         }
         public EventSubscription Subscribe() => throw new NotSupportedException("The processor never subscribes.");
     }

@@ -114,15 +114,16 @@ internal sealed class GitHubWebhookEventProcessor(
         logger.LogInformation("deployment_review.{Action} {Owner}/{Repo}", action, owner, repo);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.Gates, cancellationToken);
-        Broadcast("deployment_review", owner, repo, headers);
+        Broadcast("deployment_review", owner, repo, headers, runId: (long?)deploymentReviewEvent.WorkflowRun?.Id, action: deploymentReviewEvent.Action);
     }
 
-    private void Broadcast(string type, string? owner, string? repo, WebhookHeaders headers, long? workflowId = null, long? runId = null, int? pullRequestNumber = null, WorkflowRunModel? run = null, PullRequestEventData? pullRequest = null)
+    private void Broadcast(string type, string? owner, string? repo, WebhookHeaders headers, long? workflowId = null, long? runId = null, int? pullRequestNumber = null, WorkflowRunModel? run = null, PullRequestEventData? pullRequest = null, string? action = null)
     {
         if (String.IsNullOrEmpty(owner) || String.IsNullOrEmpty(repo)) return;
         broadcaster.Publish(new GitHubEvent
         {
             Type = type,
+            Action = action,
             Owner = owner,
             Repo = repo,
             WorkflowId = workflowId,
