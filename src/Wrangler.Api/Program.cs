@@ -58,6 +58,7 @@ static void AddServices(WebApplicationBuilder builder)
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddHttpClient();
 
+    builder.Services.AddScoped<RateLimitLoggingHttpClient>();
     builder.Services.AddScoped<IGitHubClient, GitHubClient>(services =>
     {
         var context = services.GetRequiredService<IHttpContextAccessor>().HttpContext ?? throw new InvalidOperationException("HttpContext is not available. Ensure IHttpContextAccessor is registered and used correctly.");
@@ -66,7 +67,7 @@ static void AddServices(WebApplicationBuilder builder)
 
         if (String.IsNullOrEmpty(token)) throw new UnauthorizedException();
 
-        Connection connection = new(new ProductHeaderValue("WranglerCI", "0.1"))
+        Connection connection = new(new ProductHeaderValue("WranglerCI", "0.1"), services.GetRequiredService<RateLimitLoggingHttpClient>())
         {
             Credentials = new Credentials(token),
             ResponseCache = services.GetRequiredService<IResponseCache>(),
