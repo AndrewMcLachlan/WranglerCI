@@ -11,14 +11,19 @@
     }
 }
 
+/* Must stay sticky: iOS blurs the top edge of an installed app unless a
+   positioned box touches it. */
 .layout > header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     display: flex;
     flex-direction: row;
     padding: 0.5rem 1.25rem;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(0, 0, 0, 0.3);
+    background: rgb(8, 8, 13);
 }
 
 .header-end {
@@ -144,18 +149,5 @@ h1 {
 
     article {
         padding: 0.75rem max(0.75rem, env(safe-area-inset-left)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-right));
-    }
-}
-
-/* iOS blurs the top edge of an installed app, through the header, unless a
-   fixed box touches that edge. */
-@media (display-mode: standalone) {
-    .layout::before {
-        content: "";
-        position: fixed;
-        inset: 0 0 auto 0;
-        height: env(safe-area-inset-top);
-        background: rgb(8, 8, 13);
-        z-index: 1;
     }
 }
