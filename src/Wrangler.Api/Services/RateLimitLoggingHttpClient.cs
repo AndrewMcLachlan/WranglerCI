@@ -27,7 +27,7 @@ public class RateLimitLoggingHttpClient(IHttpContextAccessor httpContextAccessor
             : LogLevel.Information;
 
         logger.Log(level,
-            "GitHub {GitHubMethod} {GitHubPath} {GitHubStatus} rate {RateLimitRemaining}/{RateLimitLimit} ({RateLimitResource}, used {RateLimitUsed}, resets {RateLimitReset}) for {User} via {WranglerMethod} {WranglerPath}",
+            "GitHub {GitHubMethod} {GitHubPath} {GitHubStatus} rate {RateLimitRemaining}/{RateLimitLimit} ({RateLimitResource}, used {RateLimitUsed}, resets {RateLimitReset}) for {User} via {WranglerEndpoint}",
             request?.Method.Method,
             request?.RequestUri?.PathAndQuery,
             (int)responseMessage.StatusCode,
@@ -37,8 +37,7 @@ public class RateLimitLoggingHttpClient(IHttpContextAccessor httpContextAccessor
             Header(responseMessage, "x-ratelimit-used"),
             Int64.TryParse(Header(responseMessage, "x-ratelimit-reset"), out var reset) ? DateTimeOffset.FromUnixTimeSeconds(reset) : null,
             http?.Session.GetString(SessionKeys.User),
-            http?.Request.Method,
-            http?.Request.Path.Value);
+            http?.GetEndpoint()?.DisplayName);
 
         return await base.BuildResponse(responseMessage, preprocessResponseBody);
     }
