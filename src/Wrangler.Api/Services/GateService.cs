@@ -26,6 +26,12 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
     /// </summary>
     internal static readonly TimeSpan GateCacheLifetime = TimeSpan.FromMinutes(30);
 
+    /// <summary>
+    /// How many waiting runs a single repo may contribute to one gates refresh. Each one costs a
+    /// pending_deployments call, so this bounds the fan-out.
+    /// </summary>
+    internal const int WaitingRunsPageSize = 100;
+
     private readonly SemaphoreSlim _gate = new(8);
 
     public async Task<IEnumerable<DeploymentGateModel>> GetGatesAsync(Gates request, CancellationToken cancellationToken)
@@ -58,9 +64,18 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
         try
         {
             await Jitter(cancellationToken);
+            // One page only. Every waiting run costs a further pending_deployments call below, so
+            // without a cap a repo that has accumulated abandoned waiting runs sets the size of
+            // every gates refresh. The other list calls (AttentionService, DashboardService) cap
+            // the same way; Octokit's overload without ApiOptions pages through the lot.
             waitingRuns = await OctoCall(() => gitHubClient.Actions.Workflows.Runs.List(owner, repo, new Octokit.WorkflowRunsRequest
             {
                 Status = new StringEnum<CheckRunStatusFilter>(CheckRunStatusFilter.Waiting),
+            }, new ApiOptions
+            {
+                PageCount = 1,
+                PageSize = WaitingRunsPageSize,
+                StartPage = 1,
             }), cancellationToken);
         }
         finally

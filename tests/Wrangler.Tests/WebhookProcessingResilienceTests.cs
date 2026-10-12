@@ -95,8 +95,12 @@ public class WebhookProcessingResilienceTests
         Assert.Contains(RepoDataKind.Gates, versions.Bumped);
     }
 
+    // Only a completed run can retire a gate: a run pausing at one sends no workflow_run at all, so
+    // deployment_review is what announces a new gate. Invalidating on every action threw the gate
+    // cache away several times per run, and each rebuild costs a pending_deployments call per
+    // waiting run.
     [Fact]
-    public async Task Workflow_run_invalidates_the_repo_gates()
+    public async Task Completed_workflow_run_invalidates_the_repo_gates()
     {
         var versions = new FakeVersions(null);
         var processor = Processor(claim: () => true, versions: versions);
@@ -106,6 +110,31 @@ public class WebhookProcessingResilienceTests
         Assert.Contains(RepoDataKind.Gates, versions.Bumped);
     }
 
+    [Fact]
+    public async Task In_progress_workflow_run_leaves_the_repo_gates_cached()
+    {
+        var versions = new FakeVersions(null);
+        var processor = Processor(claim: () => true, versions: versions);
+
+        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent<WorkflowRunInProgressEvent>(withRepo: true), TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain(RepoDataKind.Gates, versions.Bumped);
+        // The run itself did change, so the run and workflow caches must still turn over.
+        Assert.Contains(RepoDataKind.WorkflowRuns, versions.Bumped);
+    }
+
+    [Fact]
+    public async Task Requested_workflow_run_leaves_the_repo_gates_cached()
+    {
+        var versions = new FakeVersions(null);
+        var processor = Processor(claim: () => true, versions: versions);
+
+        await processor.ProcessWebhookAsync(Headers, WorkflowRunEvent<WorkflowRunRequestedEvent>(withRepo: true), TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain(RepoDataKind.Gates, versions.Bumped);
+        Assert.Contains(RepoDataKind.WorkflowRuns, versions.Bumped);
+    }
+
     private static GitHubWebhookEventProcessor Processor(Func<bool> claim, Func<bool>? bump = null, RecordingBroadcaster? broadcaster = null, FakeVersions? versions = null) =>
         new(new FakeRegistry(claim), versions ?? new FakeVersions(bump), broadcaster ?? new RecordingBroadcaster(),
             NullLogger<GitHubWebhookEventProcessor>.Instance);
@@ -113,9 +142,11 @@ public class WebhookProcessingResilienceTests
     // WorkflowRunEvent is abstract (one concrete subclass per action, with Action fixed); build the
     // concrete "completed" event uninitialised and set only the members the handler reads — once past the
     // dedupe claim, the repo and run ids.
-    private static WorkflowRunEvent WorkflowRunEvent(bool withRepo)
+    private static WorkflowRunEvent WorkflowRunEvent(bool withRepo) => WorkflowRunEvent<WorkflowRunCompletedEvent>(withRepo);
+
+    private static WorkflowRunEvent WorkflowRunEvent<TEvent>(bool withRepo) where TEvent : WorkflowRunEvent
     {
-        var evt = New<WorkflowRunCompletedEvent>();
+        var evt = New<TEvent>();
         if (withRepo)
         {
             var owner = New<User>();
