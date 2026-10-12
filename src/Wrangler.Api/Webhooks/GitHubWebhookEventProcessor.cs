@@ -64,7 +64,15 @@ internal sealed class GitHubWebhookEventProcessor(
         logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", action, owner, repo, workflowRunEvent.WorkflowRun.Id);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.Workflows, cancellationToken);
-        await BumpAsync(owner, repo, RepoDataKind.Gates, cancellationToken);
+        // Only a finished run can retire a gate, and only deployment_review can raise one (see
+        // ProcessDeploymentReviewWebhookAsync). requested and in_progress therefore cannot change
+        // this repo's gates, and invalidating them on those actions threw away the gate cache
+        // several times per run — each rebuild costing a pending_deployments call per waiting run.
+        // completed stays because a cancelled or timed-out run sends no deployment_review.
+        if (action == WorkflowRunAction.Completed)
+        {
+            await BumpAsync(owner, repo, RepoDataKind.Gates, cancellationToken);
+        }
         Broadcast("workflow_run", owner, repo, headers, workflowId: (long)workflowRunEvent.WorkflowRun.WorkflowId, runId: (long)workflowRunEvent.WorkflowRun.Id, run: WebhookMapping.ToRunModel(workflowRunEvent.WorkflowRun));
     }
 
