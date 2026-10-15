@@ -186,3 +186,50 @@ describe("ids arriving as a different type", () => {
     expect(result[0].workflows?.[0].overallStatus).toBe("Red");
   });
 });
+
+describe("runs superseded by a newer one", () => {
+  // A concurrency group cancels the older runs once a newer one starts, so
+  // their completed events land after the newer run is already on the card.
+  const showingRun = (runNumber: number) => {
+    const cached = makeRepositories();
+    cached[0].workflows![0].runs = [makeRun({ id: 600, runNumber, status: "in_progress", workflowStatus: "Running" })];
+    cached[0].workflows![0].overallStatus = "Running";
+    return cached;
+  };
+
+  it("ignores an older run's cancellation arriving after the newer run", () => {
+    const cached = showingRun(6);
+    const cancelled = makeRun({ id: 500, runNumber: 5, status: "completed", conclusion: "cancelled", workflowStatus: "Amber" });
+
+    const result = mergeWorkflowRun(cached, "acme", "widget", cancelled);
+
+    expect(result).toBe(cached);
+    expect(result[0].workflows?.[0].runs?.[0].id).toBe(600);
+  });
+
+  it("still takes a newer run", () => {
+    const cached = showingRun(6);
+    const newer = makeRun({ id: 700, runNumber: 7 });
+
+    const result = mergeWorkflowRun(cached, "acme", "widget", newer);
+
+    expect(result[0].workflows?.[0].runs?.[0].id).toBe(700);
+  });
+
+  it("still takes an update to the run it is showing", () => {
+    const cached = showingRun(6);
+    const finished = makeRun({ id: 600, runNumber: 6, status: "completed", conclusion: "success", workflowStatus: "Green" });
+
+    const result = mergeWorkflowRun(cached, "acme", "widget", finished);
+
+    expect(result[0].workflows?.[0].runs?.[0].workflowStatus).toBe("Green");
+    expect(result[0].workflows?.[0].overallStatus).toBe("Green");
+  });
+
+  it("compares run numbers numerically when they arrive as strings", () => {
+    const cached = showingRun(10);
+    const cancelled = makeRun({ id: 900, runNumber: "9", status: "completed", conclusion: "cancelled", workflowStatus: "Amber" });
+
+    expect(mergeWorkflowRun(cached, "acme", "widget", cancelled)).toBe(cached);
+  });
+});

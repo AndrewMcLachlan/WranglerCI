@@ -65,6 +65,8 @@ export const mergeWorkflowRun = (
   // Case-sensitive branch-name match: replace only the run for the same branch.
   const runIndex = runs.findIndex((r) => r.headBranch === run.headBranch);
   if (runIndex === -1) return repositories;
+  // A cancelled run's completed event can arrive after the run that superseded it has started.
+  if (Number(run.runNumber) < Number(runs[runIndex].runNumber)) return repositories;
 
   const updatedRuns = runs.map((r, i) => (i === runIndex ? run : r));
 
