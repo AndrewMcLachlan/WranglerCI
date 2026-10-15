@@ -12,7 +12,7 @@ export const gatesQueryOptions = (repositories: { owner: string; name: string }[
     return result.data ?? [];
   },
   // Backstop for a deployment_review the stream never delivered.
-  refetchInterval: 5 * 60 * 1000,
+  refetchInterval: 2 * 60 * 1000,
   staleTime: PAGE_STALE_TIME,
 });
 
