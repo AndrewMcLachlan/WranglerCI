@@ -24,7 +24,7 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
     /// How long a repo's gates are trusted without a webhook saying otherwise. Bounds how late a gate
     /// shows up for a repo whose deployment_review deliveries never arrive.
     /// </summary>
-    internal static readonly TimeSpan GateCacheLifetime = TimeSpan.FromMinutes(30);
+    internal static readonly TimeSpan GateCacheLifetime = TimeSpan.FromMinutes(2);
 
     /// <summary>
     /// How many waiting runs a single repo may contribute to one gates refresh. Each one costs a
