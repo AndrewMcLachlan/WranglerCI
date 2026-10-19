@@ -1,5 +1,4 @@
 import { Badge, SwipeRow } from "@andrewmclachlan/moo-ds";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime } from "luxon";
 import { RowCard } from "../../../components/RowCard";
 import { ScrollRestoredList } from "../../../components/ScrollRestoredList";
@@ -54,28 +53,15 @@ export const GateCards: React.FC<GateCardsProps> = ({
           selected={selected.has(gateKey(gate))}
           selectDisabled={!gate.currentUserCanApprove || disabled}
           selectLabel={`Select ${gate.workflowName} for ${gate.environmentName}`}
-          title={
-            <a href={gate.htmlUrl!} target="_blank" rel="noopener noreferrer">
-              {gate.workflowName} #{gate.runNumber}
-            </a>
-          }
+          title={`${gate.workflowName} #${gate.runNumber}`}
+          href={gate.htmlUrl!}
+          hrefLabel="Open run on GitHub"
           meta={<Badge className="gate-environment" pill>{gate.environmentName}</Badge>}
           details={[
             { label: "Repository", value: `${gate.repositoryOwner}/${gate.repositoryName}` },
             { label: "Branch", value: gate.headBranch },
             { label: "Updated", value: relative(gate.updatedAt) },
           ]}
-          actions={
-            <a
-              className="gate-open-link"
-              href={gate.htmlUrl!}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open run on GitHub"
-            >
-              <FontAwesomeIcon icon="arrow-up-right-from-square" /> Open on GitHub
-            </a>
-          }
         />
         </SwipeRow>
       ))}
