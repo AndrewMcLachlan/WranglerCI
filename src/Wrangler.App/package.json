@@ -18,14 +18,14 @@
     "@andrewmclachlan/moo-app": "^5.2.368",
     "@andrewmclachlan/moo-ds": "^5.2.368",
     "@andrewmclachlan/moo-icons": "^5.2.368",
-    "@tanstack/react-query": "^5.104.1",
-    "@tanstack/react-router": "^1.170.42",
+    "@tanstack/react-query": "^5.104.3",
+    "@tanstack/react-router": "^1.170.44",
     "@tanstack/react-router-devtools": "^1.167.2",
     "axios": "^1.18.1",
     "luxon": "^3.7.2",
     "oauth4webapi": "^3.8.8",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "use-debounce": "^10.1.1"
   },
   "overrides": {
