@@ -1,5 +1,4 @@
 import { Badge, SwipeRow } from "@andrewmclachlan/moo-ds";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime } from "luxon";
 import { RowCard } from "../../../components/RowCard";
 import { ScrollRestoredList } from "../../../components/ScrollRestoredList";
@@ -56,7 +55,9 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
           selected={selected.has(pr.number)}
           selectDisabled={!canApprove(pr) || disabled}
           selectLabel={`Select pull request ${pr.number}`}
-          title={<a href={pr.htmlUrl!} target="_blank" rel="noopener noreferrer">{pr.title}</a>}
+          title={pr.title}
+          href={pr.htmlUrl!}
+          hrefLabel="Open pull request on GitHub"
           meta={
             <>
               <CheckStatusBadge status={pr.checkStatus} />
@@ -73,17 +74,6 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
             { label: "Author", value: pr.author },
             { label: "Updated", value: relative(pr.updatedAt) },
           ]}
-          actions={
-            <a
-              className="pr-open-link"
-              href={pr.htmlUrl!}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open pull request on GitHub"
-            >
-              <FontAwesomeIcon icon="arrow-up-right-from-square" /> Open on GitHub
-            </a>
-          }
         />
         </SwipeRow>
       ))}

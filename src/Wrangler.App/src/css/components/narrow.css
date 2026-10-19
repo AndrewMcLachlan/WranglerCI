@@ -48,7 +48,7 @@
        run is never orphaned from the account it belongs to. */
     .account-section-header {
         position: sticky;
-        top: 0;
+        top: var(--header-height);
         z-index: 1;
         /* Opaque: a translucent heading with rows sliding under it is unreadable. */
         background-color: var(--card-bg);
