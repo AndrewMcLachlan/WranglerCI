@@ -8,7 +8,7 @@ export const Settings = () => {
 
   return (
     <article>
-      <h2>Repositories</h2>
+      <h2 className="page-title">Repositories</h2>
       {accounts.isLoading ? (
         <p>Loading repositories...</p>
       ) : accounts.isError ? (

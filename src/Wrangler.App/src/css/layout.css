@@ -1,3 +1,8 @@
+/* iOS drags the sticky header with the page when it bounces past either end. */
+html {
+    overscroll-behavior-y: none;
+}
+
 .layout {
     display: flex;
     flex-direction: column;
@@ -25,6 +30,10 @@
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     background: rgb(8, 8, 13);
+}
+
+.header-title {
+    display: none;
 }
 
 .header-end {
@@ -142,6 +151,18 @@ h1 {
        and the nav needs the width more than the name does. */
     .wordmark {
         display: none;
+    }
+
+    /* Stands in for the page's own heading, which the phone layout hides. */
+    .header-title {
+        display: block;
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 1.1rem;
+        font-weight: 500;
     }
 
     .header-end {

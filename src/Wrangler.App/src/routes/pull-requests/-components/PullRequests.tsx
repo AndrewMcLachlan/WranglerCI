@@ -443,13 +443,13 @@ export const PullRequests = () => {
 
   return (
     <article className="pull-requests">
-      <h2>Pull Requests</h2>
+      <h2 className="page-title">Pull Requests</h2>
 
       <div className="controls">
         {isNarrow ? (
           <NarrowFilters
-            primary={statusCombo}
             applied={appliedFilters}
+            showApplied={false}
             onClearAll={clearAllFilters}
           >
             {authorCombo}

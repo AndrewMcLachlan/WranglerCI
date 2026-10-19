@@ -35,6 +35,10 @@ declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router
   }
+  interface StaticDataRouteOption {
+    /** Shown in the header bar on a phone, in place of the page's own heading. */
+    title?: string
+  }
 }
 
 console.log("config", client.getConfig());

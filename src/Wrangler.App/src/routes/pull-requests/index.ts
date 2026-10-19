@@ -3,4 +3,5 @@ import { PullRequests } from "./-components/PullRequests.tsx";
 
 export const Route = createFileRoute("/pull-requests/")({
   component: PullRequests,
+  staticData: { title: "Pull Requests" },
 });
