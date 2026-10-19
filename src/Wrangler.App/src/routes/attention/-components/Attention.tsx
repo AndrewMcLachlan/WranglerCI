@@ -90,7 +90,7 @@ export const Attention = () => {
 
   return (
     <article className="attention">
-      <h2>Needs your attention</h2>
+      <h2 className="page-title">Needs your attention</h2>
 
       <div className="filter-row">
         <ComboBox<AttentionItemType>

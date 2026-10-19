@@ -3,4 +3,5 @@ import { Attention } from "./attention/-components/Attention";
 
 export const Route = createFileRoute("/attention")({
   component: Attention,
+  staticData: { title: "Needs your attention" },
 });

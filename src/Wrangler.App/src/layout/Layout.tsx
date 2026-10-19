@@ -1,6 +1,6 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
 import { Bell, Cog, Dashboard, PullRequest, UserShield } from "@andrewmclachlan/moo-icons";
-import { Link } from "@tanstack/react-router";
+import { Link, useMatches } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
 import { UserMenu } from "./UserMenu";
 import { useAttention } from "../routes/attention/-hooks/useAttention";
@@ -8,6 +8,7 @@ import { useAttention } from "../routes/attention/-hooks/useAttention";
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
   const { data: attentionItems } = useAttention();
   const attentionCount = attentionItems?.length ?? 0;
+  const title = useMatches({ select: (matches) => matches.map((m) => m.staticData.title).filter(Boolean).at(-1) });
 
   return (
     <div className="layout">
@@ -21,6 +22,7 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
             <span className="wordmark">Wrangler CI</span>
           </Link>
         </h1>
+        {title && <span className="header-title">{title}</span>}
         <div className="header-end">
           <nav className="top-nav">
             <ul>

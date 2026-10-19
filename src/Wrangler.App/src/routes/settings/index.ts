@@ -3,4 +3,5 @@ import { Settings } from "./-components/Settings.tsx";
 
 export const Route = createFileRoute("/settings/")({
   component: Settings,
+  staticData: { title: "Repositories" },
 });

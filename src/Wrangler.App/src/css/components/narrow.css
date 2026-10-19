@@ -31,6 +31,26 @@
         }
     }
 
+    /* Filters button and the approve button share one line. */
+    .gates .controls,
+    .pull-requests .controls {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+
+        .actions {
+            margin-left: auto;
+
+            .btn {
+                width: auto;
+            }
+        }
+    }
+
+    .page-title {
+        display: none;
+    }
+
     .controls .views {
         justify-content: flex-end;
 

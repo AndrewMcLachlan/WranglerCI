@@ -232,11 +232,11 @@ export const Gates = () => {
 
   return (
     <article className="gates">
-      <h2>Deployment Gates</h2>
+      <h2 className="page-title">Deployment Gates</h2>
 
       <div className="controls">
         {isNarrow ? (
-          <NarrowFilters applied={appliedFilters} onClearAll={clearAllFilters}>
+          <NarrowFilters applied={appliedFilters} showApplied={false} onClearAll={clearAllFilters}>
             {gateCombos}
           </NarrowFilters>
         ) : (
