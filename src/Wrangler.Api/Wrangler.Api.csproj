@@ -8,8 +8,8 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
     <SpaRoot>..\Wrangler.App</SpaRoot>
-    <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
-    <SpaProxyServerUrl>http://localhost:3010</SpaProxyServerUrl>
+    <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
+    <SpaProxyServerUrl>https://localhost:3010</SpaProxyServerUrl>
     <AssemblyName>Asm.Wrangler.Api</AssemblyName>
     <RootNamespace>Asm.Wrangler.Api</RootNamespace>
     <InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>
@@ -20,7 +20,7 @@
     <OpenApiDocumentsDirectory>.</OpenApiDocumentsDirectory>
     <OpenApiGenerateDocumentsOptions>--file-name openapi-v1</OpenApiGenerateDocumentsOptions>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <InternalsVisibleTo Include="Asm.Wrangler.Tests" />
   </ItemGroup>
