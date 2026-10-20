@@ -19,9 +19,20 @@
     }
 }
 
+/* The hit area grows past the icon without adding to the row's height. */
 @media (max-width: 767px) {
     .gate-approve {
-        min-height: var(--touch-target);
+        position: relative;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: var(--touch-target);
+            height: var(--touch-target);
+            transform: translate(-50%, -50%);
+        }
     }
 }
 
