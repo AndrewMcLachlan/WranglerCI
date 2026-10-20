@@ -43,6 +43,7 @@
 
             .btn {
                 width: auto;
+                min-height: 0;
             }
         }
     }

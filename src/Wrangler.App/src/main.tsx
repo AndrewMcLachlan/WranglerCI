@@ -11,7 +11,7 @@ import { faArrowUpRightFromSquare, faBarsStaggered, faChevronRight, faCircleChec
 
 import { routeTree } from './routeTree.gen'
 import { Spinner } from "./components/Spinner"
-import { LinkProvider, ThemeProvider } from "@andrewmclachlan/moo-ds"
+import { LinkProvider, ThemeProvider, type Theme } from "@andrewmclachlan/moo-ds"
 import { NavLnk } from "./components/NavLink"
 import { client } from "./api/client.gen.ts"
 import { QUERY_DEFAULTS } from "./queryDefaults.ts"
@@ -54,10 +54,18 @@ startPersistingQueryCache(queryClient, localStorage);
 
 configureInterceptors();
 
+// The app's only theme. Its colour must equal the header's background: iOS fills
+// the status bar with it and ramps any difference down over the header.
+const wranglerTheme: Theme = { name: "Wrangler", theme: "dark", colour: "#08080D" };
+
+// Must run before the render: ThemeProvider prefers a stored theme, and one left
+// by moo-ds's defaults carries a colour the header doesn't have.
+localStorage.setItem("theme", JSON.stringify(wranglerTheme));
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <ThemeProvider themes={[wranglerTheme]} defaultTheme={wranglerTheme}>
         <LinkProvider LinkComponent={Link} NavLinkComponent={NavLnk}>
           <RouterProvider router={router} />
         </LinkProvider>

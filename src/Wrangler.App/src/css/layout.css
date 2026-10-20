@@ -22,14 +22,15 @@ html {
     position: sticky;
     top: 0;
     /* Above the sticky headings below it, which otherwise slide over it. */
-    z-index: 2;
+    z-index: 1000;
     display: flex;
     flex-direction: row;
     padding: 0.5rem 1.25rem;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgb(8, 8, 13);
+    /* Must equal wranglerTheme's colour: iOS ramps any difference down over the header. */
+    background: #08080D;
 }
 
 .header-title {
