@@ -407,7 +407,7 @@ export const PullRequests = () => {
 
   const includeCombo = (
     <ComboBox<TagOption>
-      className="filter-combo"
+      className="filter-combo tag-combo"
       placeholder="Include tags..."
       multiSelect
       clearable
@@ -425,7 +425,7 @@ export const PullRequests = () => {
 
   const excludeCombo = (
     <ComboBox<TagOption>
-      className="filter-combo"
+      className="filter-combo tag-combo"
       placeholder="Exclude tags..."
       multiSelect
       clearable
