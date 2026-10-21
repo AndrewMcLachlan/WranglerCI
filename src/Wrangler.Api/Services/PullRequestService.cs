@@ -1,6 +1,7 @@
 using Asm.Wrangler.Api.Models.PullRequests;
 using Asm.Wrangler.Api.Commands;
 using Asm.Wrangler.Api.Queries;
+using Asm.Wrangler.Api.Webhooks;
 using Microsoft.Extensions.Caching.Distributed;
 using Octokit;
 
@@ -30,8 +31,14 @@ public interface IPullRequestService
     Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequests request, CancellationToken cancellationToken);
 }
 
-internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache cache, ILogger<PullRequestService> logger) : GitHubService(cache, logger), IPullRequestService
+internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache cache, ICacheKeyService cacheKeyService, IRepoVersionService versions, ILogger<PullRequestService> logger) : GitHubService(cache, logger), IPullRequestService
 {
+    /// <summary>
+    /// How long a repo's pull requests are trusted without a webhook saying otherwise. Bounds how stale
+    /// a repo gets when its deliveries never arrive, and how late a base-branch push shows in Mergeable.
+    /// </summary>
+    internal static readonly TimeSpan PullRequestCacheLifetime = TimeSpan.FromMinutes(2);
+
     private readonly SemaphoreSlim _gate = new(8);
 
     public async Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequests request, CancellationToken cancellationToken)
@@ -129,6 +136,21 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
     }
 
     private async Task<IEnumerable<PullRequestModel>> GetRepoPullRequestsAsync(string owner, string repo, IReadOnlyList<string> authors, CancellationToken cancellationToken)
+    {
+        var pullsVersion = await versions.GetVersionAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
+        var checksVersion = await versions.GetVersionAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
+        var authorKey = String.Join(',', authors.Select(a => a.ToLowerInvariant()).Order());
+        var cacheKey = cacheKeyService.GetCacheKey($"gh:pulls:{owner}/{repo}:p{pullsVersion}:c{checksVersion}:{authorKey}");
+
+        var cached = await TryGetFromCache<PullRequestModel>(cacheKey, cancellationToken);
+        if (cached is not null) return cached;
+
+        var pullRequests = (await FetchRepoPullRequestsAsync(owner, repo, authors, cancellationToken)).ToList();
+        await TryCache(cacheKey, pullRequests, cancellationToken, PullRequestCacheLifetime);
+        return pullRequests;
+    }
+
+    private async Task<IEnumerable<PullRequestModel>> FetchRepoPullRequestsAsync(string owner, string repo, IReadOnlyList<string> authors, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken);
         try

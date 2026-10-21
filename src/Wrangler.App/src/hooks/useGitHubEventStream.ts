@@ -136,7 +136,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
 
       checkStatusTimers.set(key, setTimeout(() => {
         checkStatusTimers.delete(key);
-        queryClient.invalidateQueries({ queryKey: ["pullRequests"] });
+        // Must include inactive lists: otherwise the page opens on data from before the event.
+        queryClient.invalidateQueries({ queryKey: ["pullRequests"], refetchType: "all" });
       }, CHECK_STATUS_DEBOUNCE_MS));
     };
 
