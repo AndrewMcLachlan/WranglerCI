@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button, Modal } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { toast } from "react-toastify";
+import { summaryToast } from "../../../../utils/summaryToast";
 import { useGates } from "../../../gates/-hooks/useGates";
 import { useApproveGates } from "../../../gates/-hooks/useApproveGates";
 import { pendingGatesForRun } from "../../../../hooks/gateStatus";
@@ -27,12 +28,9 @@ export const GateApproval: React.FC<{ run: WorkflowRunModel }> = ({ run }) => {
 
   const { mutate: approveGates, isPending } = useApproveGates({
     onResults: (results) => {
-      for (const result of results) {
-        if (result.approved) {
-          toast.success(`${result.repositoryOwner}/${result.repositoryName} · ${result.environmentName}: Approved`);
-        } else {
-          toast.error(`${result.repositoryOwner}/${result.repositoryName} · ${result.environmentName}: ${result.error ?? "Failed"}`);
-        }
+      summaryToast(results.filter((result) => result.approved), (result) => `${result.repositoryOwner}/${result.repositoryName} · ${result.environmentName}: Approved`, "gates approved");
+      for (const result of results.filter((result) => !result.approved)) {
+        toast.error(`${result.repositoryOwner}/${result.repositoryName} · ${result.environmentName}: ${result.error ?? "Failed"}`);
       }
       setOpen(false);
     },
