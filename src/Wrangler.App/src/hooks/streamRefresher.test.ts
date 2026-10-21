@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { QueryClient, QueryObserver } from "@tanstack/react-query";
 import { QUERY_DEFAULTS } from "../queryDefaults";
-import { createPullRequestRefresher, offPageRefetchDelayMs, onPageRefetchDelayMs } from "./pullRequestRefresher";
+import { createStreamRefresher, offPageRefetchDelayMs, onPageRefetchDelayMs } from "./streamRefresher";
 
 const currentKey = ["pullRequests", "current"];
 const oldKey = ["pullRequests", "old-authors"];
@@ -20,16 +20,16 @@ const setup = () => {
   seed(oldKey, 1000);
   seed(currentKey, 2000);
   vi.setSystemTime(3000);
-  return { client, fetches, refresher: createPullRequestRefresher(client) };
+  return { client, fetches, refresher: createStreamRefresher(client, ["pullRequests"]) };
 };
 
-/** What the PR page does while it is mounted. */
+/** What the page does while it is mounted. */
 const openPage = (client: QueryClient, fetches: string[]) => {
   const observer = new QueryObserver(client, { queryKey: currentKey, queryFn: async () => { fetches.push("current"); return []; }, staleTime: Infinity });
   return observer.subscribe(() => { });
 };
 
-describe("createPullRequestRefresher", () => {
+describe("createStreamRefresher", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 

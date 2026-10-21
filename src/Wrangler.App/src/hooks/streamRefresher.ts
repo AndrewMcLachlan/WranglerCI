@@ -1,6 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
-
-const queryKey = ["pullRequests"];
+import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
 /** How soon the list refetches after an event while it is on screen. */
 export const onPageRefetchDelayMs = 2000;
@@ -9,13 +7,14 @@ export const onPageRefetchDelayMs = 2000;
 export const offPageRefetchDelayMs = 30_000;
 
 /**
- * Turns stream events into pull request list refetches. No event carries the
- * aggregate check status or mergeability, so only a refetch shows them.
+ * Turns stream events into refetches of a list the events can't patch, such as
+ * the pull requests (no event carries the aggregate check status or
+ * mergeability) or the gates (a new gate arrives with no gate in it).
  *
  * A burst of events costs one refetch, which fires a fixed delay after the
  * first event rather than after the last, so a busy repo cannot hold it off.
  */
-export const createPullRequestRefresher = (queryClient: QueryClient) => {
+export const createStreamRefresher = (queryClient: QueryClient, queryKey: QueryKey) => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let dueAt = 0;
 
@@ -25,7 +24,7 @@ export const createPullRequestRefresher = (queryClient: QueryClient) => {
     timer = undefined;
     const queries = queryClient.getQueryCache().findAll({ queryKey });
     const active = queries.filter((q) => q.isActive());
-    // Off the page, only the list you last looked at: the others are old author filters.
+    // Off the page, only the list you last looked at: the others are old filters.
     const targets = active.length > 0
       ? active
       : [...queries].sort((a, b) => b.state.dataUpdatedAt - a.state.dataUpdatedAt).slice(0, 1);
