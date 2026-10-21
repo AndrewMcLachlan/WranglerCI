@@ -51,6 +51,13 @@
     --badge-fg: #16181d;
 }
 
+/* Label chips use moo-ds's muted badge tint, as the labels in the list do;
+   its ComboBox has no muted option. */
+.tag-combo .item .badge {
+    background: light-dark(color-mix(in srgb, var(--badge-bg) 16%, #fff), color-mix(in srgb, var(--badge-bg) 25%, #000));
+    color: light-dark(color-mix(in srgb, var(--badge-bg) 78%, #000), color-mix(in srgb, var(--badge-bg) 45%, #fff));
+}
+
 /* Match the standard control height. The control hugs its pill content with
    a 240px floor — moo-ds keeps pills on one row and needs the first pill
    plus ~66px of "+N more" chip headroom before it shows any pill, so a fixed
