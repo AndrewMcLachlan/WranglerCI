@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { DateTime } from "luxon";
-import { toast } from "react-toastify";
+import { summaryToast } from "../../../utils/summaryToast";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
@@ -94,17 +94,11 @@ export const PullRequests = () => {
 
   const { mutate: approvePullRequests, isPending: isApproving } = useApprovePullRequests({
     onResults: (results) => {
-      const failures: ApprovalResult[] = [];
-      const mergedKeys = new Set<string>();
+      const merged = results.filter((result) => result.merged);
+      const failures = results.filter((result) => !result.merged);
+      const mergedKeys = new Set(merged.map((result) => prKey(result.repositoryOwner, result.repositoryName, result.pullRequestNumber)));
 
-      for (const result of results) {
-        if (result.merged) {
-          toast.success(`${result.repositoryOwner}/${result.repositoryName} #${result.pullRequestNumber}: Merged`);
-          mergedKeys.add(prKey(result.repositoryOwner, result.repositoryName, result.pullRequestNumber));
-        } else {
-          failures.push(result);
-        }
-      }
+      summaryToast(merged, (result) => `${result.repositoryOwner}/${result.repositoryName} #${result.pullRequestNumber}: Merged`, "pull requests merged");
 
       // Optimistically drop merged PRs from the cached list so the table
       // updates before the background refetch returns.

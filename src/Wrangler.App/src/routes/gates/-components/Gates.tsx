@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Alert, Badge, ComboBox, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime } from "luxon";
-import { toast } from "react-toastify";
+import { summaryToast } from "../../../utils/summaryToast";
 import { useGates } from "../-hooks/useGates";
 import { useApproveGates } from "../-hooks/useApproveGates";
 import { useGateEnvironmentFilter, useGateBranchFilter, useGateRepositoryFilter, useGateWorkflowFilter } from "../-hooks/useGateFilters";
@@ -34,14 +34,8 @@ export const Gates = () => {
 
   const { mutate: approveGates, isPending: isApproving } = useApproveGates({
     onResults: (results) => {
-      const failures: GateApprovalResult[] = [];
-      for (const result of results) {
-        if (result.approved) {
-          toast.success(`${result.repositoryOwner}/${result.repositoryName} · ${result.environmentName}: Approved`);
-        } else {
-          failures.push(result);
-        }
-      }
+      const failures = results.filter((result) => !result.approved);
+      summaryToast(results.filter((result) => result.approved), (result) => `${result.repositoryOwner}/${result.repositoryName} · ${result.environmentName}: Approved`, "gates approved");
       // Approved gates stop being "waiting" and drop out on the next refetch
       // (triggered by the mutation's query invalidation), so just clear the
       // selection and surface any failures.
