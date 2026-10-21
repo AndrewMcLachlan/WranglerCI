@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
 import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import { withoutGatesForRun } from "./gateStatus";
-import { createPullRequestRefresher } from "./pullRequestRefresher";
+import { createStreamRefresher } from "./streamRefresher";
 import { createReconnectTracker, createStreamWatchdog, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
 import type { DeploymentGateModel, PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
@@ -25,8 +25,6 @@ interface GitHubEvent {
   pullRequest?: PushedPullRequest;
 }
 
-const GATES_REFETCH_DEBOUNCE_MS = 2000;
-
 export const useGitHubEventStream = (enabled: boolean = true) => {
   const queryClient = useQueryClient();
   const [connection, setConnection] = useState(0);
@@ -38,7 +36,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     if (!enabled) return;
 
     const source = new EventSource("/api/events/stream", { withCredentials: true });
-    const pullRequests = createPullRequestRefresher(queryClient);
+    const pullRequests = createStreamRefresher(queryClient, ["pullRequests"]);
+    const gates = createStreamRefresher(queryClient, ["gates"]);
 
     // A connection that dies without erroring still reports OPEN, so silence is
     // the only evidence. Rebuilding is what recovers it: the reopened stream
@@ -122,12 +121,10 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     };
 
     // A run pausing at a gate sends no workflow_run, so a requested review is
-    // the only news of a new gate. A burst of them costs one refetch.
-    let gatesRefetchTimer: ReturnType<typeof setTimeout> | undefined;
+    // the only news of a new gate.
     const handleDeploymentReview = (evt: GitHubEvent) => {
       if (evt.action === "requested") {
-        clearTimeout(gatesRefetchTimer);
-        gatesRefetchTimer = setTimeout(() => queryClient.invalidateQueries({ queryKey: ["gates"] }), GATES_REFETCH_DEBOUNCE_MS);
+        gates.schedule();
         return;
       }
       if (evt.runId === undefined) return;
@@ -195,7 +192,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       source.removeEventListener("heartbeat", recordActivity);
       source.close();
       pullRequests.dispose();
-      clearTimeout(gatesRefetchTimer);
+      gates.dispose();
     };
   }, [enabled, queryClient, connection]);
 };
