@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
 import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import { withoutGatesForRun } from "./gateStatus";
+import { createPullRequestRefresher } from "./pullRequestRefresher";
 import { createReconnectTracker, createStreamWatchdog, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
 import type { DeploymentGateModel, PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
@@ -24,12 +25,6 @@ interface GitHubEvent {
   pullRequest?: PushedPullRequest;
 }
 
-// check_run/check_suite deliveries can't carry the PR's aggregate check
-// status (only the GitHub API fetch computes that), so they fall back to a
-// refetch of the PR list. Debounced per owner/repo so a burst of per-check
-// deliveries for the same repo collapses into a single refetch.
-const CHECK_STATUS_DEBOUNCE_MS = 2000;
-
 const GATES_REFETCH_DEBOUNCE_MS = 2000;
 
 export const useGitHubEventStream = (enabled: boolean = true) => {
@@ -43,7 +38,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     if (!enabled) return;
 
     const source = new EventSource("/api/events/stream", { withCredentials: true });
-    const checkStatusTimers = new Map<string, ReturnType<typeof setTimeout>>();
+    const pullRequests = createPullRequestRefresher(queryClient);
 
     // A connection that dies without erroring still reports OPEN, so silence is
     // the only evidence. Rebuilding is what recovers it: the reopened stream
@@ -97,9 +92,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     // The list only ever holds open PRs (server filters ItemStateFilter.Open):
     //  - non-open (merged/closed) -> remove it from every cached variant so it
     //    doesn't linger with a stale check badge;
-    //  - open + already cached -> merge metadata (checkStatus left untouched);
-    //  - open + not cached (newly opened) -> debounced list invalidation so it
-    //    appears, reusing the per-repo check-status timer (no per-event refetch).
+    //  - open -> merge the metadata if cached, and schedule a list refetch for
+    //    what the delivery can't carry (and for a PR the caches don't know yet).
     const handlePullRequest = (evt: GitHubEvent) => {
       const pushed = evt.pullRequest;
       if (!pushed) return;
@@ -109,6 +103,9 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
           data ? removePullRequest(data, pushed) : data);
         return;
       }
+
+      // The merge below shows the metadata at once; checks, conflicts and labels need the refetch.
+      pullRequests.schedule();
 
       const isCached = queryClient
         .getQueryCache()
@@ -121,24 +118,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       if (isCached) {
         queryClient.setQueriesData<PullRequestModel[]>({ queryKey: ["pullRequests"] }, (data) =>
           data ? mergePullRequest(data, pushed) : data);
-        return;
       }
-
-      // Newly opened PR the caches don't yet know about: fall back to a debounced
-      // list refetch so the aggregate checkStatus/mergeable/labels are computed.
-      scheduleCheckStatusRefetch(evt);
-    };
-
-    const scheduleCheckStatusRefetch = (evt: GitHubEvent) => {
-      const key = `${evt.owner}/${evt.repo}`;
-      const existing = checkStatusTimers.get(key);
-      if (existing) clearTimeout(existing);
-
-      checkStatusTimers.set(key, setTimeout(() => {
-        checkStatusTimers.delete(key);
-        // Must include inactive lists: otherwise the page opens on data from before the event.
-        queryClient.invalidateQueries({ queryKey: ["pullRequests"], refetchType: "all" });
-      }, CHECK_STATUS_DEBOUNCE_MS));
     };
 
     // A run pausing at a gate sends no workflow_run, so a requested review is
@@ -175,7 +155,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
           break;
         case "check_run":
         case "check_suite":
-          scheduleCheckStatusRefetch(parsed);
+          pullRequests.schedule();
           break;
         case "deployment_review":
           handleDeploymentReview(parsed);
@@ -214,9 +194,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       watchdog.stop();
       source.removeEventListener("heartbeat", recordActivity);
       source.close();
-      for (const timer of checkStatusTimers.values()) clearTimeout(timer);
+      pullRequests.dispose();
       clearTimeout(gatesRefetchTimer);
-      checkStatusTimers.clear();
     };
   }, [enabled, queryClient, connection]);
 };

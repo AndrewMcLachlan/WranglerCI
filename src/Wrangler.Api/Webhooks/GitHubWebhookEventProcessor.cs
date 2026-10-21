@@ -33,6 +33,8 @@ internal sealed class GitHubWebhookEventProcessor(
         PullRequestAction.Synchronize,
         PullRequestAction.Edited,
         PullRequestAction.ReadyForReview,
+        PullRequestAction.Labeled,
+        PullRequestAction.Unlabeled,
     ];
 
     /// <summary>
