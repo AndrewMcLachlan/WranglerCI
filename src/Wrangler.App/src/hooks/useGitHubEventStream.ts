@@ -152,6 +152,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
           break;
         case "check_run":
         case "check_suite":
+        case "pull_request_review":
           pullRequests.schedule();
           break;
         case "deployment_review":
@@ -179,7 +180,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       }
     };
 
-    for (const type of ["workflow_run", "check_run", "check_suite", "pull_request", "deployment_review"]) {
+    for (const type of ["workflow_run", "check_run", "check_suite", "pull_request", "pull_request_review", "deployment_review"]) {
       source.addEventListener(type, handle);
     }
 
