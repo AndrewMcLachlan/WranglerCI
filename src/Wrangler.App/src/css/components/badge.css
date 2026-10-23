@@ -45,4 +45,46 @@
   &.branch {
     --badge-fg: cornflowerblue;
   }
+
+  /* Merge blockers: one colour per issue. */
+  &.blocker-conflict {
+    --badge-bg: rgba(255, 0, 0, 0.12);
+    --badge-fg: #ff6b6b;
+  }
+
+  &.blocker-behind {
+    --badge-bg: rgba(240, 136, 62, 0.14);
+    --badge-fg: #f0883e;
+  }
+
+  &.blocker-changes-requested {
+    --badge-bg: rgba(229, 111, 177, 0.14);
+    --badge-fg: #e56fb1;
+  }
+
+  &.blocker-needs-review {
+    --badge-bg: rgba(185, 140, 240, 0.14);
+    --badge-fg: #b98cf0;
+  }
+
+  &.blocker-unresolved {
+    --badge-bg: rgba(255, 191, 0, 0.12);
+    --badge-fg: #e8c44a;
+  }
+
+  &.blocker-draft {
+    --badge-bg: rgba(158, 163, 168, 0.14);
+    --badge-fg: #9ea3a8;
+  }
+
+  &.blocker-blocked {
+    --badge-bg: rgba(63, 193, 201, 0.14);
+    --badge-fg: #3fc1c9;
+  }
+
+  /* Shown for information: it isn't what stops the merge. */
+  &.advisory {
+    --badge-bg: transparent;
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
 }
