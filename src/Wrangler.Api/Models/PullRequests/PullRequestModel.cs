@@ -89,6 +89,12 @@ public record PullRequestModel
     public bool? Mergeable { get; init; }
 
     /// <summary>
+    /// The number of review conversations not yet resolved, which block merge where the branch requires conversation resolution.
+    /// <c>null</c> when GitHub could not report them.
+    /// </summary>
+    public int? UnresolvedThreads { get; init; }
+
+    /// <summary>
     /// The labels applied to the pull request, in the order GitHub returns them.
     /// </summary>
     public IReadOnlyList<PullRequestLabel> Labels { get; init; } = [];

@@ -3,6 +3,7 @@ import { DateTime } from "luxon";
 import { RowCard } from "../../../components/RowCard";
 import { ScrollRestoredList } from "../../../components/ScrollRestoredList";
 import { CheckStatusBadge } from "./CheckStatusBadge";
+import { UnresolvedThreadsBadge } from "./UnresolvedThreadsBadge";
 import { canApprove } from "./PullRequests";
 import type { PullRequestModel } from "../../../api";
 
@@ -62,6 +63,7 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
             <>
               <CheckStatusBadge status={pr.checkStatus} />
               {pr.mergeable === false && <Badge className="red">Conflict</Badge>}
+              <UnresolvedThreadsBadge count={pr.unresolvedThreads} />
               {pr.labels?.map((label) => (
                 <Badge key={label.name} className="pr-label" pill muted colour={`#${label.color}`}>
                   {label.name}

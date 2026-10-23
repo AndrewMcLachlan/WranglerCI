@@ -150,6 +150,7 @@ export type PullRequestModel = {
     updatedAt: string;
     checkStatus: CheckStatus;
     mergeable?: null | boolean;
+    unresolvedThreads?: null | number | string;
     labels?: Array<PullRequestLabel>;
 };
 

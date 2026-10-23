@@ -8,6 +8,8 @@ using Octokit.Webhooks.Events.DeploymentReview;
 using Octokit.Webhooks.Events.Installation;
 using Octokit.Webhooks.Events.InstallationRepositories;
 using Octokit.Webhooks.Events.PullRequest;
+using Octokit.Webhooks.Events.PullRequestReviewComment;
+using Octokit.Webhooks.Events.PullRequestReviewThread;
 using Octokit.Webhooks.Events.WorkflowRun;
 
 namespace Asm.Wrangler.Api.Webhooks;
@@ -91,6 +93,24 @@ internal sealed class GitHubWebhookEventProcessor(
                 : null;
             Broadcast("pull_request", owner, repo, headers, pullRequestNumber: (int)pullRequestEvent.PullRequest.Number, pullRequest: pullRequest);
         }
+    }
+
+    protected override async ValueTask ProcessPullRequestReviewThreadWebhookAsync(WebhookHeaders headers, PullRequestReviewThreadEvent pullRequestReviewThreadEvent, PullRequestReviewThreadAction action, CancellationToken cancellationToken = default)
+    {
+        if (!await ClaimAsync(headers, cancellationToken)) return;
+        var (owner, repo) = RepoOf(pullRequestReviewThreadEvent.Repository);
+        logger.LogInformation("pull_request_review_thread.{Action} {Owner}/{Repo} #{Number}", action, owner, repo, pullRequestReviewThreadEvent.PullRequest.Number);
+        await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
+        Broadcast("pull_request_review", owner, repo, headers, pullRequestNumber: (int)pullRequestReviewThreadEvent.PullRequest.Number);
+    }
+
+    protected override async ValueTask ProcessPullRequestReviewCommentWebhookAsync(WebhookHeaders headers, PullRequestReviewCommentEvent pullRequestReviewCommentEvent, PullRequestReviewCommentAction action, CancellationToken cancellationToken = default)
+    {
+        if (!await ClaimAsync(headers, cancellationToken)) return;
+        var (owner, repo) = RepoOf(pullRequestReviewCommentEvent.Repository);
+        logger.LogInformation("pull_request_review_comment.{Action} {Owner}/{Repo} #{Number}", action, owner, repo, pullRequestReviewCommentEvent.PullRequest.Number);
+        await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
+        Broadcast("pull_request_review", owner, repo, headers, pullRequestNumber: (int)pullRequestReviewCommentEvent.PullRequest.Number);
     }
 
     protected override async ValueTask ProcessCheckRunWebhookAsync(WebhookHeaders headers, CheckRunEvent checkRunEvent, CheckRunAction action, CancellationToken cancellationToken = default)

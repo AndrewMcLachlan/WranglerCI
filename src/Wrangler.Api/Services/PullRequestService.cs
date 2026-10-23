@@ -1,5 +1,6 @@
 using Asm.Wrangler.Api.Models.PullRequests;
 using Asm.Wrangler.Api.Commands;
+using Asm.Wrangler.Api.GraphQL;
 using Asm.Wrangler.Api.Queries;
 using Asm.Wrangler.Api.Webhooks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -38,6 +39,8 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
     /// a repo gets when its deliveries never arrive, and how late a base-branch push shows in Mergeable.
     /// </summary>
     internal static readonly TimeSpan PullRequestCacheLifetime = TimeSpan.FromMinutes(2);
+
+    private static readonly Uri GraphQLUri = new("graphql", UriKind.Relative);
 
     private readonly SemaphoreSlim _gate = new(8);
 
@@ -159,6 +162,9 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             var prs = await OctoCall(() => gitHubClient.PullRequest.GetAllForRepository(owner, repo, new PullRequestRequest { State = ItemStateFilter.Open }), cancellationToken);
 
             var filtered = prs.Where(pr => authors.Any(a => String.Equals(a, pr.User.Login, StringComparison.OrdinalIgnoreCase))).ToList();
+            if (filtered.Count == 0) return [];
+
+            var unresolvedTask = GetUnresolvedThreadsAsync(owner, repo, cancellationToken);
 
             // Fan out the per-PR API calls. Each task makes up to three calls
             // (combined commit status, check runs, PR detail) in parallel. The
@@ -173,7 +179,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                 var checkStatusTask = GetCheckStatusAsync(owner, repo, pr.Head.Sha, cancellationToken);
                 var detailTask = OctoCall(() => gitHubClient.PullRequest.Get(owner, repo, pr.Number), cancellationToken);
 
-                await Task.WhenAll(checkStatusTask, detailTask);
+                await Task.WhenAll(checkStatusTask, detailTask, unresolvedTask);
 
                 return new PullRequestModel
                 {
@@ -191,6 +197,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     UpdatedAt = pr.UpdatedAt,
                     CheckStatus = checkStatusTask.Result,
                     Mergeable = detailTask.Result.Mergeable,
+                    UnresolvedThreads = unresolvedTask.Result.TryGetValue(pr.Number, out var unresolved) ? unresolved : null,
                     Labels = [.. pr.Labels.Select(l => new PullRequestLabel { Name = l.Name, Color = l.Color })],
                 };
             });
@@ -200,6 +207,21 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         finally
         {
             _gate.Release();
+        }
+    }
+
+    private async Task<IReadOnlyDictionary<int, int>> GetUnresolvedThreadsAsync(string owner, string repo, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var body = new { query = ReviewThreadsResponse.Query, variables = new Dictionary<string, string> { ["owner"] = owner, ["name"] = repo } };
+            var response = await OctoCall(() => gitHubClient.Connection.Post<ReviewThreadsResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
+            return response.Body?.UnresolvedByNumber() ?? new Dictionary<int, int>();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not read review threads for {Owner}/{Repo}", owner, repo);
+            return new Dictionary<int, int>();
         }
     }
 

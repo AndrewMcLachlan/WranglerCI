@@ -18,6 +18,7 @@ import { CheckStatusBadge } from "./CheckStatusBadge";
 import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
 import { useIsNarrow } from "../../../hooks/useIsNarrow";
 import { PullRequestCards } from "./PullRequestCards";
+import { UnresolvedThreadsBadge } from "./UnresolvedThreadsBadge";
 import { NarrowFilters, type AppliedFilter } from "../../../components/filters/NarrowFilters";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
@@ -292,6 +293,7 @@ export const PullRequests = () => {
         <>
           <CheckStatusBadge status={row.checkStatus} />
           {row.mergeable === false && <Badge className="red">Conflict</Badge>}
+          <UnresolvedThreadsBadge count={row.unresolvedThreads} />
         </>
       ),
       enableSorting: true,
