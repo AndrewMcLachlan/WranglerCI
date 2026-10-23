@@ -3,8 +3,8 @@ import { DateTime } from "luxon";
 import { RowCard } from "../../../components/RowCard";
 import { ScrollRestoredList } from "../../../components/ScrollRestoredList";
 import { CheckStatusBadge } from "./CheckStatusBadge";
-import { UnresolvedThreadsBadge } from "./UnresolvedThreadsBadge";
-import { canApprove } from "./PullRequests";
+import { MergeBlockerBadges } from "./MergeBlockerBadges";
+import { canMerge } from "./PullRequests";
 import type { PullRequestModel } from "../../../api";
 
 interface PullRequestCardsProps {
@@ -38,10 +38,10 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
           key={`${pr.repositoryOwner}/${pr.repositoryName}#${pr.number}`}
           actions={[
             {
-              key: "approve",
-              label: "Approve",
+              key: "merge",
+              label: "Merge",
               variant: "primary",
-              disabled: !canApprove(pr) || disabled,
+              disabled: !canMerge(pr) || disabled,
               onAction: () => onApprove(pr),
             },
             {
@@ -54,7 +54,7 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
         <RowCard
           onSelect={() => onToggle(pr)}
           selected={selected.has(pr.number)}
-          selectDisabled={!canApprove(pr) || disabled}
+          selectDisabled={!canMerge(pr) || disabled}
           selectLabel={`Select pull request ${pr.number}`}
           title={pr.title}
           href={pr.htmlUrl!}
@@ -62,8 +62,7 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
           meta={
             <>
               <CheckStatusBadge status={pr.checkStatus} />
-              {pr.mergeable === false && <Badge className="red">Conflict</Badge>}
-              <UnresolvedThreadsBadge count={pr.unresolvedThreads} />
+              <MergeBlockerBadges pullRequest={pr} />
               {pr.labels?.map((label) => (
                 <Badge key={label.name} className="pr-label" pill muted colour={`#${label.color}`}>
                   {label.name}

@@ -83,16 +83,27 @@ public record PullRequestModel
     public required CheckStatus CheckStatus { get; init; }
 
     /// <summary>
-    /// Whether the pull request can be cleanly merged.
-    /// <c>null</c> when GitHub has not yet computed mergeability.
-    /// </summary>
-    public bool? Mergeable { get; init; }
-
-    /// <summary>
     /// The number of review conversations not yet resolved, which block merge where the branch requires conversation resolution.
     /// <c>null</c> when GitHub could not report them.
     /// </summary>
     public int? UnresolvedThreads { get; init; }
+
+    /// <summary>
+    /// Where the pull request stands against the branch's review requirements.
+    /// <c>null</c> when no review is required, or GitHub could not report it.
+    /// </summary>
+    public ReviewDecision? ReviewDecision { get; init; }
+
+    /// <summary>
+    /// GitHub's view of whether the pull request can be merged now.
+    /// <c>null</c> when GitHub could not report it.
+    /// </summary>
+    public MergeState? MergeState { get; init; }
+
+    /// <summary>
+    /// What stops Wrangler merging the pull request for the current user. Empty when nothing does, or GitHub could not report it.
+    /// </summary>
+    public IReadOnlyList<MergeBlocker> Blockers { get; init; } = [];
 
     /// <summary>
     /// The labels applied to the pull request, in the order GitHub returns them.

@@ -18,11 +18,11 @@ import { CheckStatusBadge } from "./CheckStatusBadge";
 import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
 import { useIsNarrow } from "../../../hooks/useIsNarrow";
 import { PullRequestCards } from "./PullRequestCards";
-import { UnresolvedThreadsBadge } from "./UnresolvedThreadsBadge";
+import { MergeBlockerBadges, unresolvedCount } from "./MergeBlockerBadges";
 import { NarrowFilters, type AppliedFilter } from "../../../components/filters/NarrowFilters";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
-export const canApprove = (pr: PullRequestModel) => pr.checkStatus === "Success" && pr.mergeable !== false;
+export const canMerge = (pr: PullRequestModel) => pr.checkStatus === "Success" && (pr.blockers ?? []).length === 0;
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
@@ -166,10 +166,10 @@ export const PullRequests = () => {
     }),
     [pullRequests, statusSet, includeSet, excludeSet],
   );
-  const approvable = visiblePullRequests.filter(canApprove);
+  const approvable = visiblePullRequests.filter(canMerge);
 
   const toggleSelection = (pr: PullRequestModel) => {
-    if (!canApprove(pr) || isApproving) return;
+    if (!canMerge(pr) || isApproving) return;
     setSelected(prev => {
       const next = new Set(prev);
       if (next.has(pr.number)) {
@@ -247,7 +247,7 @@ export const PullRequests = () => {
     {
       id: "select",
       header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0 || isApproving} />,
-      cell: ({ row }) => <input type="checkbox" checked={selected.has(row.number)} onChange={() => toggleSelection(row)} disabled={!canApprove(row) || isApproving} />,
+      cell: ({ row }) => <input type="checkbox" checked={selected.has(row.number)} onChange={() => toggleSelection(row)} disabled={!canMerge(row) || isApproving} />,
       enableSorting: false,
     },
     {
@@ -289,12 +289,17 @@ export const PullRequests = () => {
     {
       field: "checkStatus",
       header: "Status",
+      cell: ({ row }) => <CheckStatusBadge status={row.checkStatus} />,
+      enableSorting: true,
+    },
+    {
+      field: (pr) => (pr.blockers ?? []).length + unresolvedCount(pr),
+      id: "blockers",
+      header: "Blockers",
       cell: ({ row }) => (
-        <>
-          <CheckStatusBadge status={row.checkStatus} />
-          {row.mergeable === false && <Badge className="red">Conflict</Badge>}
-          <UnresolvedThreadsBadge count={row.unresolvedThreads} />
-        </>
+        <span className="pr-blockers">
+          <MergeBlockerBadges pullRequest={row} />
+        </span>
       ),
       enableSorting: true,
     },
@@ -462,8 +467,8 @@ export const PullRequests = () => {
           </div>
         )}
         <div className="actions">
-          <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving}>
-            {isApproving ? "Approving..." : "Approve & Merge Selected"}
+          <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving} title="Approves each first where your review is needed">
+            {isApproving ? "Merging..." : "Merge Selected"}
           </button>
         </div>
       </div>
@@ -476,7 +481,7 @@ export const PullRequests = () => {
           onClose={() => setAlerts(prev => prev.filter(a => a !== result))}
         >
           {result.repositoryOwner}/{result.repositoryName} #{result.pullRequestNumber}:
-          {result.approved ? " Approved (merge failed)" : " Failed"}
+          {result.approved ? " Merge failed" : " Approval failed"}
           {result.error && <span> - {result.error}</span>}
         </Alert>
       ))}

@@ -1,3 +1,4 @@
+using Asm.Wrangler.Api.Authentication;
 using Asm.Wrangler.Api.Models.PullRequests;
 using Asm.Wrangler.Api.Commands;
 using Asm.Wrangler.Api.GraphQL;
@@ -24,7 +25,7 @@ public interface IPullRequestService
     Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequests request, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Approves and merges the specified pull requests.
+    /// Merges the specified pull requests, approving each first where the current user's approval is needed and allowed.
     /// </summary>
     /// <param name="request">The pull requests to approve and merge.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
@@ -32,11 +33,11 @@ public interface IPullRequestService
     Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequests request, CancellationToken cancellationToken);
 }
 
-internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache cache, ICacheKeyService cacheKeyService, IRepoVersionService versions, ILogger<PullRequestService> logger) : GitHubService(cache, logger), IPullRequestService
+internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache cache, ICacheKeyService cacheKeyService, IRepoVersionService versions, IHttpContextAccessor httpContextAccessor, ILogger<PullRequestService> logger) : GitHubService(cache, logger), IPullRequestService
 {
     /// <summary>
     /// How long a repo's pull requests are trusted without a webhook saying otherwise. Bounds how stale
-    /// a repo gets when its deliveries never arrive, and how late a base-branch push shows in Mergeable.
+    /// a repo gets when its deliveries never arrive, and how late a base-branch push shows in MergeState.
     /// </summary>
     internal static readonly TimeSpan PullRequestCacheLifetime = TimeSpan.FromMinutes(2);
 
@@ -164,10 +165,11 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             var filtered = prs.Where(pr => authors.Any(a => String.Equals(a, pr.User.Login, StringComparison.OrdinalIgnoreCase))).ToList();
             if (filtered.Count == 0) return [];
 
-            var unresolvedTask = GetUnresolvedThreadsAsync(owner, repo, cancellationToken);
+            var statusesTask = GetPullRequestStatusesAsync(owner, repo, cancellationToken);
+            var viewer = httpContextAccessor.HttpContext?.Session.GetString(SessionKeys.User);
 
-            // Fan out the per-PR API calls. Each task makes up to three calls
-            // (combined commit status, check runs, PR detail) in parallel. The
+            // Fan out the per-PR API calls. Each task makes two calls
+            // (combined commit status, check runs) in parallel. The
             // previous loop awaited each PR before starting the next, so wall
             // clock was O(N * round-trip); now it's bounded by the slowest
             // single PR. OctoCall already retries on abuse / secondary rate
@@ -177,9 +179,11 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                 await Jitter(cancellationToken);
 
                 var checkStatusTask = GetCheckStatusAsync(owner, repo, pr.Head.Sha, cancellationToken);
-                var detailTask = OctoCall(() => gitHubClient.PullRequest.Get(owner, repo, pr.Number), cancellationToken);
 
-                await Task.WhenAll(checkStatusTask, detailTask, unresolvedTask);
+                await Task.WhenAll(checkStatusTask, statusesTask);
+
+                var status = statusesTask.Result.GetValueOrDefault(pr.Number);
+                var isOwn = String.Equals(pr.User.Login, viewer, StringComparison.OrdinalIgnoreCase);
 
                 return new PullRequestModel
                 {
@@ -196,8 +200,10 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     CreatedAt = pr.CreatedAt,
                     UpdatedAt = pr.UpdatedAt,
                     CheckStatus = checkStatusTask.Result,
-                    Mergeable = detailTask.Result.Mergeable,
-                    UnresolvedThreads = unresolvedTask.Result.TryGetValue(pr.Number, out var unresolved) ? unresolved : null,
+                    UnresolvedThreads = status?.UnresolvedThreads,
+                    ReviewDecision = status?.ReviewDecision,
+                    MergeState = status?.MergeState,
+                    Blockers = status is null ? [] : MergeBlockers.For(status.MergeState, status.ReviewDecision, status.UnresolvedThreads, isOwn),
                     Labels = [.. pr.Labels.Select(l => new PullRequestLabel { Name = l.Name, Color = l.Color })],
                 };
             });
@@ -210,19 +216,31 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         }
     }
 
-    private async Task<IReadOnlyDictionary<int, int>> GetUnresolvedThreadsAsync(string owner, string repo, CancellationToken cancellationToken)
+    private async Task<IReadOnlyDictionary<int, PullRequestStatus>> GetPullRequestStatusesAsync(string owner, string repo, CancellationToken cancellationToken)
     {
         try
         {
-            var body = new { query = ReviewThreadsResponse.Query, variables = new Dictionary<string, string> { ["owner"] = owner, ["name"] = repo } };
-            var response = await OctoCall(() => gitHubClient.Connection.Post<ReviewThreadsResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
-            return response.Body?.UnresolvedByNumber() ?? new Dictionary<int, int>();
+            var body = new { query = PullRequestStatusResponse.Query, variables = new Dictionary<string, object> { ["owner"] = owner, ["name"] = repo } };
+            var response = await OctoCall(() => gitHubClient.Connection.Post<PullRequestStatusResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
+            return response.Body?.ByNumber() ?? new Dictionary<int, PullRequestStatus>();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            logger.LogWarning(ex, "Could not read review threads for {Owner}/{Repo}", owner, repo);
-            return new Dictionary<int, int>();
+            logger.LogWarning(ex, "Could not read pull request statuses for {Owner}/{Repo}", owner, repo);
+            return new Dictionary<int, PullRequestStatus>();
         }
+    }
+
+    private async Task<bool> NeedsApprovalAsync(string owner, string repo, int number, CancellationToken cancellationToken)
+    {
+        var body = new { query = MergeContextResponse.Query, variables = new Dictionary<string, object> { ["owner"] = owner, ["name"] = repo, ["number"] = number } };
+        var response = await OctoCall(() => gitHubClient.Connection.Post<MergeContextResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
+        var pullRequest = response.Body?.Data?.Repository?.PullRequest;
+
+        var viewer = httpContextAccessor.HttpContext?.Session.GetString(SessionKeys.User);
+        var isOwn = String.Equals(pullRequest?.Author?.Login, viewer, StringComparison.OrdinalIgnoreCase);
+
+        return MergeBlockers.NeedsApproval(pullRequest?.ToStatus().ReviewDecision, isOwn);
     }
 
     private async Task<CheckStatus> GetCheckStatusAsync(string owner, string repo, string sha, CancellationToken cancellationToken)
@@ -285,10 +303,13 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
 
             try
             {
-                await OctoCall(() => gitHubClient.PullRequest.Review.Create(owner, repo, number, new PullRequestReviewCreate
+                if (await NeedsApprovalAsync(owner, repo, number, cancellationToken))
                 {
-                    Event = PullRequestReviewEvent.Approve,
-                }), cancellationToken);
+                    await OctoCall(() => gitHubClient.PullRequest.Review.Create(owner, repo, number, new PullRequestReviewCreate
+                    {
+                        Event = PullRequestReviewEvent.Approve,
+                    }), cancellationToken);
+                }
             }
             catch (Exception ex)
             {

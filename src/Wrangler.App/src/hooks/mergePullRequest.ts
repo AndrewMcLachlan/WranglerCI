@@ -3,7 +3,7 @@ import type { PullRequestModel } from "../api";
 // The metadata a pull_request webhook delivery carries, mirroring the backend's
 // PullRequestEventData record (camelCase over the wire). Deliberately narrower
 // than PullRequestModel: the webhook payload has no aggregate check status,
-// mergeable flag, or labels, so those fields are never touched by a merge.
+// merge blockers, or labels, so those fields are never touched by a merge.
 export interface PushedPullRequest {
   id: number;
   number: number;
@@ -35,11 +35,11 @@ export const isSamePullRequest = (pr: PullRequestModel, pushed: PushedPullReques
 // so the PR table can reflect a live SSE update without a GitHub refetch.
 // Matches the cached PR by id first, falling back to number + repository
 // (owner/name) since PullRequestModel's id/number are typed `number | string`
-// while the webhook always sends numbers. checkStatus (and mergeable, labels)
+// while the webhook always sends numbers. checkStatus (and blockers, labels)
 // are never in the pull_request webhook payload — that status only comes from
 // check_run/check_suite events — so those fields are always left untouched.
 // A PR that isn't already cached is ignored (no insert): inserting would need
-// checkStatus/mergeable/labels that only the GitHub API fetch computes.
+// checkStatus/blockers/labels that only the GitHub API fetch computes.
 export const mergePullRequest = (
   prs: PullRequestModel[],
   pushed: PushedPullRequest,

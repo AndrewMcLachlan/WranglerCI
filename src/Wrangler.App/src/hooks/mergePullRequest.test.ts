@@ -16,7 +16,7 @@ const makePr = (overrides: Partial<PullRequestModel> = {}): PullRequestModel => 
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-01T00:00:00Z",
   checkStatus: "Pending",
-  mergeable: true,
+  blockers: [],
   labels: [{ name: "bug", color: "ff0000" }],
   ...overrides,
 });
@@ -72,14 +72,14 @@ describe("mergePullRequest", () => {
     });
   });
 
-  it("keeps checkStatus, mergeable and labels untouched", () => {
-    const prs = [makePr({ checkStatus: "Failure", mergeable: false, labels: [{ name: "urgent", color: "0000ff" }] })];
+  it("keeps checkStatus, blockers and labels untouched", () => {
+    const prs = [makePr({ checkStatus: "Failure", blockers: ["Conflict"], labels: [{ name: "urgent", color: "0000ff" }] })];
     const pushed = makePushed();
 
     const result = mergePullRequest(prs, pushed);
 
     expect(result[0].checkStatus).toBe("Failure");
-    expect(result[0].mergeable).toBe(false);
+    expect(result[0].blockers).toEqual(["Conflict"]);
     expect(result[0].labels).toEqual([{ name: "urgent", color: "0000ff" }]);
   });
 
