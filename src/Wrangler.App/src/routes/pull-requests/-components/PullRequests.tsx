@@ -289,12 +289,18 @@ export const PullRequests = () => {
     {
       field: "checkStatus",
       header: "Status",
+      cell: ({ row }) => <CheckStatusBadge status={row.checkStatus} />,
+      enableSorting: true,
+    },
+    {
+      field: (pr) => (pr.mergeable === false ? 1 : 0) + Number(pr.unresolvedThreads ?? 0),
+      id: "blockers",
+      header: "Blockers",
       cell: ({ row }) => (
-        <>
-          <CheckStatusBadge status={row.checkStatus} />
+        <span className="pr-blockers">
           {row.mergeable === false && <Badge className="red">Conflict</Badge>}
           <UnresolvedThreadsBadge count={row.unresolvedThreads} />
-        </>
+        </span>
       ),
       enableSorting: true,
     },

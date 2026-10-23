@@ -48,6 +48,12 @@
         }
     }
 
+    .pr-blockers {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+
     .pr-labels {
         display: inline-flex;
         flex-wrap: wrap;
