@@ -168,7 +168,7 @@ internal class GateService(IGitHubClient gitHubClient, IDistributedCache cache, 
                     WorkflowRunId = group.RunId,
                     EnvironmentName = g.EnvironmentName,
                     Approved = false,
-                    Error = ex.Message,
+                    Error = GitHubErrors.Describe(ex),
                 }).ToList();
             }
         }
