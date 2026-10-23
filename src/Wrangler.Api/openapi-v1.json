@@ -899,6 +899,30 @@
           }
         }
       },
+      "MergeBlocker": {
+        "enum": [
+          "Draft",
+          "Conflict",
+          "Behind",
+          "ChangesRequested",
+          "NeedsReview",
+          "UnresolvedConversations",
+          "Blocked"
+        ]
+      },
+      "MergeState": {
+        "enum": [
+          "Behind",
+          "Blocked",
+          "Clean",
+          "Dirty",
+          "Draft",
+          "HasHooks",
+          "Unknown",
+          "Unstable",
+          null
+        ]
+      },
       "Plan": {
         "type": "object",
         "properties": {
@@ -1040,12 +1064,6 @@
           "checkStatus": {
             "$ref": "#/components/schemas/CheckStatus"
           },
-          "mergeable": {
-            "type": [
-              "null",
-              "boolean"
-            ]
-          },
           "unresolvedThreads": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
             "type": [
@@ -1054,6 +1072,32 @@
               "string"
             ],
             "format": "int32"
+          },
+          "reviewDecision": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewDecision"
+              }
+            ]
+          },
+          "mergeState": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MergeState"
+              }
+            ]
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MergeBlocker"
+            }
           },
           "labels": {
             "type": "array",
@@ -1475,6 +1519,14 @@
             }
           }
         }
+      },
+      "ReviewDecision": {
+        "enum": [
+          "Approved",
+          "ChangesRequested",
+          "ReviewRequired",
+          null
+        ]
       },
       "SecretScanning": {
         "type": "object",

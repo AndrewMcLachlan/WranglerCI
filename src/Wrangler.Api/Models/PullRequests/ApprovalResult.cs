@@ -1,7 +1,7 @@
 namespace Asm.Wrangler.Api.Models.PullRequests;
 
 /// <summary>
-/// The result of an approve-and-merge operation for a single pull request.
+/// The result of merging a single pull request, approving it first where needed.
 /// </summary>
 public record ApprovalResult
 {
@@ -21,7 +21,7 @@ public record ApprovalResult
     public required int PullRequestNumber { get; init; }
 
     /// <summary>
-    /// Whether the pull request was successfully approved.
+    /// Whether the pull request was successfully approved, or needed no approval from the current user.
     /// </summary>
     public required bool Approved { get; init; }
 

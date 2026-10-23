@@ -120,6 +120,10 @@ export type LicenseMetadata = {
     featured?: boolean;
 };
 
+export type MergeBlocker = 'Draft' | 'Conflict' | 'Behind' | 'ChangesRequested' | 'NeedsReview' | 'UnresolvedConversations' | 'Blocked';
+
+export type MergeState = 'Behind' | 'Blocked' | 'Clean' | 'Dirty' | 'Draft' | 'HasHooks' | 'Unknown' | 'Unstable';
+
 export type Plan = {
     collaborators?: number | string;
     name?: null | string;
@@ -149,8 +153,10 @@ export type PullRequestModel = {
     createdAt: string;
     updatedAt: string;
     checkStatus: CheckStatus;
-    mergeable?: null | boolean;
     unresolvedThreads?: null | number | string;
+    reviewDecision?: null | ReviewDecision;
+    mergeState?: null | MergeState;
+    blockers?: Array<MergeBlocker>;
     labels?: Array<PullRequestLabel>;
 };
 
@@ -247,6 +253,8 @@ export type RepositoryWorkflowRequest = {
     name: string;
     workflows?: Array<number | string>;
 };
+
+export type ReviewDecision = 'Approved' | 'ChangesRequested' | 'ReviewRequired';
 
 export type SecretScanning = {
     status?: null | string;

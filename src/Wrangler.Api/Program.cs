@@ -237,6 +237,9 @@ static void AddServices(WebApplicationBuilder builder)
     {
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<WorkflowStatus>());
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.PullRequests.CheckStatus>());
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.PullRequests.ReviewDecision>());
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.PullRequests.MergeState>());
+        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.PullRequests.MergeBlocker>());
         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter<Asm.Wrangler.Api.Models.Attention.AttentionItemType>());
     });
 }
