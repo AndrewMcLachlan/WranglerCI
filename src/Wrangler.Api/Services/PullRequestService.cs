@@ -81,7 +81,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                         PullRequestNumber = pr.Number,
                         Approved = false,
                         Merged = false,
-                        Error = $"Could not determine allowed merge methods: {ex.Message}",
+                        Error = $"Could not determine allowed merge methods: {GitHubErrors.Describe(ex)}",
                     });
                 }
                 return results;
@@ -320,7 +320,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     PullRequestNumber = number,
                     Approved = false,
                     Merged = false,
-                    Error = $"Approval failed: {ex.Message}",
+                    Error = GitHubErrors.Describe(ex),
                 };
             }
 
@@ -337,7 +337,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     PullRequestNumber = number,
                     Approved = true,
                     Merged = false,
-                    Error = $"Merge failed: {ex.Message}",
+                    Error = GitHubErrors.Describe(ex),
                 };
             }
 
