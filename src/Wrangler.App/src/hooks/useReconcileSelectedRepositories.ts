@@ -8,8 +8,8 @@ import { pruneSelectedRepositories, type AvailableRepository } from "../routes/s
 // duplicate items across the dashboard, PRs, and Attention) or one the user lost
 // access to. Runs once the live repo list has loaded *successfully*, so a
 // transient fetch failure can never wrongly drop a still-valid selection.
-export const useReconcileSelectedRepositories = () => {
-  const { data: available, isSuccess } = useRepositories();
+export const useReconcileSelectedRepositories = (enabled: boolean = true) => {
+  const { data: available, isSuccess } = useRepositories(enabled);
   const { data: selected } = useSelectedRepositories();
   const { mutate: updateSelected } = useUpdateSelectedRepositories();
 

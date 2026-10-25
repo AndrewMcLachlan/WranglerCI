@@ -14,7 +14,7 @@ function App() {
   useGitHubEventStream(!isStandalone);
   // Drop selected repos GitHub no longer lists (renamed/removed) so they stop
   // producing stale, duplicate items everywhere.
-  useReconcileSelectedRepositories();
+  useReconcileSelectedRepositories(!isStandalone);
   // Every page's data, fetched while you read the one you asked for.
   useWarmCaches(!isStandalone);
 
