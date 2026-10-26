@@ -206,7 +206,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     UnresolvedThreads = status?.UnresolvedThreads,
                     ReviewDecision = status?.ReviewDecision,
                     MergeState = status?.MergeState,
-                    Blockers = status is null ? [] : MergeBlockers.For(status.MergeState, status.ReviewDecision, status.UnresolvedThreads, isOwn),
+                    Blockers = MergeBlockers.For(status?.MergeState, status?.ReviewDecision, status?.UnresolvedThreads ?? 0, isOwn, pr.Draft),
                     Labels = [.. pr.Labels.Select(l => new PullRequestLabel { Name = l.Name, Color = l.Color })],
                 };
             });

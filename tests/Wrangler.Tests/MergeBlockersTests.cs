@@ -35,6 +35,14 @@ public class MergeBlockersTests
         Assert.Equal([expected], MergeBlockers.For(state, ReviewDecision.Approved, 0, isOwnPullRequest: false));
 
     [Fact]
+    public void A_draft_shows_as_a_draft_rather_than_blocked() =>
+        Assert.Equal([MergeBlocker.Draft], MergeBlockers.For(MergeState.Blocked, ReviewDecision.Approved, 0, isOwnPullRequest: false, isDraft: true));
+
+    [Fact]
+    public void A_draft_shows_before_GitHub_reports_its_status() =>
+        Assert.Equal([MergeBlocker.Draft], MergeBlockers.For(null, null, 0, isOwnPullRequest: true, isDraft: true));
+
+    [Fact]
     public void Requested_changes_block_whoever_wrote_it() =>
         Assert.Contains(MergeBlocker.ChangesRequested, MergeBlockers.For(MergeState.Blocked, ReviewDecision.ChangesRequested, 0, isOwnPullRequest: false));
 
