@@ -30,6 +30,22 @@ public class PullRequestStatusResponseTests
     }
 
     [Fact]
+    public void Reads_where_the_next_page_starts()
+    {
+        const string json = """{"data":{"repository":{"pull_requests":{"page_info":{"has_next_page":true,"end_cursor":"Y3Vyc29y"},"nodes":[]}}}}""";
+
+        Assert.Equal("Y3Vyc29y", new SimpleJsonSerializer().Deserialize<PullRequestStatusResponse>(json).NextCursor);
+    }
+
+    [Fact]
+    public void Has_no_next_page_on_the_last_page()
+    {
+        const string json = """{"data":{"repository":{"pull_requests":{"page_info":{"has_next_page":false,"end_cursor":"Y3Vyc29y"},"nodes":[]}}}}""";
+
+        Assert.Null(new SimpleJsonSerializer().Deserialize<PullRequestStatusResponse>(json).NextCursor);
+    }
+
+    [Fact]
     public void Reports_nothing_when_GitHub_returns_errors_instead_of_data()
     {
         const string json = """{"data":null,"errors":[{"message":"Could not resolve to a Repository"}]}""";
