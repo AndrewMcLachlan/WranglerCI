@@ -34,6 +34,12 @@ public record PullRequests : IQuery<IEnumerable<PullRequestModel>>
     /// The author logins to filter by (case-insensitive).
     /// </summary>
     public IReadOnlyList<string> Authors { get; init; } = [];
+
+    /// <summary>
+    /// When true, <see cref="Authors"/> is ignored and the result is the signed-in user's pull requests:
+    /// those assigned to them, and those they opened that nobody is assigned to.
+    /// </summary>
+    public bool Mine { get; init; }
 }
 
 internal class PullRequestsHandler(IPullRequestService service) : IQueryHandler<PullRequests, IEnumerable<PullRequestModel>>
