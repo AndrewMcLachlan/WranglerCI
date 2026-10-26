@@ -206,7 +206,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     UnresolvedThreads = status?.UnresolvedThreads,
                     ReviewDecision = status?.ReviewDecision,
                     MergeState = status?.MergeState,
-                    Blockers = status is null ? [] : MergeBlockers.For(status.MergeState, status.ReviewDecision, status.UnresolvedThreads, isOwn),
+                    Blockers = MergeBlockers.For(status?.MergeState, status?.ReviewDecision, status?.UnresolvedThreads ?? 0, isOwn, pr.Draft),
                     Labels = [.. pr.Labels.Select(l => new PullRequestLabel { Name = l.Name, Color = l.Color })],
                 };
             });
@@ -223,9 +223,18 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
     {
         try
         {
-            var body = new { query = PullRequestStatusResponse.Query, variables = new Dictionary<string, object> { ["owner"] = owner, ["name"] = repo } };
-            var response = await OctoCall(() => gitHubClient.Connection.Post<PullRequestStatusResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
-            return response.Body?.ByNumber() ?? new Dictionary<int, PullRequestStatus>();
+            Dictionary<int, PullRequestStatus> statuses = [];
+            string? cursor = null;
+            do
+            {
+                var body = new { query = PullRequestStatusResponse.Query, variables = new Dictionary<string, object?> { ["owner"] = owner, ["name"] = repo, ["cursor"] = cursor } };
+                var response = await OctoCall(() => gitHubClient.Connection.Post<PullRequestStatusResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
+                foreach (var (number, status) in response.Body?.ByNumber() ?? new Dictionary<int, PullRequestStatus>()) statuses[number] = status;
+                cursor = response.Body?.NextCursor;
+            }
+            while (cursor is not null);
+
+            return statuses;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

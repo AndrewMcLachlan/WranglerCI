@@ -13,7 +13,7 @@ internal record PullRequestStatus(int UnresolvedThreads, ReviewDecision? ReviewD
 internal class PullRequestStatusResponse
 {
     // Fields must be aliased to snake_case: Octokit's serializer binds no other casing.
-    public const string Query = "query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { pull_requests: pullRequests(states: OPEN, first: 100) { nodes { number review_decision: reviewDecision merge_state_status: mergeStateStatus review_threads: reviewThreads(first: 100) { nodes { is_resolved: isResolved } } } } } }";
+    public const string Query = "query($owner: String!, $name: String!, $cursor: String) { repository(owner: $owner, name: $name) { pull_requests: pullRequests(states: OPEN, first: 100, after: $cursor) { page_info: pageInfo { has_next_page: hasNextPage end_cursor: endCursor } nodes { number review_decision: reviewDecision merge_state_status: mergeStateStatus review_threads: reviewThreads(first: 100) { nodes { is_resolved: isResolved } } } } } }";
 
     public PullRequestStatusData? Data { get; set; }
 
@@ -22,6 +22,11 @@ internal class PullRequestStatusResponse
     /// </summary>
     public IReadOnlyDictionary<int, PullRequestStatus> ByNumber() =>
         (Data?.Repository?.PullRequests?.Nodes ?? []).ToDictionary(pr => pr.Number, pr => pr.ToStatus());
+
+    /// <summary>
+    /// Where the next page of open pull requests starts, or <see langword="null"/> on the last page.
+    /// </summary>
+    public string? NextCursor => Data?.Repository?.PullRequests?.PageInfo is { HasNextPage: true } pageInfo ? pageInfo.EndCursor : null;
 }
 
 internal class PullRequestStatusData
@@ -38,7 +43,16 @@ internal class PullRequestStatusRepository
 
 internal class PullRequestStatusConnection<T>
 {
+    public PageInfo? PageInfo { get; set; }
+
     public List<T>? Nodes { get; set; }
+}
+
+internal class PageInfo
+{
+    public bool HasNextPage { get; set; }
+
+    public string? EndCursor { get; set; }
 }
 
 internal class PullRequestStatusNode

@@ -7,11 +7,12 @@ namespace Asm.Wrangler.Api.Services;
 /// </summary>
 internal static class MergeBlockers
 {
-    public static IReadOnlyList<MergeBlocker> For(MergeState? state, ReviewDecision? review, int unresolvedThreads, bool isOwnPullRequest)
+    public static IReadOnlyList<MergeBlocker> For(MergeState? state, ReviewDecision? review, int unresolvedThreads, bool isOwnPullRequest, bool isDraft = false)
     {
         List<MergeBlocker> blockers = [];
 
-        if (state == MergeState.Draft) blockers.Add(MergeBlocker.Draft);
+        // GitHub no longer reports Draft as a merge state, so the pull request's own flag decides.
+        if (isDraft || state == MergeState.Draft) blockers.Add(MergeBlocker.Draft);
         if (state == MergeState.Dirty) blockers.Add(MergeBlocker.Conflict);
         if (state == MergeState.Behind) blockers.Add(MergeBlocker.Behind);
         if (review == ReviewDecision.ChangesRequested) blockers.Add(MergeBlocker.ChangesRequested);

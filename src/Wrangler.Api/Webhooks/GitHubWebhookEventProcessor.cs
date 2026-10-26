@@ -35,6 +35,7 @@ internal sealed class GitHubWebhookEventProcessor(
         PullRequestAction.Synchronize,
         PullRequestAction.Edited,
         PullRequestAction.ReadyForReview,
+        PullRequestAction.ConvertedToDraft,
         PullRequestAction.Labeled,
         PullRequestAction.Unlabeled,
         PullRequestAction.Assigned,
