@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { Alert, ComboBox, DataGrid, type ColumnDef } from "@andrewmclachlan/moo-ds";
+import { Alert, ComboBox, DataGrid, Tab, Tabs, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { DateTime } from "luxon";
 import { summaryToast } from "../../../utils/summaryToast";
 import { usePullRequests } from "../-hooks/usePullRequests";
@@ -71,9 +71,11 @@ export const PullRequests = () => {
   const prRepositories = useMemo(
     () => selectedRepositories.filter((r) => r.pullRequests === true),
     [selectedRepositories]);
+  const { tab: scope = "all" } = useSearch({ from: "/pull-requests/" });
+  const navigate = useNavigate({ from: "/pull-requests/" });
   const { data: authors } = usePrAuthors();
   const { mutate: updateAuthors } = useUpdatePrAuthors();
-  const { data: pullRequests, isLoading, isError, error, refetch } = usePullRequests();
+  const { data: pullRequests, isLoading, isError, error, refetch } = usePullRequests(scope);
   const [statusFilter, setStatusFilter] = usePrStatusFilter();
   const [includeTags, setIncludeTags] = usePrIncludeTags();
   const [excludeTags, setExcludeTags] = usePrExcludeTags();
@@ -344,7 +346,7 @@ export const PullRequests = () => {
   // Every applied filter as a chip, so the narrow bar shows what is in force
   // while the controls themselves stay in the sheet.
   const appliedFilters: AppliedFilter[] = [
-    ...authors.map((login) => ({
+    ...(scope === "mine" ? [] : authors).map((login) => ({
       key: `author:${login}`,
       label: login,
       onRemove: () => updateAuthors(authors.filter((a) => a !== login)),
@@ -442,10 +444,16 @@ export const PullRequests = () => {
     />
   );
 
-  return (
-    <article className="pull-requests">
-      <h2 className="page-title">Pull Requests</h2>
+  const selectTab = (key: string) => {
+    setSelected(new Set());
+    setAlerts([]);
+    navigate({ search: key === "mine" ? { tab: "mine" } : {} });
+  };
 
+  const showAuthors = scope === "all";
+
+  const body = (
+    <>
       <div className="controls">
         {isNarrow ? (
           <NarrowFilters
@@ -453,14 +461,14 @@ export const PullRequests = () => {
             showApplied={false}
             onClearAll={clearAllFilters}
           >
-            {authorCombo}
+            {showAuthors && authorCombo}
             {statusCombo}
             {includeCombo}
             {excludeCombo}
           </NarrowFilters>
         ) : (
           <div className="filter-row">
-            {authorCombo}
+            {showAuthors && authorCombo}
             {statusCombo}
             {includeCombo}
             {excludeCombo}
@@ -507,6 +515,15 @@ export const PullRequests = () => {
           emptyMessage="No open pull requests found."
         />
       )}
+    </>
+  );
+
+  return (
+    <article className="pull-requests">
+      <Tabs activeKey={scope} onSelect={selectTab}>
+        <Tab eventKey="all" title="All PRs">{body}</Tab>
+        <Tab eventKey="mine" title="My PRs">{body}</Tab>
+      </Tabs>
     </article>
   );
 };

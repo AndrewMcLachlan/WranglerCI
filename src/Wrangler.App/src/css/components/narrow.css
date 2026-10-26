@@ -48,10 +48,6 @@
         }
     }
 
-    .page-title {
-        display: none;
-    }
-
     .controls .views {
         justify-content: flex-end;
 

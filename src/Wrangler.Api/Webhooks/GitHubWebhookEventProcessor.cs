@@ -26,7 +26,7 @@ internal sealed class GitHubWebhookEventProcessor(
     ILogger<GitHubWebhookEventProcessor> logger) : WebhookEventProcessor
 {
     // pull_request actions that change check status or PR list visibility;
-    // anything else (label/assign/review_requested/...) is noise for our UI.
+    // anything else (review_requested/...) is noise for our UI.
     private static readonly HashSet<PullRequestAction> InvalidatingPullRequestActions =
     [
         PullRequestAction.Opened,
@@ -37,6 +37,8 @@ internal sealed class GitHubWebhookEventProcessor(
         PullRequestAction.ReadyForReview,
         PullRequestAction.Labeled,
         PullRequestAction.Unlabeled,
+        PullRequestAction.Assigned,
+        PullRequestAction.Unassigned,
     ];
 
     /// <summary>

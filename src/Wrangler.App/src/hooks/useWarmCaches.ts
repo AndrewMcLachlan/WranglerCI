@@ -56,6 +56,9 @@ export const useWarmCaches = (enabled: boolean = true) => {
             if (prRepos.length > 0 && authors.length > 0) {
                 queryClient.prefetchQuery(pullRequestsQueryOptions(prRepos, authors));
             }
+            if (prRepos.length > 0) {
+                queryClient.prefetchQuery(pullRequestsQueryOptions(prRepos, [], true));
+            }
             if (attentionRepos.length > 0) {
                 queryClient.prefetchQuery(attentionQueryOptions(attentionRepos));
             }

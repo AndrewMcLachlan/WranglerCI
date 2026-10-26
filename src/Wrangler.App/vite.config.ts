@@ -35,6 +35,9 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
     }
 }
 
+// Must keep the browser's Host: the API picks the OAuth redirect URI from it.
+const apiProxy = { target: "http://localhost:5010", changeOrigin: false };
+
 export default defineConfig({
   plugins: [
     tanstackRouter({
@@ -60,15 +63,16 @@ export default defineConfig({
   },
   server: {
     port: 3010,
+    allowedHosts: ["ra.mclachlan.family"],
     https: {
       key: fs.readFileSync(keyFilePath),
       cert: fs.readFileSync(certFilePath),
     },
     proxy: {
-      "/api": "http://localhost:5010",
-      "/admin/session": "http://localhost:5010",
-      "/login": "http://localhost:5010",
-      "/callback": "http://localhost:5010",
+      "/api": apiProxy,
+      "/admin/session": apiProxy,
+      "/login": apiProxy,
+      "/callback": apiProxy,
     }
   },
 },)

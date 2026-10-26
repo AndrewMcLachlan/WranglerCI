@@ -22,7 +22,7 @@ public static class CallbackHandler
     {
         string clientId = configuration.GetValue<string>("ClientId") ?? throw new InvalidOperationException("ClientId is missing");
         string clientSecret = configuration.GetValue<string>("ClientSecret") ?? throw new InvalidOperationException("ClientSecret is missing");
-        string redirectUri = configuration.GetValue<string>("RedirectUri") ?? throw new InvalidOperationException("RedirectUri is missing");
+        string redirectUri = OAuthRedirectUri.Resolve(configuration, http.Request.Host);
 
         var request = http.Request;
 

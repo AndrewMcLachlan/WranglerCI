@@ -1145,6 +1145,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "mine": {
+            "type": "boolean"
           }
         }
       },

@@ -47,7 +47,11 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
 
     public async Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequests request, CancellationToken cancellationToken)
     {
-        var tasks = request.Repositories.Select(repo => GetRepoPullRequestsAsync(repo.Owner, repo.Name, request.Authors, cancellationToken));
+        var viewer = httpContextAccessor.HttpContext?.Session.GetString(SessionKeys.User);
+        if (request.Mine && viewer is null) return [];
+
+        var filter = request.Mine ? PullRequestFilter.Mine(viewer!) : PullRequestFilter.ByAuthors(request.Authors);
+        var tasks = request.Repositories.Select(repo => GetRepoPullRequestsAsync(repo.Owner, repo.Name, filter, cancellationToken));
 
         var results = await Task.WhenAll(tasks);
 
@@ -139,22 +143,21 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         return null;
     }
 
-    private async Task<IEnumerable<PullRequestModel>> GetRepoPullRequestsAsync(string owner, string repo, IReadOnlyList<string> authors, CancellationToken cancellationToken)
+    private async Task<IEnumerable<PullRequestModel>> GetRepoPullRequestsAsync(string owner, string repo, PullRequestFilter filter, CancellationToken cancellationToken)
     {
         var pullsVersion = await versions.GetVersionAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
         var checksVersion = await versions.GetVersionAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
-        var authorKey = String.Join(',', authors.Select(a => a.ToLowerInvariant()).Order());
-        var cacheKey = cacheKeyService.GetCacheKey($"gh:pulls:{owner}/{repo}:p{pullsVersion}:c{checksVersion}:{authorKey}");
+        var cacheKey = cacheKeyService.GetCacheKey($"gh:pulls:{owner}/{repo}:p{pullsVersion}:c{checksVersion}:{filter.CacheKey}");
 
         var cached = await TryGetFromCache<PullRequestModel>(cacheKey, cancellationToken);
         if (cached is not null) return cached;
 
-        var pullRequests = (await FetchRepoPullRequestsAsync(owner, repo, authors, cancellationToken)).ToList();
+        var pullRequests = (await FetchRepoPullRequestsAsync(owner, repo, filter, cancellationToken)).ToList();
         await TryCache(cacheKey, pullRequests, cancellationToken, PullRequestCacheLifetime);
         return pullRequests;
     }
 
-    private async Task<IEnumerable<PullRequestModel>> FetchRepoPullRequestsAsync(string owner, string repo, IReadOnlyList<string> authors, CancellationToken cancellationToken)
+    private async Task<IEnumerable<PullRequestModel>> FetchRepoPullRequestsAsync(string owner, string repo, PullRequestFilter filter, CancellationToken cancellationToken)
     {
         await _gate.WaitAsync(cancellationToken);
         try
@@ -162,7 +165,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             await Jitter(cancellationToken);
             var prs = await OctoCall(() => gitHubClient.PullRequest.GetAllForRepository(owner, repo, new PullRequestRequest { State = ItemStateFilter.Open }), cancellationToken);
 
-            var filtered = prs.Where(pr => authors.Any(a => String.Equals(a, pr.User.Login, StringComparison.OrdinalIgnoreCase))).ToList();
+            var filtered = prs.Where(pr => filter.Matches(pr.User.Login, [.. (pr.Assignees ?? []).Select(a => a.Login)])).ToList();
             if (filtered.Count == 0) return [];
 
             var statusesTask = GetPullRequestStatusesAsync(owner, repo, cancellationToken);

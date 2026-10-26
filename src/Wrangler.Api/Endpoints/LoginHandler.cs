@@ -13,7 +13,7 @@ public static class LoginHandler
     public static IResult Handle(HttpContext http, IConfiguration configuration)
     {
         string clientId = configuration.GetValue<string>("ClientId") ?? throw new InvalidOperationException("ClientId is missing");
-        string redirectUri = configuration.GetValue<string>("RedirectUri") ?? throw new InvalidOperationException("RedirectUri is missing");
+        string redirectUri = OAuthRedirectUri.Resolve(configuration, http.Request.Host);
 
         // Always generate a fresh state to avoid stale values from previous flows.
         var state = Guid.NewGuid().ToString("N");

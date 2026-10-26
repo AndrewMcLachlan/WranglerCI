@@ -169,6 +169,7 @@ export type PullRequestReference = {
 export type PullRequests = {
     repositories?: Array<RepositoryRequest>;
     authors?: Array<string>;
+    mine?: boolean;
 };
 
 export type Repository = {

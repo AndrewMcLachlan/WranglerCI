@@ -1,5 +1,5 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
-import { Bell, Cog, Dashboard, PullRequest, UserShield } from "@andrewmclachlan/moo-icons";
+import { Bell, Dashboard, PullRequest, UserShield } from "@andrewmclachlan/moo-icons";
 import { Link, useMatches } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
 import { UserMenu } from "./UserMenu";
@@ -17,14 +17,19 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
           <Link to="/dashboard">
             <picture>
               <source srcSet="/logo-white.svg" media="(prefers-color-scheme: dark)" />
-              <img src="/logo.svg" className="logo" />
+              <img src="/logo.svg" className="logo" alt="Wrangler CI" />
             </picture>
-            <span className="wordmark">Wrangler CI</span>
           </Link>
         </h1>
-        {title && <span className="header-title">{title}</span>}
+        <span className="header-title">{title}</span>
         <div className="header-end">
           <nav className="top-nav">
+            <ul>
+              <li><Link to="/dashboard" title="Dashboard"><Icon icon={Dashboard} /></Link></li>
+              <li><Link to="/pull-requests" title="Pull requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
+              <li><Link to="/gates" title="Deployment gates"><Icon icon={UserShield} /></Link></li>
+            </ul>
+            <span className="top-nav-divider" />
             <ul>
               <li>
                 <Link to="/attention" title="Needs your attention" className="attention-link">
@@ -32,10 +37,6 @@ export const Layout: React.FC<PropsWithChildren> = ({ children }) => {
                   {attentionCount > 0 && <span className="attention-dot" />}
                 </Link>
               </li>
-              <li><Link to="/dashboard"><Icon icon={Dashboard} /></Link></li>
-              <li><Link to="/pull-requests"><Icon icon={PullRequest} className="pr-icon" /></Link></li>
-              <li><Link to="/gates" title="Deployment gates"><Icon icon={UserShield} /></Link></li>
-              <li><Link to="/settings"><Icon icon={Cog} /></Link></li>
             </ul>
           </nav>
           <UserMenu />
