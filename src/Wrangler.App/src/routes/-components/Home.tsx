@@ -51,7 +51,7 @@ const SampleDashboard = () => {
   const finished = useFinishedRun();
 
   return (
-    <div className="home-sample account-section" role="img" aria-label="An example Wrangler dashboard with three repositories, one of them failing">
+    <div className="home-sample account-section" role="img" aria-label="An example Wrangler CI dashboard with three repositories, one of them failing">
       <div className="account-section-header">
         <h2>Acme</h2>
       </div>
@@ -135,18 +135,19 @@ export const Home = () => (
     <header className="home-header">
       <a href="/" className="home-brand">
         <img src="/logo-white.svg" alt="" />
-        Wrangler
+        Wrangler CI
       </a>
       <a href="/login/github" className="home-sign-in">Sign in</a>
     </header>
 
     <main>
       <section className="home-intro">
-        <h1>Your GitHub Actions and pull requests, on one screen.</h1>
+        <h1>Round up your builds.</h1>
+        <p className="home-lede">Your GitHub Actions runs and pull requests, from every repository, on one screen.</p>
         <p>
-          Wrangler shows which builds are failing, which pull requests are ready to merge and which
-          deployments are waiting for approval, across every repository you choose. It updates as
-          GitHub reports changes, so you don't have to keep refreshing.
+          Wrangler CI shows which builds are failing, which pull requests are ready to merge and which
+          deployments are waiting for approval. It updates as GitHub reports changes, so you don't
+          have to keep refreshing.
         </p>
         <div className="home-actions">
           <a href="/login/github" className="btn btn-primary home-cta">
@@ -179,7 +180,7 @@ export const Home = () => (
     </main>
 
     <footer className="home-footer">
-      <span>&copy; {new Date().getFullYear()} Wrangler CI</span>
+      <span>&copy; {new Date().getFullYear()} Andrew McLachlan</span>
       <Link to="/privacy">Privacy</Link>
     </footer>
   </div>

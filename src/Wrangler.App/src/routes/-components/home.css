@@ -4,6 +4,7 @@
     --home-text: rgba(255, 255, 255, 0.87);
     --home-text-dim: rgba(255, 255, 255, 0.6);
     --home-rule: #262a36;
+    --home-brand-face: "Alfa Slab One", "Rockwell", Georgia, serif;
 
     min-height: 100vh;
     max-width: 72rem;
@@ -24,9 +25,10 @@
     display: flex;
     align-items: center;
     gap: 0.625rem;
-    color: var(--home-text);
-    font-size: 1.125rem;
-    font-weight: 600;
+    color: var(--primary);
+    font-family: var(--home-brand-face);
+    font-size: 1.25rem;
+    font-weight: 400;
     text-decoration: none;
 
     img {
@@ -49,20 +51,28 @@
     padding: 4.5rem 0 3rem;
 
     h1 {
-      max-width: 18ch;
-      margin: 0 0 1.25rem;
-      font-size: clamp(2.25rem, 5vw, 3.5rem);
-      font-weight: 650;
-      line-height: 1.08;
-      letter-spacing: -0.025em;
+      margin: 0 0 1.5rem;
+      color: var(--primary);
+      font-family: var(--home-brand-face);
+      font-size: clamp(3rem, 9vw, 6.5rem);
+      font-weight: 400;
+      line-height: 0.95;
     }
 
     p {
       max-width: 38rem;
       margin: 0 0 2rem;
       color: var(--home-text-dim);
-      font-size: 1.125rem;
+      font-size: 1.0625rem;
       line-height: 1.6;
+    }
+
+    .home-lede {
+      margin-bottom: 0.75rem;
+      color: var(--home-text);
+      font-size: 1.375rem;
+      font-weight: 500;
+      line-height: 1.35;
     }
   }
 
@@ -94,10 +104,20 @@
   }
 
   .account-section.home-sample {
-    padding: 1rem;
-    border: 1px solid var(--home-rule);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.015);
+    position: relative;
+    padding: 1.75rem;
+    border-radius: 16px;
+    background: #151a23;
+    box-shadow: 0 0 0 1px rgba(212, 162, 78, 0.25), 0 24px 48px -24px rgba(0, 0, 0, 0.8);
+
+    &::before {
+      content: "";
+      position: absolute;
+      inset: 0.625rem;
+      border: 1px dashed rgba(212, 162, 78, 0.45);
+      border-radius: 10px;
+      pointer-events: none;
+    }
   }
 
   .home-pages {
