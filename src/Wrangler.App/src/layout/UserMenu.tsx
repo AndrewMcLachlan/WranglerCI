@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import { clearQueryCacheSnapshot } from "../queryCachePersistence";
 
@@ -34,7 +35,7 @@ export const UserMenu = () => {
 
   return (
     <div className="user-menu" ref={containerRef}>
-      <button type="button" className="user-menu-toggle" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`Signed in as ${user.login}`}>
+      <button type="button" className="user-menu-toggle" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label={`Signed in as ${user.login}`} title={`Signed in as ${user.login}`}>
         {user.avatarUrl ? (
           <img src={user.avatarUrl} alt="" className="user-menu-avatar" />
         ) : (
@@ -43,6 +44,9 @@ export const UserMenu = () => {
       </button>
       {open && (
         <ul className="user-menu-dropdown" role="menu">
+          <li role="none">
+            <Link to="/settings" role="menuitem" onClick={() => setOpen(false)}>Settings</Link>
+          </li>
           <li role="none">
             <button type="button" role="menuitem" onClick={handleLogout}>Log out</button>
           </li>

@@ -226,8 +226,6 @@ export const Gates = () => {
 
   return (
     <article className="gates">
-      <h2 className="page-title">Deployment Gates</h2>
-
       <div className="controls">
         {isNarrow ? (
           <NarrowFilters applied={appliedFilters} showApplied={false} onClearAll={clearAllFilters}>

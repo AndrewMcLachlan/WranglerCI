@@ -51,7 +51,8 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     z-index: 100;
 
-    li button {
+    li button, li a {
+      display: block;
       width: 100%;
       text-align: left;
       background: transparent;
@@ -61,6 +62,7 @@
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.875rem;
+      text-decoration: none;
 
       &:hover {
         background: rgba(255, 255, 255, 0.06);
