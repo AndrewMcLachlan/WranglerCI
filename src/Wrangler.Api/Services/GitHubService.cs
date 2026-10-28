@@ -60,6 +60,9 @@ internal abstract class GitHubService(IDistributedCache cache, ILogger logger)
 
         static bool IsRetryable(ApiException ex)
         {
+            // GitHub wants at least a minute's pause, beyond the budget, and every early retry extends the limit.
+            if (ex is SecondaryRateLimitExceededException) return false;
+
             var code = (int)ex.StatusCode;
             if (code is 500 or 502 or 503 or 504) return true;
             if (ex.StatusCode == HttpStatusCode.Forbidden) // only retry if server hinted a backoff
