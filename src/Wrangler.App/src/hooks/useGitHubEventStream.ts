@@ -4,7 +4,7 @@ import { mergeWorkflowRun, branchMatch } from "./mergeWorkflowRun";
 import { mergePullRequest, removePullRequest, isSamePullRequest, type PushedPullRequest } from "./mergePullRequest";
 import { withoutGatesForRun } from "./gateStatus";
 import { createStreamRefresher } from "./streamRefresher";
-import { createReconnectTracker, createStreamWatchdog, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
+import { createReconnectTracker, createStreamWatchdog, isSilent, reopenDelayFor, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
 import type { DeploymentGateModel, PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
 interface GitHubEvent {
@@ -39,18 +39,33 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     const pullRequests = createStreamRefresher(queryClient, ["pullRequests"]);
     const gates = createStreamRefresher(queryClient, ["gates"]);
 
-    // A connection that dies without erroring still reports OPEN, so silence is
-    // the only evidence. Rebuilding is what recovers it: the reopened stream
+    let rebuilt = false;
+    let reopenTimer: ReturnType<typeof setTimeout> | undefined;
+    let lastActivityAt = Date.now();
+
+    // Rebuilding is what recovers a dead connection: the reopened stream
     // resyncs the caches through the reconnect tracker below.
-    const watchdog = createStreamWatchdog(() => {
+    const rebuild = () => {
+      if (rebuilt) return;
+      rebuilt = true;
       silentRebuildsRef.current += 1;
       source.close();
       setConnection((generation) => generation + 1);
-    }, silenceTimeoutFor(silentRebuildsRef.current));
+    };
+
+    // A connection that dies without erroring still reports OPEN, so silence is
+    // the only evidence.
+    const watchdog = createStreamWatchdog(rebuild, silenceTimeoutFor(silentRebuildsRef.current));
 
     const recordActivity = () => {
       silentRebuildsRef.current = 0;
+      lastActivityAt = Date.now();
       watchdog.recordActivity();
+    };
+
+    const checkOnResume = () => {
+      if (document.visibilityState === "hidden") return;
+      if (source.readyState === EventSource.CLOSED || isSilent(lastActivityAt)) rebuild();
     };
 
     // Merges the pushed run into every cached getWorkflows variant (one per
@@ -168,11 +183,19 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     // long staleTimes on the stream-backed queries safe.
     const reconnect = createReconnectTracker(connection > 0);
 
-    source.onerror = () => reconnect.onError();
+    source.onerror = () => {
+      reconnect.onError();
+      // EventSource stops retrying for good once a response isn't a stream (a
+      // 502 while the API restarts), so a closed source must be reopened here.
+      if (source.readyState !== EventSource.CLOSED || reopenTimer) return;
+      watchdog.stop();
+      reopenTimer = setTimeout(rebuild, reopenDelayFor(silentRebuildsRef.current));
+    };
     source.onopen = () => {
       // Restarts the countdown but does not clear the backoff: a proxy can
       // accept the connection and still swallow every byte of the body, and
       // only delivered data proves otherwise.
+      lastActivityAt = Date.now();
       watchdog.recordActivity();
       if (!reconnect.onOpen()) return;
       for (const queryKey of STREAM_BACKED_QUERY_KEYS) {
@@ -188,7 +211,13 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     // what proves the connection is still alive.
     source.addEventListener("heartbeat", recordActivity);
 
+    window.addEventListener("online", checkOnResume);
+    document.addEventListener("visibilitychange", checkOnResume);
+
     return () => {
+      window.removeEventListener("online", checkOnResume);
+      document.removeEventListener("visibilitychange", checkOnResume);
+      clearTimeout(reopenTimer);
       watchdog.stop();
       source.removeEventListener("heartbeat", recordActivity);
       source.close();

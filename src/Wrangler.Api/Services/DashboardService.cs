@@ -61,11 +61,11 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
 
     public async Task<IEnumerable<RepositoryModel>> GetWorkflowsAsync(Workflows request, CancellationToken cancellationToken)
     {
-        List<Task<Repository>> repoTasks = [.. request.Repositories.Select(repo => gitHubClient.Repository.Get(repo.Owner, repo.Name))];
+        List<Task<RepositorySummary>> repoTasks = [.. request.Repositories.Select(repo => GetRepositoryAsync(repo.Owner, repo.Name, cancellationToken))];
         var workflowIds = request.Repositories.SelectMany(r => r.Workflows);
 
-        Dictionary<Repository, IEnumerable<WorkflowModel>> workflows = [];
-        Dictionary<Repository, Task<IEnumerable<WorkflowModel>>> workflowTasks = [];
+        Dictionary<RepositorySummary, IEnumerable<WorkflowModel>> workflows = [];
+        Dictionary<RepositorySummary, Task<IEnumerable<WorkflowModel>>> workflowTasks = [];
 
         List<Task<IEnumerable<WorkflowRunModel>>> runsTasks = [];
         List<WorkflowRunModel> workflowRuns = [];
@@ -75,17 +75,12 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
         var repositories = await Task.WhenAll(repoTasks);
 
         // Look up display names for each distinct owner
-        var distinctOwners = repositories.Select(r => r.Owner).DistinctBy(o => o.Login);
-        var ownerNameTasks = distinctOwners.ToDictionary(
-            o => o.Login,
-            o => o.Type == Octokit.AccountType.Organization
-                ? OctoCall(() => gitHubClient.Organization.Get(o.Login), cancellationToken).ContinueWith(t => t.Result.Name, cancellationToken)
-                : OctoCall(() => gitHubClient.User.Get(o.Login), cancellationToken).ContinueWith(t => t.Result.Name, cancellationToken));
+        var ownerNameTasks = repositories.DistinctBy(r => r.Owner).ToDictionary(r => r.Owner, r => GetOwnerNameAsync(r.Owner, r.OwnerIsOrganisation, cancellationToken));
         await Task.WhenAll(ownerNameTasks.Values);
 
         foreach (var repo in repositories)
         {
-            workflowTasks.Add(repo, GetWorkflowsAsync(repo.Owner.Login, repo.Name, cancellationToken));
+            workflowTasks.Add(repo, GetWorkflowsAsync(repo.Owner, repo.Name, cancellationToken));
         }
 
         await Task.WhenAll(workflowTasks.Values);
@@ -97,17 +92,26 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
 
         var hasBranchFilters = request.BranchFilters.Any();
 
+        // Once per repository: a glob costs a walk of every branch.
+        var branchTasks = hasBranchFilters
+            ? repositories.Where(repo => workflows[repo].Any()).ToDictionary(repo => repo, repo => ResolveBranchesAsync(repo.Owner, repo.Name, request.BranchFilters, cancellationToken))
+            : [];
+        await Task.WhenAll(branchTasks.Values);
+
         foreach (var repo in repositories)
         {
             foreach (var workflow in workflows[repo])
             {
                 if (hasBranchFilters)
                 {
-                    runsTasks.Add(GetLastRunsAsync(repo.Owner.Login, repo.Name, workflow.Id, 1, request.BranchFilters, cancellationToken));
+                    foreach (var branch in branchTasks[repo].Result)
+                    {
+                        runsTasks.Add(GetLastRunsAsync(repo.Owner, repo.Name, workflow.Id, 1, branch, cancellationToken));
+                    }
                 }
                 else
                 {
-                    runsTasks.Add(GetLastRunsAsync(repo.Owner.Login, repo.Name, workflow.Id, 1, repo.DefaultBranch, cancellationToken));
+                    runsTasks.Add(GetLastRunsAsync(repo.Owner, repo.Name, workflow.Id, 1, repo.DefaultBranch, cancellationToken));
                 }
             }
         }
@@ -131,8 +135,8 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
                 // identify a repository by login, and a display name here means
                 // a pushed run matches nothing for every account whose name and
                 // login differ.
-                Owner = workflowRepo.Key.Owner.Login,
-                OwnerName = (await ownerNameTasks[workflowRepo.Key.Owner.Login]) ?? workflowRepo.Key.Owner.Login,
+                Owner = workflowRepo.Key.Owner,
+                OwnerName = (await ownerNameTasks[workflowRepo.Key.Owner]) ?? workflowRepo.Key.Owner,
                 NodeId = workflowRepo.Key.NodeId,
                 HtmlUrl = workflowRepo.Key.HtmlUrl,
                 Workflows = workflowRepo.Value.Select(workflow => workflow with { Runs = [.. workflowRuns.Where(run => run.WorkflowId == workflow.Id)] }).OrderBy(workflow => workflow.Name),
@@ -140,6 +144,53 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
         }
 
         return results;
+    }
+
+    private async Task<RepositorySummary> GetRepositoryAsync(string owner, string repo, CancellationToken cancellationToken)
+    {
+        var cacheKey = cacheKeyService.GetCacheKey($"gh:repository:{owner}/{repo}");
+
+        var cached = await TryGetFromCache<RepositorySummary>(cacheKey, cancellationToken);
+        if (cached?.FirstOrDefault() is { } summary) return summary;
+
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            await Jitter(cancellationToken);
+            var repository = await OctoCall(() => gitHubClient.Repository.Get(owner, repo), cancellationToken);
+            summary = new(repository.Owner.Login, repository.Name, repository.Owner.Type == AccountType.Organization, repository.DefaultBranch, repository.NodeId, repository.HtmlUrl);
+
+            await TryCache(cacheKey, [summary], cancellationToken);
+            return summary;
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    private async Task<string?> GetOwnerNameAsync(string owner, bool isOrganisation, CancellationToken cancellationToken)
+    {
+        var cacheKey = cacheKeyService.GetCacheKey($"gh:owner-name:{owner}");
+
+        var cached = await TryGetFromCache<string?>(cacheKey, cancellationToken);
+        if (cached is not null) return cached.FirstOrDefault();
+
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            await Jitter(cancellationToken);
+            var name = isOrganisation
+                ? (await OctoCall(() => gitHubClient.Organization.Get(owner), cancellationToken)).Name
+                : (await OctoCall(() => gitHubClient.User.Get(owner), cancellationToken)).Name;
+
+            await TryCache(cacheKey, [name], cancellationToken);
+            return name;
+        }
+        finally
+        {
+            _gate.Release();
+        }
     }
 
     public async Task<IEnumerable<WorkflowModel>> GetWorkflowsAsync(string owner, string repo, CancellationToken cancellationToken)
@@ -216,11 +267,22 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
         // get a sensible result instead of an empty list.
         if (!branches.Any())
         {
-            var repository = await OctoCall(() => gitHubClient.Repository.Get(owner, repo), cancellationToken);
+            var repository = await GetRepositoryAsync(owner, repo, cancellationToken);
             return await GetLastRunsAsync(owner, repo, workflowId, perPage, repository.DefaultBranch, cancellationToken);
         }
 
-        // Resolve glob patterns to actual branch names
+        List<WorkflowRunModel> results = [];
+        foreach (var branch in await ResolveBranchesAsync(owner, repo, branches, cancellationToken))
+        {
+            var runs = await GetLastRunsAsync(owner, repo, workflowId, perPage, branch, cancellationToken);
+            results.AddRange(runs);
+        }
+
+        return results;
+    }
+
+    private async Task<IReadOnlyList<string>> ResolveBranchesAsync(string owner, string repo, IEnumerable<string> branches, CancellationToken cancellationToken)
+    {
         var exactBranches = branches.Where(b => !b.Contains('*')).ToList();
         var globPatterns = branches.Where(b => b.Contains('*')).ToList();
 
@@ -238,16 +300,11 @@ internal class DashboardService(IGitHubClient gitHubClient, IDistributedCache ca
             finally { _gate.Release(); }
         }
 
-        var targetBranches = exactBranches.Distinct().ToList();
-
-        // Fetch runs for each resolved branch sequentially to avoid gate exhaustion
-        List<WorkflowRunModel> results = [];
-        foreach (var branch in targetBranches)
-        {
-            var runs = await GetLastRunsAsync(owner, repo, workflowId, perPage, branch, cancellationToken);
-            results.AddRange(runs);
-        }
-
-        return results;
+        return [.. exactBranches.Distinct()];
     }
 }
+
+/// <summary>
+/// What the dashboard needs from a repository, small enough to cache.
+/// </summary>
+internal record RepositorySummary(string Owner, string Name, bool OwnerIsOrganisation, string DefaultBranch, string NodeId, string HtmlUrl);
