@@ -33,6 +33,23 @@ export const STREAM_SILENCE_TIMEOUT_MS = 60 * 1000;
 export const silenceTimeoutFor = (consecutiveSilentRebuilds: number): number =>
   STREAM_SILENCE_TIMEOUT_MS * 2 ** Math.min(consecutiveSilentRebuilds, 3);
 
+const reopenBaseDelay = 2 * 1000;
+
+/**
+ * How long to wait before reopening a stream the browser has given up on, after
+ * this many rebuilds in a row that never produced anything.
+ */
+export const reopenDelayFor = (consecutiveRebuilds: number): number =>
+  Math.min(reopenBaseDelay * 2 ** consecutiveRebuilds, STREAM_SILENCE_TIMEOUT_MS);
+
+/**
+ * Whether a stream that has been quiet since `lastActivityAt` should be
+ * presumed dead. Timers stall while a device sleeps, so the watchdog alone can
+ * notice this long after waking.
+ */
+export const isSilent = (lastActivityAt: number, now: number = Date.now()): boolean =>
+  now - lastActivityAt > STREAM_SILENCE_TIMEOUT_MS;
+
 export interface StreamWatchdog {
   /** Record that the stream produced something. Restarts the countdown. */
   recordActivity: () => void;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createReconnectTracker, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
+import { createReconnectTracker, isSilent, reopenDelayFor, STREAM_BACKED_QUERY_KEYS, STREAM_SILENCE_TIMEOUT_MS } from "./streamReconnect";
 
 describe("createReconnectTracker", () => {
   it("does not resync on the initial connect", () => {
@@ -73,5 +73,30 @@ describe("STREAM_BACKED_QUERY_KEYS", () => {
       "pullRequests",
       "gates",
     ]);
+  });
+});
+
+describe("reopenDelayFor", () => {
+  it("retries soon after the first failure", () => {
+    expect(reopenDelayFor(0)).toBe(2000);
+  });
+
+  it("backs off with each failure in a row", () => {
+    expect(reopenDelayFor(1)).toBe(4000);
+    expect(reopenDelayFor(2)).toBe(8000);
+  });
+
+  it("never waits longer than the silence timeout", () => {
+    expect(reopenDelayFor(20)).toBe(STREAM_SILENCE_TIMEOUT_MS);
+  });
+});
+
+describe("isSilent", () => {
+  it("trusts a stream heard from within the timeout", () => {
+    expect(isSilent(0, STREAM_SILENCE_TIMEOUT_MS)).toBe(false);
+  });
+
+  it("presumes a stream quiet for longer than the timeout is dead", () => {
+    expect(isSilent(0, STREAM_SILENCE_TIMEOUT_MS + 1)).toBe(true);
   });
 });
