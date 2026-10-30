@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Alert, ComboBox, DataGrid, Tab, Tabs, type ColumnDef } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { summaryToast } from "../../../utils/summaryToast";
 import { usePullRequests } from "../-hooks/usePullRequests";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
-import { usePrIncludeTags, usePrExcludeTags } from "../-hooks/usePrTagFilter";
+import { usePrIncludeTags, usePrExcludeTags, usePrTagColours } from "../-hooks/usePrTagFilter";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { NoRepositories } from "../../../components/NoRepositories";
 import { useUserSearch } from "../-hooks/useUserSearch";
@@ -59,9 +59,8 @@ interface TagOption {
   color: string;
 }
 
-// Fallback colour (6-char hex, no leading '#') for a persisted tag that is not
-// present on any currently-loaded PR, so its chip still renders.
-const FALLBACK_TAG_COLOUR = "6e7681";
+// For a tag whose colour has never been seen: 6-char hex, no leading '#'.
+const FALLBACK_TAG_COLOUR = "d4a24e";
 
 export const PullRequests = () => {
 
@@ -79,6 +78,7 @@ export const PullRequests = () => {
   const [statusFilter, setStatusFilter] = usePrStatusFilter();
   const [includeTags, setIncludeTags] = usePrIncludeTags();
   const [excludeTags, setExcludeTags] = usePrExcludeTags();
+  const [tagColours, setTagColours] = usePrTagColours();
   const [alerts, setAlerts] = useState<ApprovalResult[]>([]);
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
   const [authorQuery, setAuthorQuery] = useState("");
@@ -143,14 +143,18 @@ export const PullRequests = () => {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [pullRequests]);
 
-  // Resolve stored tag names to options, falling back to a neutral colour for a
-  // persisted tag that is no longer on any loaded PR so its chip still renders.
+  useEffect(() => {
+    const changed = availableTags.filter((t) => tagColours[t.name] !== t.color);
+    if (changed.length === 0) return;
+    setTagColours({ ...tagColours, ...Object.fromEntries(changed.map((t) => [t.name, t.color])) });
+  }, [availableTags, tagColours, setTagColours]);
+
   const toTagOptions = (names: string[]): TagOption[] => {
     const colours = new Map(availableTags.map((t) => [t.name, t.color]));
-    return names.map((name) => ({ name, color: colours.get(name) ?? FALLBACK_TAG_COLOUR }));
+    return names.map((name) => ({ name, color: colours.get(name) ?? tagColours[name] ?? FALLBACK_TAG_COLOUR }));
   };
-  const includeTagOptions = useMemo(() => toTagOptions(includeTags), [includeTags, availableTags]);
-  const excludeTagOptions = useMemo(() => toTagOptions(excludeTags), [excludeTags, availableTags]);
+  const includeTagOptions = useMemo(() => toTagOptions(includeTags), [includeTags, availableTags, tagColours]);
+  const excludeTagOptions = useMemo(() => toTagOptions(excludeTags), [excludeTags, availableTags, tagColours]);
 
   const includeSet = useMemo(() => new Set(includeTags), [includeTags]);
   const excludeSet = useMemo(() => new Set(excludeTags), [excludeTags]);

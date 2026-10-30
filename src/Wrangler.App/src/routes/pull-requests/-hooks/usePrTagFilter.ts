@@ -15,3 +15,10 @@ export const usePrIncludeTags = () =>
  */
 export const usePrExcludeTags = () =>
   useLocalStorage<string[]>("prExcludeTags", []);
+
+/**
+ * The last colour seen for each label, so a filter chip keeps its colour when no
+ * loaded pull request carries the label.
+ */
+export const usePrTagColours = () =>
+  useLocalStorage<Record<string, string>>("prTagColours", {});
