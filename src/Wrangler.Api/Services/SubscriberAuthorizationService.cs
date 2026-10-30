@@ -11,8 +11,11 @@ namespace Asm.Wrangler.Api.Services;
 /// </summary>
 public interface ISubscriberAuthorization
 {
-    /// <summary>The current user's accessible repositories, as lower-cased "owner/repo" strings.</summary>
-    Task<IReadOnlySet<string>> GetAccessibleAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// The current user's accessible repositories, as lower-cased "owner/repo" strings, or <c>null</c> when they
+    /// could not be resolved (expired token, rate limit, network).
+    /// </summary>
+    Task<IReadOnlySet<string>?> GetAccessibleAsync(CancellationToken cancellationToken);
 }
 
 internal sealed class SubscriberAuthorizationService(
@@ -22,9 +25,8 @@ internal sealed class SubscriberAuthorizationService(
     ILogger<SubscriberAuthorizationService> logger) : ISubscriberAuthorization
 {
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
-    private static readonly IReadOnlySet<string> Empty = new HashSet<string>();
 
-    public async Task<IReadOnlySet<string>> GetAccessibleAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlySet<string>?> GetAccessibleAsync(CancellationToken cancellationToken)
     {
         string cacheKey;
         try
@@ -36,7 +38,7 @@ internal sealed class SubscriberAuthorizationService(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to compute cache key for subscriber repos; denying access.");
-            return Empty;
+            return null;
         }
 
         var cached = await TryReadCacheAsync(cacheKey, cancellationToken);
@@ -49,10 +51,9 @@ internal sealed class SubscriberAuthorizationService(
         }
         catch (Exception ex)
         {
-            // Fail closed on any resolution failure (rate limit, network, auth). Don't cache the
-            // failure so a blip doesn't suppress the user's events for the whole TTL.
+            // Don't cache the failure so a blip doesn't suppress the user's events for the whole TTL.
             logger.LogWarning(ex, "Failed to resolve accessible repositories; denying access for this connection.");
-            return Empty;
+            return null;
         }
 
         await TryWriteCacheAsync(cacheKey, accessible, cancellationToken);
