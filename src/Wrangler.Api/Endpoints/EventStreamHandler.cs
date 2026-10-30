@@ -37,6 +37,20 @@ public static class EventStreamHandler
         // string tokens (e.g. "completed"/"failure") and WorkflowStatus as its enum name ("Red"),
         // rather than the numbers/objects a bare JsonSerializerDefaults.Web instance would produce.
         var serializerOptions = jsonOptions.Value.SerializerOptions;
+
+        // Resolve the user's full accessible-repo set at connect time (cached), so events are filtered
+        // in-memory below with zero per-event GitHub API calls. Re-resolved periodically (see the
+        // heartbeat branch) so access changes are picked up on long-lived connections.
+        // A non-stream response makes the client back off before reopening, so a failing resolve
+        // can't turn into a tight reconnect loop.
+        var accessible = await authorization.GetAccessibleAsync(cancellationToken);
+        if (accessible is null)
+        {
+            http.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+            return;
+        }
+        var nextAuthorizationRefresh = DateTimeOffset.UtcNow + AuthorizationRefreshInterval;
+
         // Kestrel-level buffering defence; X-Accel-Buffering only signals the
         // reverse proxy (App Service front-end / nginx) and won't stop Kestrel
         // from holding writes itself.
@@ -48,12 +62,6 @@ public static class EventStreamHandler
         http.Response.Headers["Cache-Control"] = "no-cache, no-transform";
         http.Response.Headers["X-Accel-Buffering"] = "no";
         http.Response.Headers.Connection = "keep-alive";
-
-        // Resolve the user's full accessible-repo set at connect time (cached), so events are filtered
-        // in-memory below with zero per-event GitHub API calls. Re-resolved periodically (see the
-        // heartbeat branch) so access changes are picked up on long-lived connections.
-        var accessible = await authorization.GetAccessibleAsync(cancellationToken);
-        var nextAuthorizationRefresh = DateTimeOffset.UtcNow + AuthorizationRefreshInterval;
 
         using var subscription = broadcaster.Subscribe();
         await http.Response.Body.FlushAsync(cancellationToken);
@@ -74,7 +82,11 @@ public static class EventStreamHandler
                 // revoked (or granted) mid-connection takes effect without requiring a reconnect.
                 if (DateTimeOffset.UtcNow >= nextAuthorizationRefresh)
                 {
+                    // The stream holds the token it connected with, which outlives its ~8-hour expiry.
+                    // Ending the stream makes the client reconnect, and that request renews the token;
+                    // staying open would heartbeat while dropping every event.
                     accessible = await authorization.GetAccessibleAsync(cancellationToken);
+                    if (accessible is null) break;
                     nextAuthorizationRefresh = DateTimeOffset.UtcNow + AuthorizationRefreshInterval;
                 }
 

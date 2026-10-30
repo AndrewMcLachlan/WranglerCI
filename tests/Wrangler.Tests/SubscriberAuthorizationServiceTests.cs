@@ -44,7 +44,7 @@ public class SubscriberAuthorizationServiceTests
     }
 
     [Fact]
-    public async Task Returns_empty_set_on_failure()
+    public async Task Returns_null_on_failure()
     {
         var handler = new StubHandler(_ => throw new HttpRequestException("boom"));
         var cache = new FakeCache();
@@ -52,7 +52,19 @@ public class SubscriberAuthorizationServiceTests
 
         var accessible = await service.GetAccessibleAsync(CancellationToken.None);
 
-        Assert.Empty(accessible);
+        Assert.Null(accessible);
+    }
+
+    [Fact]
+    public async Task Returns_null_when_the_token_has_expired()
+    {
+        var handler = new StubHandler(_ => Json(HttpStatusCode.Unauthorized, """{"message":"Bad credentials"}"""));
+        var cache = new FakeCache();
+        var service = Service(handler, cache);
+
+        var accessible = await service.GetAccessibleAsync(CancellationToken.None);
+
+        Assert.Null(accessible);
     }
 
     private static SubscriberAuthorizationService Service(HttpMessageHandler handler, IDistributedCache cache)
