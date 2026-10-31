@@ -68,7 +68,7 @@ internal sealed class GitHubWebhookEventProcessor(
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
         var (owner, repo) = RepoOf(workflowRunEvent.Repository);
-        logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", action, owner, repo, workflowRunEvent.WorkflowRun.Id);
+        logger.LogInformation("workflow_run.{Action} {Owner}/{Repo} run={RunId}", workflowRunEvent.Action, owner, repo, workflowRunEvent.WorkflowRun.Id);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.Workflows, cancellationToken);
         // Only a finished run can retire a gate, and only deployment_review can raise one (see
@@ -87,7 +87,7 @@ internal sealed class GitHubWebhookEventProcessor(
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
         var (owner, repo) = RepoOf(pullRequestEvent.Repository);
-        logger.LogInformation("pull_request.{Action} {Owner}/{Repo} #{Number}", action, owner, repo, pullRequestEvent.PullRequest.Number);
+        logger.LogInformation("pull_request.{Action} {Owner}/{Repo} #{Number}", pullRequestEvent.Action, owner, repo, pullRequestEvent.PullRequest.Number);
         if (InvalidatingPullRequestActions.Contains(action))
         {
             await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
@@ -102,7 +102,7 @@ internal sealed class GitHubWebhookEventProcessor(
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
         var (owner, repo) = RepoOf(pullRequestReviewThreadEvent.Repository);
-        logger.LogInformation("pull_request_review_thread.{Action} {Owner}/{Repo} #{Number}", action, owner, repo, pullRequestReviewThreadEvent.PullRequest.Number);
+        logger.LogInformation("pull_request_review_thread.{Action} {Owner}/{Repo} #{Number}", pullRequestReviewThreadEvent.Action, owner, repo, pullRequestReviewThreadEvent.PullRequest.Number);
         await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
         Broadcast("pull_request_review", owner, repo, headers, pullRequestNumber: (int)pullRequestReviewThreadEvent.PullRequest.Number);
     }
@@ -111,7 +111,7 @@ internal sealed class GitHubWebhookEventProcessor(
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
         var (owner, repo) = RepoOf(pullRequestReviewCommentEvent.Repository);
-        logger.LogInformation("pull_request_review_comment.{Action} {Owner}/{Repo} #{Number}", action, owner, repo, pullRequestReviewCommentEvent.PullRequest.Number);
+        logger.LogInformation("pull_request_review_comment.{Action} {Owner}/{Repo} #{Number}", pullRequestReviewCommentEvent.Action, owner, repo, pullRequestReviewCommentEvent.PullRequest.Number);
         await BumpAsync(owner, repo, RepoDataKind.Pulls, cancellationToken);
         Broadcast("pull_request_review", owner, repo, headers, pullRequestNumber: (int)pullRequestReviewCommentEvent.PullRequest.Number);
     }
@@ -120,7 +120,7 @@ internal sealed class GitHubWebhookEventProcessor(
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
         var (owner, repo) = RepoOf(checkRunEvent.Repository);
-        logger.LogInformation("check_run.{Action} {Owner}/{Repo} name={Name}", action, owner, repo, checkRunEvent.CheckRun.Name);
+        logger.LogInformation("check_run.{Action} {Owner}/{Repo} name={Name}", checkRunEvent.Action, owner, repo, checkRunEvent.CheckRun.Name);
         await BumpAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         Broadcast("check_run", owner, repo, headers);
@@ -130,7 +130,7 @@ internal sealed class GitHubWebhookEventProcessor(
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
         var (owner, repo) = RepoOf(checkSuiteEvent.Repository);
-        logger.LogInformation("check_suite.{Action} {Owner}/{Repo} id={Id}", action, owner, repo, checkSuiteEvent.CheckSuite.Id);
+        logger.LogInformation("check_suite.{Action} {Owner}/{Repo} id={Id}", checkSuiteEvent.Action, owner, repo, checkSuiteEvent.CheckSuite.Id);
         await BumpAsync(owner, repo, RepoDataKind.Checks, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         Broadcast("check_suite", owner, repo, headers);
@@ -144,7 +144,7 @@ internal sealed class GitHubWebhookEventProcessor(
     {
         if (!await ClaimAsync(headers, cancellationToken)) return;
         var (owner, repo) = RepoOf(deploymentReviewEvent.Repository);
-        logger.LogInformation("deployment_review.{Action} {Owner}/{Repo}", action, owner, repo);
+        logger.LogInformation("deployment_review.{Action} {Owner}/{Repo}", deploymentReviewEvent.Action, owner, repo);
         await BumpAsync(owner, repo, RepoDataKind.WorkflowRuns, cancellationToken);
         await BumpAsync(owner, repo, RepoDataKind.Gates, cancellationToken);
         Broadcast("deployment_review", owner, repo, headers, runId: (long?)deploymentReviewEvent.WorkflowRun?.Id, action: deploymentReviewEvent.Action);
@@ -212,7 +212,7 @@ internal sealed class GitHubWebhookEventProcessor(
         }
         else
         {
-            logger.LogInformation("installation.{Action} id={Id} (no-op)", action, installation.Id);
+            logger.LogInformation("installation.{Action} id={Id} (no-op)", installationEvent.Action, installation.Id);
         }
     }
 
