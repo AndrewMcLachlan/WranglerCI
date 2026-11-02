@@ -22,6 +22,10 @@
         box-shadow: 0 0 8px rgba(255, 191, 0, 0.25);
     }
 
+    &.grey {
+        background-color: var(--status-cancelled);
+    }
+
     &.waiting {
         background-color: var(--status-waiting);
     }
