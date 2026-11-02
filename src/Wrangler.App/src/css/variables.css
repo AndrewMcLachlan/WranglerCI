@@ -4,6 +4,7 @@
     --amber: rgb(255, 191, 0);
     --status-waiting: orange;
     --status-running: cornflowerblue;
+    --status-cancelled: #9ea3a8;
 
     --card-bg: #222230;
     --primary: #060505;
