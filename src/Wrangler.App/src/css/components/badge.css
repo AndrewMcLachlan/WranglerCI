@@ -32,6 +32,11 @@
     --badge-fg: #e8c44a;
   }
 
+  &.grey {
+    --badge-bg: rgba(158, 163, 168, 0.14);
+    --badge-fg: #9ea3a8;
+  }
+
   &.waiting {
     --badge-bg: rgba(255, 165, 0, 0.12);
     --badge-fg: #e8a44a;

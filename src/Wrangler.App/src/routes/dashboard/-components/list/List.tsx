@@ -10,6 +10,7 @@ interface WorkflowRunItem {
 import { useWorkflows } from "../../-hooks/useWorkflows";
 import { RefreshFailed } from "../shared/RefreshFailed";
 import { BranchBadge } from "../shared/BranchBadge";
+import { statusClassName } from "../shared/StatusIndicator";
 
 const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
@@ -18,7 +19,7 @@ const columns: ColumnDef<WorkflowRunItem>[] = [
     field: (item) => item.run.workflowStatus,
     id: "status",
     header: "Status",
-    cell: ({ row }) => <Badge className={row.run.workflowStatus?.toLowerCase()}>{row.run.conclusion || row.run.status}</Badge>,
+    cell: ({ row }) => <Badge className={statusClassName(row.run.workflowStatus)}>{row.run.conclusion || row.run.status}</Badge>,
     enableSorting: true,
   },
   {
