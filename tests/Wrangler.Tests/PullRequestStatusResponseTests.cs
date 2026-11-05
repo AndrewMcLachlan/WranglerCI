@@ -16,17 +16,29 @@ public class PullRequestStatusResponseTests
     {
         const string json = """
             {"data":{"repository":{"pull_requests":{"nodes":[
-              {"number":12,"review_decision":"CHANGES_REQUESTED","merge_state_status":"BLOCKED","review_threads":{"nodes":[{"is_resolved":false},{"is_resolved":true},{"is_resolved":false}]}},
-              {"number":13,"review_decision":"APPROVED","merge_state_status":"HAS_HOOKS","review_threads":{"nodes":[{"is_resolved":true}]}},
-              {"number":14,"review_decision":null,"merge_state_status":"DIRTY","review_threads":{"nodes":[]}}
+              {"number":12,"review_decision":"CHANGES_REQUESTED","merge_state_status":"BLOCKED","review_threads":{"nodes":[{"is_resolved":false},{"is_resolved":true},{"is_resolved":false}]},"commits":{"nodes":[{"commit":{"status_check_rollup":{"state":"FAILURE"}}}]}},
+              {"number":13,"review_decision":"APPROVED","merge_state_status":"HAS_HOOKS","review_threads":{"nodes":[{"is_resolved":true}]},"commits":{"nodes":[{"commit":{"status_check_rollup":{"state":"SUCCESS"}}}]}},
+              {"number":14,"review_decision":null,"merge_state_status":"DIRTY","review_threads":{"nodes":[]},"commits":{"nodes":[{"commit":{"status_check_rollup":{"state":"PENDING"}}}]}}
             ]}}}}
             """;
 
         var statuses = new SimpleJsonSerializer().Deserialize<PullRequestStatusResponse>(json).ByNumber();
 
-        Assert.Equal(new PullRequestStatus(2, ReviewDecision.ChangesRequested, MergeState.Blocked), statuses[12]);
-        Assert.Equal(new PullRequestStatus(0, ReviewDecision.Approved, MergeState.HasHooks), statuses[13]);
-        Assert.Equal(new PullRequestStatus(0, null, MergeState.Dirty), statuses[14]);
+        Assert.Equal(new PullRequestStatus(2, ReviewDecision.ChangesRequested, MergeState.Blocked, CheckStatus.Failure), statuses[12]);
+        Assert.Equal(new PullRequestStatus(0, ReviewDecision.Approved, MergeState.HasHooks, CheckStatus.Success), statuses[13]);
+        Assert.Equal(new PullRequestStatus(0, null, MergeState.Dirty, CheckStatus.Pending), statuses[14]);
+    }
+
+    [Theory]
+    [InlineData("""{"status_check_rollup":{"state":"ERROR"}}""", CheckStatus.Failure)]
+    [InlineData("""{"status_check_rollup":{"state":"EXPECTED"}}""", CheckStatus.Pending)]
+    [InlineData("""{"status_check_rollup":null}""", CheckStatus.Success)]
+    [InlineData("null", CheckStatus.Unknown)]
+    public void Reads_the_head_commits_check_status(string commit, CheckStatus expected)
+    {
+        var json = """{"data":{"repository":{"pull_requests":{"nodes":[{"number":1,"commits":{"nodes":[{"commit":""" + commit + """}]}}]}}}}""";
+
+        Assert.Equal(expected, new SimpleJsonSerializer().Deserialize<PullRequestStatusResponse>(json).ByNumber()[1].CheckStatus);
     }
 
     [Fact]

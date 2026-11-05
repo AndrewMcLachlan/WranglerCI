@@ -5,7 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { DateTime } from "luxon";
 import { summaryToast } from "../../../utils/summaryToast";
-import { usePullRequests } from "../-hooks/usePullRequests";
+import { isPullRequestScope, usePullRequests } from "../-hooks/usePullRequests";
+import { usePrTab } from "../-hooks/usePrTab";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
 import { usePrIncludeTags, usePrExcludeTags, usePrTagColours } from "../-hooks/usePrTagFilter";
@@ -70,12 +71,20 @@ export const PullRequests = () => {
   const prRepositories = useMemo(
     () => selectedRepositories.filter((r) => r.pullRequests === true),
     [selectedRepositories]);
-  const { tab: scope = "all" } = useSearch({ from: "/pull-requests/" });
+  const { tab } = useSearch({ from: "/pull-requests/" });
+  const [lastTab, setLastTab] = usePrTab();
+  const scope = tab ?? (isPullRequestScope(lastTab) ? lastTab : "all");
   const navigate = useNavigate({ from: "/pull-requests/" });
   const { data: authors } = usePrAuthors();
   const { mutate: updateAuthors } = useUpdatePrAuthors();
   const { data: pullRequests, isLoading, isError, error, refetch } = usePullRequests(scope);
   const [statusFilter, setStatusFilter] = usePrStatusFilter();
+
+  // A link straight to a tab counts as visiting it.
+  useEffect(() => {
+    if (tab && tab !== lastTab) setLastTab(tab);
+  }, [tab, lastTab, setLastTab]);
+
   const [includeTags, setIncludeTags] = usePrIncludeTags();
   const [excludeTags, setExcludeTags] = usePrExcludeTags();
   const [tagColours, setTagColours] = usePrTagColours();
@@ -350,7 +359,7 @@ export const PullRequests = () => {
   // Every applied filter as a chip, so the narrow bar shows what is in force
   // while the controls themselves stay in the sheet.
   const appliedFilters: AppliedFilter[] = [
-    ...(scope === "mine" ? [] : authors).map((login) => ({
+    ...(scope === "all" ? authors : []).map((login) => ({
       key: `author:${login}`,
       label: login,
       onRemove: () => updateAuthors(authors.filter((a) => a !== login)),
@@ -449,9 +458,11 @@ export const PullRequests = () => {
   );
 
   const selectTab = (key: string) => {
+    if (!isPullRequestScope(key)) return;
     setSelected(new Set());
     setAlerts([]);
-    navigate({ search: key === "mine" ? { tab: "mine" } : {} });
+    setLastTab(key);
+    navigate({ search: key === "all" ? {} : { tab: key } });
   };
 
   const showAuthors = scope === "all";
@@ -527,6 +538,7 @@ export const PullRequests = () => {
       <Tabs activeKey={scope} onSelect={selectTab}>
         <Tab eventKey="all" title="All PRs">{body}</Tab>
         <Tab eventKey="mine" title="My PRs">{body}</Tab>
+        <Tab eventKey="bots" title="Bot PRs">{body}</Tab>
       </Tabs>
     </article>
   );
