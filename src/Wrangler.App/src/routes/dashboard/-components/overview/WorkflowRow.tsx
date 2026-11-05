@@ -9,7 +9,7 @@ export const WorkflowRow: React.FC<{ workflow: WorkflowModel }> = ({ workflow })
   return (
     <div className="workflow-row">
       <StatusIndicator status={workflow.overallStatus} />
-      <a className="workflow-name" href={workflowActionsUrl(workflow)} target="_blank" rel="noopener noreferrer">{workflow.name}</a>
+      <a className="workflow-name" title={workflow.name} href={workflowActionsUrl(workflow)} target="_blank" rel="noopener noreferrer">{workflow.name}</a>
       {runs.length === 1 && <RunInfo run={runs[0]} workflow={workflow} orientation="right" />}
       {runs.length > 1 && (
         <div className="workflow-runs">
