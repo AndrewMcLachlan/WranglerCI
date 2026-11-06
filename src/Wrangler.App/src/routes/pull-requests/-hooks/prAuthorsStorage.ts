@@ -7,7 +7,7 @@ import type { StorageLike } from "../../settings/-hooks/repositoryFeatures";
 
 export const PR_AUTHORS_KEY = "prAuthors";
 
-export const DEFAULT_PR_AUTHORS = ["dependabot[bot]", "renovate[bot]"];
+export const DEFAULT_PR_AUTHORS: string[] = [];
 
 /**
  * Reads the stored author filter, falling back to the defaults only when nothing

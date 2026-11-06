@@ -53,11 +53,10 @@ export const useWarmCaches = (enabled: boolean = true) => {
                 queryClient.prefetchQuery(workflowsQueryOptions(selectedRepositories, readBranchFilter(localStorage)));
                 queryClient.prefetchQuery(gatesQueryOptions(gateRepos));
             }
-            if (prRepos.length > 0 && authors.length > 0) {
-                queryClient.prefetchQuery(pullRequestsQueryOptions(prRepos, authors));
-            }
             if (prRepos.length > 0) {
-                queryClient.prefetchQuery(pullRequestsQueryOptions(prRepos, [], true));
+                queryClient.prefetchQuery(pullRequestsQueryOptions(prRepos, authors));
+                queryClient.prefetchQuery(pullRequestsQueryOptions(prRepos, [], "mine"));
+                queryClient.prefetchQuery(pullRequestsQueryOptions(prRepos, [], "bots"));
             }
             if (attentionRepos.length > 0) {
                 queryClient.prefetchQuery(attentionQueryOptions(attentionRepos));

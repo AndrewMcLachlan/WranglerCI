@@ -5,7 +5,7 @@ using Postie.Cqrs.Queries;
 namespace Asm.Wrangler.Api.Queries;
 
 /// <summary>
-/// Request to retrieve open pull requests from the specified repositories, filtered by author.
+/// Request to retrieve open pull requests from the specified repositories, optionally filtered by author.
 /// </summary>
 public record PullRequests : IQuery<IEnumerable<PullRequestModel>>
 {
@@ -31,7 +31,7 @@ public record PullRequests : IQuery<IEnumerable<PullRequestModel>>
     public IReadOnlyList<RepositoryRequest> Repositories { get; init; } = [];
 
     /// <summary>
-    /// The author logins to filter by (case-insensitive).
+    /// The author logins to filter by (case-insensitive). Empty means every author.
     /// </summary>
     public IReadOnlyList<string> Authors { get; init; } = [];
 
@@ -40,6 +40,11 @@ public record PullRequests : IQuery<IEnumerable<PullRequestModel>>
     /// those assigned to them, and those they opened that nobody is assigned to.
     /// </summary>
     public bool Mine { get; init; }
+
+    /// <summary>
+    /// When true, <see cref="Authors"/> and <see cref="Mine"/> are ignored and the result is every pull request opened by a bot.
+    /// </summary>
+    public bool Bots { get; init; }
 }
 
 internal class PullRequestsHandler(IPullRequestService service) : IQueryHandler<PullRequests, IEnumerable<PullRequestModel>>

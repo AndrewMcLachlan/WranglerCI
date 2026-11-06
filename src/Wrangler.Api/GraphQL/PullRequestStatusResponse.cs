@@ -5,7 +5,7 @@ namespace Asm.Wrangler.Api.GraphQL;
 /// <summary>
 /// The merge-readiness GitHub reports for one pull request.
 /// </summary>
-internal record PullRequestStatus(int UnresolvedThreads, ReviewDecision? ReviewDecision, MergeState? MergeState);
+internal record PullRequestStatus(int UnresolvedThreads, ReviewDecision? ReviewDecision, MergeState? MergeState, CheckStatus CheckStatus);
 
 /// <summary>
 /// The response to <see cref="Query"/>, shaped for Octokit's serializer.
@@ -13,7 +13,8 @@ internal record PullRequestStatus(int UnresolvedThreads, ReviewDecision? ReviewD
 internal class PullRequestStatusResponse
 {
     // Fields must be aliased to snake_case: Octokit's serializer binds no other casing.
-    public const string Query = "query($owner: String!, $name: String!, $cursor: String) { repository(owner: $owner, name: $name) { pull_requests: pullRequests(states: OPEN, first: 100, after: $cursor) { page_info: pageInfo { has_next_page: hasNextPage end_cursor: endCursor } nodes { number review_decision: reviewDecision merge_state_status: mergeStateStatus review_threads: reviewThreads(first: 100) { nodes { is_resolved: isResolved } } } } } }";
+    // Pages must stay small: GitHub times out (502/504) on large repos at 100 per page.
+    public const string Query = "query($owner: String!, $name: String!, $cursor: String) { repository(owner: $owner, name: $name) { pull_requests: pullRequests(states: OPEN, first: 25, after: $cursor) { page_info: pageInfo { has_next_page: hasNextPage end_cursor: endCursor } nodes { number review_decision: reviewDecision merge_state_status: mergeStateStatus review_threads: reviewThreads(first: 100) { nodes { is_resolved: isResolved } } commits(last: 1) { nodes { commit { status_check_rollup: statusCheckRollup { state } } } } } } } }";
 
     public PullRequestStatusData? Data { get; set; }
 
@@ -67,14 +68,40 @@ internal class PullRequestStatusNode
 
     public PullRequestStatusConnection<ReviewThread>? ReviewThreads { get; set; }
 
+    public PullRequestStatusConnection<HeadCommitNode>? Commits { get; set; }
+
     public PullRequestStatus ToStatus() => new(
         (ReviewThreads?.Nodes ?? []).Count(t => !t.IsResolved),
         ParseEnum<ReviewDecision>(ReviewDecision),
-        ParseEnum<MergeState>(MergeStateStatus));
+        ParseEnum<MergeState>(MergeStateStatus),
+        CheckStatusOf(Commits?.Nodes?.LastOrDefault()?.Commit));
+
+    // A head commit with no rollup has no checks or statuses at all, which counts as passing.
+    private static CheckStatus CheckStatusOf(HeadCommit? commit) => commit is null ? CheckStatus.Unknown : commit.StatusCheckRollup?.State switch
+    {
+        null or "SUCCESS" => CheckStatus.Success,
+        "FAILURE" or "ERROR" => CheckStatus.Failure,
+        _ => CheckStatus.Pending,
+    };
 
     // GitHub sends SCREAMING_SNAKE_CASE values, such as CHANGES_REQUESTED.
     private static T? ParseEnum<T>(string? value) where T : struct, Enum =>
         Enum.TryParse<T>(value?.Replace("_", String.Empty), ignoreCase: true, out var parsed) ? parsed : null;
+}
+
+internal class HeadCommitNode
+{
+    public HeadCommit? Commit { get; set; }
+}
+
+internal class HeadCommit
+{
+    public StatusCheckRollup? StatusCheckRollup { get; set; }
+}
+
+internal class StatusCheckRollup
+{
+    public string? State { get; set; }
 }
 
 internal class PullRequestAuthor

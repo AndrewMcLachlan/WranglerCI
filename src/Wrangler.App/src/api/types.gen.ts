@@ -170,6 +170,7 @@ export type PullRequests = {
     repositories?: Array<RepositoryRequest>;
     authors?: Array<string>;
     mine?: boolean;
+    bots?: boolean;
 };
 
 export type Repository = {

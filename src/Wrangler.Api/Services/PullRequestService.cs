@@ -48,9 +48,9 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
     public async Task<IEnumerable<PullRequestModel>> GetPullRequestsAsync(PullRequests request, CancellationToken cancellationToken)
     {
         var viewer = httpContextAccessor.HttpContext?.Session.GetString(SessionKeys.User);
-        if (request.Mine && viewer is null) return [];
+        if (request.Mine && !request.Bots && viewer is null) return [];
 
-        var filter = request.Mine ? PullRequestFilter.Mine(viewer!) : PullRequestFilter.ByAuthors(request.Authors);
+        var filter = request.Bots ? PullRequestFilter.Bots : request.Mine ? PullRequestFilter.Mine(viewer!) : PullRequestFilter.ByAuthors(request.Authors);
         var tasks = request.Repositories.Select(repo => GetRepoPullRequestsAsync(repo.Owner, repo.Name, filter, cancellationToken));
 
         var results = await Task.WhenAll(tasks);
@@ -165,27 +165,15 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             await Jitter(cancellationToken);
             var prs = await OctoCall(() => gitHubClient.PullRequest.GetAllForRepository(owner, repo, new PullRequestRequest { State = ItemStateFilter.Open }), cancellationToken);
 
-            var filtered = prs.Where(pr => filter.Matches(pr.User.Login, [.. (pr.Assignees ?? []).Select(a => a.Login)])).ToList();
+            var filtered = prs.Where(pr => filter.Matches(pr.User.Login, pr.User.Type == AccountType.Bot, [.. (pr.Assignees ?? []).Select(a => a.Login)])).ToList();
             if (filtered.Count == 0) return [];
 
-            var statusesTask = GetPullRequestStatusesAsync(owner, repo, cancellationToken);
+            var statuses = await GetPullRequestStatusesAsync(owner, repo, cancellationToken);
             var viewer = httpContextAccessor.HttpContext?.Session.GetString(SessionKeys.User);
 
-            // Fan out the per-PR API calls. Each task makes two calls
-            // (combined commit status, check runs) in parallel. The
-            // previous loop awaited each PR before starting the next, so wall
-            // clock was O(N * round-trip); now it's bounded by the slowest
-            // single PR. OctoCall already retries on abuse / secondary rate
-            // limits, so we don't add a second throttle here.
-            var modelTasks = filtered.Select(async pr =>
+            return filtered.Select(pr =>
             {
-                await Jitter(cancellationToken);
-
-                var checkStatusTask = GetCheckStatusAsync(owner, repo, pr.Head.Sha, cancellationToken);
-
-                await Task.WhenAll(checkStatusTask, statusesTask);
-
-                var status = statusesTask.Result.GetValueOrDefault(pr.Number);
+                var status = statuses.GetValueOrDefault(pr.Number);
                 var isOwn = String.Equals(pr.User.Login, viewer, StringComparison.OrdinalIgnoreCase);
 
                 return new PullRequestModel
@@ -202,16 +190,14 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     HeadRef = pr.Head.Ref,
                     CreatedAt = pr.CreatedAt,
                     UpdatedAt = pr.UpdatedAt,
-                    CheckStatus = checkStatusTask.Result,
+                    CheckStatus = status?.CheckStatus ?? CheckStatus.Unknown,
                     UnresolvedThreads = status?.UnresolvedThreads,
                     ReviewDecision = status?.ReviewDecision,
                     MergeState = status?.MergeState,
                     Blockers = MergeBlockers.For(status?.MergeState, status?.ReviewDecision, status?.UnresolvedThreads ?? 0, isOwn, pr.Draft),
                     Labels = [.. pr.Labels.Select(l => new PullRequestLabel { Name = l.Name, Color = l.Color })],
                 };
-            });
-
-            return await Task.WhenAll(modelTasks);
+            }).ToList();
         }
         finally
         {
@@ -253,57 +239,6 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         var isOwn = String.Equals(pullRequest?.Author?.Login, viewer, StringComparison.OrdinalIgnoreCase);
 
         return MergeBlockers.NeedsApproval(pullRequest?.ToStatus().ReviewDecision, isOwn);
-    }
-
-    private async Task<CheckStatus> GetCheckStatusAsync(string owner, string repo, string sha, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var statusTask = OctoCall(() => gitHubClient.Repository.Status.GetCombined(owner, repo, sha), cancellationToken);
-            var checksTask = OctoCall(() => gitHubClient.Check.Run.GetAllForReference(owner, repo, sha), cancellationToken);
-
-            await Task.WhenAll(statusTask, checksTask);
-
-            var combinedStatus = statusTask.Result;
-            var checkRuns = checksTask.Result;
-
-            // Check commit statuses
-            bool hasFailure = combinedStatus.State.Value == CommitState.Failure || combinedStatus.State.Value == CommitState.Error;
-            bool allSuccess = combinedStatus.TotalCount == 0 || combinedStatus.State.Value == CommitState.Success;
-
-            // Check check runs
-            foreach (var run in checkRuns.CheckRuns)
-            {
-                if (run.Conclusion.HasValue)
-                {
-                    if (run.Conclusion.Value == CheckConclusion.Failure ||
-                        run.Conclusion.Value == CheckConclusion.TimedOut ||
-                        run.Conclusion.Value == CheckConclusion.Cancelled)
-                    {
-                        hasFailure = true;
-                    }
-                    else if (run.Conclusion.Value != CheckConclusion.Success &&
-                             run.Conclusion.Value != CheckConclusion.Skipped &&
-                             run.Conclusion.Value != CheckConclusion.Neutral)
-                    {
-                        allSuccess = false;
-                    }
-                }
-                else
-                {
-                    // Still running
-                    allSuccess = false;
-                }
-            }
-
-            if (hasFailure) return CheckStatus.Failure;
-            if (allSuccess) return CheckStatus.Success;
-            return CheckStatus.Pending;
-        }
-        catch
-        {
-            return CheckStatus.Unknown;
-        }
     }
 
     private async Task<ApprovalResult> ApproveAndMergeAsync(string owner, string repo, int number, PullRequestMergeMethod mergeMethod, CancellationToken cancellationToken)
