@@ -1,9 +1,10 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
 import type { RepositoryModel } from "../../../../api";
+import { PlaceholderCard } from "../shared/Placeholder";
 import StatusIndicator from "../shared/StatusIndicator";
 import { WorkflowOverviewCard } from "./WorkflowOverviewCard";
 
-export const RepositoryWorkflowsExpanded: React.FC<{ repository: RepositoryModel }> = ({ repository }) => {
+export const RepositoryWorkflowsExpanded: React.FC<{ repository: RepositoryModel; pendingWorkflows?: number }> = ({ repository, pendingWorkflows = 0 }) => {
   const workflows = [...(repository.workflows ?? [])].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
@@ -19,6 +20,7 @@ export const RepositoryWorkflowsExpanded: React.FC<{ repository: RepositoryModel
         {workflows.map((w) => (
           <WorkflowOverviewCard key={w.id} workflow={w} />
         ))}
+        {Array.from({ length: pendingWorkflows }, (_, i) => <PlaceholderCard key={i} label="Loading workflow" />)}
       </div>
     </div>
   );

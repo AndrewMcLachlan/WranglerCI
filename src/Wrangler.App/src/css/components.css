@@ -16,7 +16,7 @@
 
 /* Dashboard views */
 @import "./components/overview/overview.css";
-@import "./components/repository-placeholder.css";
+@import "./components/placeholder.css";
 @import "./components/nested/repository-card.css";
 @import "./components/nested/repository-list.css";
 @import "./components/nested/workflow-card.css";

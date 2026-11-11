@@ -1,0 +1,88 @@
+.placeholder-card,
+.placeholder-row {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.placeholder-dot,
+.placeholder-bar {
+  display: block;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.12);
+  animation: placeholder-pulse 1.6s ease-in-out infinite;
+}
+
+.placeholder-dot {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.placeholder-bar {
+  height: 0.8rem;
+  width: 70%;
+}
+
+@scope (.placeholder-card) {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+
+  .placeholder-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+    h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .placeholder-bar {
+      width: 40%;
+    }
+  }
+
+  .placeholder-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem 0.875rem;
+
+    .placeholder-bar + .placeholder-bar {
+      width: 45%;
+    }
+  }
+}
+
+@scope (.placeholder-row) {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+
+  .placeholder-dot {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .placeholder-bar {
+    width: 50%;
+  }
+}
+
+@keyframes placeholder-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placeholder-dot,
+  .placeholder-bar {
+    animation: none;
+  }
+}

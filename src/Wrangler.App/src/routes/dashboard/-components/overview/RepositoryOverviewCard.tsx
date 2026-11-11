@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Icon } from "@andrewmclachlan/moo-ds";
 import type { RepositoryModel, WorkflowModel } from "../../../../api";
+import { PlaceholderRow } from "../shared/Placeholder";
 import StatusIndicator from "../shared/StatusIndicator";
 import { WorkflowRow } from "./WorkflowRow";
 
@@ -9,7 +10,7 @@ const isAttentionNeeded = (workflow: WorkflowModel): boolean => {
   return status === "Red" || status === "Amber";
 };
 
-export const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel }> = ({ repository }) => {
+export const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel; pendingWorkflows?: number }> = ({ repository, pendingWorkflows = 0 }) => {
   const [expanded, setExpanded] = useState(false);
   const workflows = [...(repository.workflows ?? [])].sort((a, b) => a.name.localeCompare(b.name));
   const attentionWorkflows = workflows.filter(isAttentionNeeded);
@@ -39,6 +40,7 @@ export const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel }> =
             <WorkflowRow key={w.id} workflow={w} />
           ))
         }
+        {Array.from({ length: pendingWorkflows }, (_, i) => <PlaceholderRow key={i} />)}
       </div>
     </div>
   );

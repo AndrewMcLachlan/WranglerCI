@@ -12,7 +12,7 @@ interface AccountGroup {
 }
 
 export const Overview = () => {
-  const { data: repositories, loading, isLoading, isError, error } = useWorkflows();
+  const { data: repositories, loading, pendingWorkflows, isLoading, isError, error } = useWorkflows();
 
   if (isError && repositories.length === 0 && loading.length === 0) {
     console.error("Error fetching dashboard data:", error);
@@ -42,7 +42,7 @@ export const Overview = () => {
       {isError && <RefreshFailed />}
       {!isLoading && repositories.length === 0 && <p>No workflows found.</p>}
       {sortedGroups.map(({ owner, title, repos, loading }) => (
-        <AccountSection key={owner} owner={title} repositories={repos} loading={loading} />
+        <AccountSection key={owner} owner={title} repositories={repos} loading={loading} pendingWorkflows={pendingWorkflows} />
       ))}
     </div>
   );
