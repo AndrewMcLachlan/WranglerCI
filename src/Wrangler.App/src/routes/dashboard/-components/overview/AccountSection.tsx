@@ -1,12 +1,13 @@
 import type { RepositoryModel } from "../../../../api";
 import type { SelectedRepository } from "../../../settings/-hooks/repositoryFeatures";
-import { RepositoryPlaceholder } from "../shared/RepositoryPlaceholder";
+import { repositoryKey } from "../../-hooks/useWorkflows";
+import { PlaceholderCard } from "../shared/Placeholder";
 import { RepositoryOverviewCard } from "./RepositoryOverviewCard";
 import { RepositoryWorkflowsExpanded } from "./RepositoryWorkflowsExpanded";
 
 const ExpandedWorkflowThreshold = 5;
 
-export const AccountSection: React.FC<{ owner: string; repositories: RepositoryModel[]; loading?: SelectedRepository[] }> = ({ owner, repositories, loading = [] }) => {
+export const AccountSection: React.FC<{ owner: string; repositories: RepositoryModel[]; loading?: SelectedRepository[]; pendingWorkflows: Map<string, number> }> = ({ owner, repositories, loading = [], pendingWorkflows }) => {
   const items = [
     ...repositories.map((repo) => ({ name: repo.name, repo })),
     ...loading.map((repo) => ({ name: repo.name, repo: undefined })),
@@ -18,15 +19,13 @@ export const AccountSection: React.FC<{ owner: string; repositories: RepositoryM
         <h2>{owner}</h2>
       </div>
       <div className="account-section-body">
-        {items.map(({ name, repo }) =>
-          !repo ? (
-            <RepositoryPlaceholder key={`loading:${name}`} name={name} />
-          ) : (repo.workflows?.length ?? 0) > ExpandedWorkflowThreshold ? (
-            <RepositoryWorkflowsExpanded key={repo.nodeId} repository={repo} />
-          ) : (
-            <RepositoryOverviewCard key={repo.nodeId} repository={repo} />
-          )
-        )}
+        {items.map(({ name, repo }) => {
+          if (!repo) return <PlaceholderCard key={`loading:${name}`} title={name} label={`Loading ${name}`} />;
+          const pending = pendingWorkflows.get(repositoryKey(repo)) ?? 0;
+          return (repo.workflows?.length ?? 0) + pending > ExpandedWorkflowThreshold
+            ? <RepositoryWorkflowsExpanded key={repo.nodeId} repository={repo} pendingWorkflows={pending} />
+            : <RepositoryOverviewCard key={repo.nodeId} repository={repo} pendingWorkflows={pending} />;
+        })}
       </div>
     </section>
   );

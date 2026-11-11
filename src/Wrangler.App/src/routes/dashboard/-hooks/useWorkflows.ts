@@ -149,16 +149,33 @@ const latestCachedWorkflows = (queryClient: QueryClient, { owner, name }: Select
     .filter((query) => query.state.data !== undefined)
     .sort((a, b) => b.state.dataUpdatedAt - a.state.dataUpdatedAt)[0]?.state.data as RepositoryModel[] | undefined;
 
+/** Identifies a repository regardless of the case GitHub or the user gave its owner and name in. */
+export const repositoryKey = ({ owner, name }: { owner: string; name: string }) => `${owner}/${name}`.toLowerCase();
+
+/**
+ * Narrow stand-in data to the workflows now selected, so a removed workflow
+ * disappears at once, and count the selected workflows it has no runs for yet.
+ * Exported for unit testing.
+ */
+export const narrowToSelection = (repositories: RepositoryModel[], selected: (number | string)[]) => {
+  const wanted = new Set(selected.map(String));
+  const narrowed = repositories.map((repo) => ({ ...repo, workflows: repo.workflows?.filter((w) => wanted.has(String(w.id))) }));
+  const present = new Set(narrowed.flatMap((repo) => repo.workflows ?? []).map((w) => String(w.id)));
+  return { repositories: narrowed, missing: [...wanted].filter((id) => !present.has(id)).length };
+};
+
 const combineResults = (results: UseQueryResult<RepositoryModel[]>[]) => ({
   data: results.map((r) => r.data),
+  placeholder: results.map((r) => r.isPlaceholderData),
   pending: results.map((r) => r.isPending),
   isError: results.some((r) => r.isError),
   error: results.find((r) => r.error)?.error ?? null,
 });
 
 /**
- * The dashboard's repositories as loaded so far, unfiltered, and the selected
- * repositories still waiting on their first load (loading).
+ * The dashboard's repositories as loaded so far, unfiltered, the selected
+ * repositories still waiting on their first load (loading), and how many newly
+ * selected workflows each shown repository is still waiting on (pendingWorkflows).
  */
 export const useDashboardWorkflows = () => {
 
@@ -168,7 +185,7 @@ export const useDashboardWorkflows = () => {
 
   const repositories = useMemo(() => dashboardRepositories(selectedRepositories), [selectedRepositories]);
 
-  const { data, pending, isError, error } = useQueries({
+  const { data, placeholder, pending, isError, error } = useQueries({
     queries: [
       ...repositories.map((repository) => ({
         ...workflowsQueryOptions(repository, branchFilter),
@@ -181,13 +198,30 @@ export const useDashboardWorkflows = () => {
     combine: combineResults,
   });
 
-  return useMemo(() => ({
-    data: data.flatMap((d) => d ?? []),
-    loading: repositories.filter((_, i) => pending[i]),
-    isLoading: pending.some(Boolean),
-    isError,
-    error,
-  }), [data, pending, repositories, isError, error]);
+  return useMemo(() => {
+    const loaded: RepositoryModel[] = [];
+    const pendingWorkflows = new Map<string, number>();
+    data.forEach((d, i) => {
+      if (!d) return;
+      const repository = repositories[i];
+      if (!repository || !placeholder[i]) {
+        loaded.push(...d);
+        return;
+      }
+      const { repositories: narrowed, missing } = narrowToSelection(d, repository.workflows ?? []);
+      loaded.push(...narrowed);
+      if (missing > 0) pendingWorkflows.set(repositoryKey(repository), missing);
+    });
+
+    return {
+      data: loaded,
+      loading: repositories.filter((_, i) => pending[i]),
+      pendingWorkflows,
+      isLoading: pending.some(Boolean),
+      isError,
+      error,
+    };
+  }, [data, placeholder, pending, repositories, isError, error]);
 };
 
 export const useWorkflows = () => {
