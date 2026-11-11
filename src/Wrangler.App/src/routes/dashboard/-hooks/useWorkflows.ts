@@ -1,7 +1,8 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { useQueries, useQueryClient, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { useDashboardContext } from "../-providers/DashboardProvider";
-import { postWorkflows } from "../../../api";
+import { fetchRepositoryWorkflows } from "./workflowsBatch";
 import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures";
 import { PAGE_STALE_TIME } from "../../../pageFreshness";
 import { applyPendingGates } from "../../../hooks/gateStatus";
@@ -102,24 +103,7 @@ const buildFakeRepo = (filters: string[]): RepositoryModel => {
   };
 };
 
-/**
- * What the dashboard fetches, without the view's own concerns, so the cache
- * can be warmed for a page nobody is looking at yet.
- */
-export const workflowsQueryOptions = (selectedRepositories: SelectedRepository[], branchFilter: string[]) => ({
-  queryKey: ["getWorkflows", selectedRepositories, branchFilter],
-  queryFn: async () => {
-    const result = await postWorkflows({
-      body: {
-        // A repo with no selected workflows has nothing to show here. The
-        // entry stays in settings/PR scope.
-        repositories: selectedRepositories.filter(hasDashboardWorkflows),
-        branchFilters: branchFilter?.length ? branchFilter : undefined,
-      }
-    })
-    const data = result.data ?? [];
-    return includeFakeData ? [...data, buildFakeRepo(branchFilter ?? [])] : data;
-  },
+const sharedOptions = {
   // Workflow runs are not cached server-side (only the workflow definitions
   // are), so each fetch costs a GitHub call per selected workflow. The stream
   // pushes runs into this cache as they happen; the interval is the backstop
@@ -127,21 +111,96 @@ export const workflowsQueryOptions = (selectedRepositories: SelectedRepository[]
   refetchInterval: 30 * 60 * 1000,
   staleTime: PAGE_STALE_TIME,
   refetchOnWindowFocus: false,
+};
+
+/**
+ * What the dashboard fetches for one repository, without the view's own
+ * concerns, so the cache can be warmed for a page nobody is looking at yet.
+ * One entry per repository: adding a repository fetches only that one.
+ */
+export const workflowsQueryOptions = (repository: SelectedRepository, branchFilter: string[]) => {
+  const { owner, name, workflows } = repository;
+  return {
+    ...sharedOptions,
+    queryKey: ["getWorkflows", { owner, name, workflows }, branchFilter],
+    queryFn: () => fetchRepositoryWorkflows({ owner, name, workflows }, branchFilter),
+  };
+};
+
+const fakeWorkflowsQueryOptions = (branchFilter: string[]) => ({
+  ...sharedOptions,
+  queryKey: ["getWorkflows", "fake", branchFilter],
+  queryFn: async () => [buildFakeRepo(branchFilter)],
 });
+
+/** A repository with no selected workflows has nothing to show here. The entry stays in settings/PR scope. */
+export const dashboardRepositories = (selectedRepositories: SelectedRepository[]) => selectedRepositories.filter(hasDashboardWorkflows);
+
+/** Every dashboard query for the selection, fake data included in development. */
+export const dashboardQueries = (selectedRepositories: SelectedRepository[], branchFilter: string[]) => [
+  ...dashboardRepositories(selectedRepositories).map((repository) => workflowsQueryOptions(repository, branchFilter)),
+  ...(includeFakeData ? [fakeWorkflowsQueryOptions(branchFilter)] : []),
+];
+
+/** The repository's most recent runs under any branch filter or workflow selection, to show while the current one loads. */
+const latestCachedWorkflows = (queryClient: QueryClient, { owner, name }: SelectedRepository) =>
+  queryClient.getQueryCache()
+    .findAll({ queryKey: ["getWorkflows", { owner, name }] })
+    .filter((query) => query.state.data !== undefined)
+    .sort((a, b) => b.state.dataUpdatedAt - a.state.dataUpdatedAt)[0]?.state.data as RepositoryModel[] | undefined;
+
+const combineResults = (results: UseQueryResult<RepositoryModel[]>[]) => ({
+  data: results.map((r) => r.data),
+  pending: results.map((r) => r.isPending),
+  isError: results.some((r) => r.isError),
+  error: results.find((r) => r.error)?.error ?? null,
+});
+
+/**
+ * The dashboard's repositories as loaded so far, unfiltered, and the selected
+ * repositories still waiting on their first load (loading).
+ */
+export const useDashboardWorkflows = () => {
+
+  const queryClient = useQueryClient();
+  const { data: selectedRepositories } = useSelectedRepositories();
+  const { branchFilter } = useDashboardContext();
+
+  const repositories = useMemo(() => dashboardRepositories(selectedRepositories), [selectedRepositories]);
+
+  const { data, pending, isError, error } = useQueries({
+    queries: [
+      ...repositories.map((repository) => ({
+        ...workflowsQueryOptions(repository, branchFilter),
+        // A branch filter change moves every repository to a new key, which
+        // would otherwise blank the dashboard while it refetches.
+        placeholderData: () => latestCachedWorkflows(queryClient, repository),
+      })),
+      ...(includeFakeData ? [fakeWorkflowsQueryOptions(branchFilter)] : []),
+    ],
+    combine: combineResults,
+  });
+
+  return useMemo(() => ({
+    data: data.flatMap((d) => d ?? []),
+    loading: repositories.filter((_, i) => pending[i]),
+    isLoading: pending.some(Boolean),
+    isError,
+    error,
+  }), [data, pending, repositories, isError, error]);
+};
 
 export const useWorkflows = () => {
 
-  const { data: selectedRepositories } = useSelectedRepositories();
-  const { branchFilter, statusFilter } = useDashboardContext();
+  const { statusFilter } = useDashboardContext();
   const { data: gates } = useGates();
+  const { data, ...rest } = useDashboardWorkflows();
 
-  return useQuery({
-    ...workflowsQueryOptions(selectedRepositories, branchFilter),
-    // GitHub sends no webhook when a run pauses at a gate, so the gate list is
-    // the only evidence a run is Waiting.
-    select: (data) => filterByStatus(applyPendingGates(data, gates ?? []), statusFilter),
-    // The filters are part of the query key, so every filter change lands on an
-    // empty cache entry: without this the dashboard blanks while it refetches.
-    placeholderData: keepPreviousData,
-  });
+  // GitHub sends no webhook when a run pauses at a gate, so the gate list is
+  // the only evidence a run is Waiting.
+  const filtered = useMemo(
+    () => filterByStatus(applyPendingGates(data, gates ?? []), statusFilter),
+    [data, gates, statusFilter]);
+
+  return { data: filtered, ...rest };
 }

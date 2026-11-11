@@ -71,7 +71,7 @@ export const List = () => {
 
   const { data: repositories, isLoading, isError } = useWorkflows();
 
-  const list: WorkflowRunItem[] = repositories?.flatMap(repo =>
+  const list: WorkflowRunItem[] = repositories.flatMap(repo =>
     repo.workflows?.flatMap(workflow =>
       workflow.runs?.map(run => ({
         repo,
@@ -79,9 +79,9 @@ export const List = () => {
         run,
       })) ?? []
     ) ?? []
-  ) ?? [];
+  );
 
-  const showLoading = isLoading && !repositories;
+  const showLoading = isLoading && list.length === 0;
 
   return (
     <>
