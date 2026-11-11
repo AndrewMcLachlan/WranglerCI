@@ -195,6 +195,9 @@ export type Repository = {
     fork?: boolean;
     forksCount?: number | string;
     stargazersCount?: number | string;
+    /**
+     * @deprecated
+     */
     watchersCount?: number | string;
     defaultBranch?: null | string;
     openIssuesCount?: number | string;
@@ -380,6 +383,13 @@ export type GetMeData = {
     path?: never;
     query?: never;
     url: '/me';
+};
+
+export type GetMeErrors = {
+    /**
+     * Unauthorized
+     */
+    401: unknown;
 };
 
 export type GetMeResponses = {
