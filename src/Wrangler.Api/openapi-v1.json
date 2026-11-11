@@ -1,5 +1,5 @@
 {
-  "openapi": "3.1.1",
+  "openapi": "3.2.0",
   "info": {
     "title": "Asm.Wrangler.Api | v1",
     "version": "1.0.0"
@@ -20,6 +20,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -1283,7 +1286,8 @@
               "integer",
               "string"
             ],
-            "format": "int32"
+            "format": "int32",
+            "deprecated": true
           },
           "defaultBranch": {
             "type": [
@@ -2044,10 +2048,10 @@
   },
   "tags": [
     {
-      "name": "MeHandler"
+      "name": "Asm.Wrangler.Api"
     },
     {
-      "name": "Asm.Wrangler.Api"
+      "name": "MeHandler"
     },
     {
       "name": "RepositoriesWorkflowsHandler"

@@ -20,6 +20,7 @@ public class SubscriberAuthorizationServiceTests
 
         var accessible = await service.GetAccessibleAsync(CancellationToken.None);
 
+        Assert.NotNull(accessible);
         Assert.Contains("org1/org-repo", accessible);
         Assert.Contains("owner/user-repo", accessible);
         Assert.Equal(2, accessible.Count);
@@ -39,6 +40,7 @@ public class SubscriberAuthorizationServiceTests
         var second = await service.GetAccessibleAsync(CancellationToken.None);
 
         Assert.Equal(callsAfterFirst, handler.Calls);
+        Assert.NotNull(second);
         Assert.Contains("org1/org-repo", second);
         Assert.Contains("owner/user-repo", second);
     }

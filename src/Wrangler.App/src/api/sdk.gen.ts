@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetMeData, GetMeResponses, GetRepositoriesData, GetRepositoriesErrors, GetRepositoriesGroupedData, GetRepositoriesGroupedErrors, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchErrors, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionErrors, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesErrors, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsErrors, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
+import type { GetMeData, GetMeErrors, GetMeResponses, GetRepositoriesData, GetRepositoriesErrors, GetRepositoriesGroupedData, GetRepositoriesGroupedErrors, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchErrors, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionErrors, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesErrors, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsErrors, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -18,7 +18,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
-export const getMe = <ThrowOnError extends boolean = false>(options?: Options<GetMeData, ThrowOnError>): RequestResult<GetMeResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetMeResponses, unknown, ThrowOnError>({
+export const getMe = <ThrowOnError extends boolean = false>(options?: Options<GetMeData, ThrowOnError>): RequestResult<GetMeResponses, GetMeErrors, ThrowOnError> => (options?.client ?? client).get<GetMeResponses, GetMeErrors, ThrowOnError>({
     responseType: 'json',
     url: '/me',
     ...options
