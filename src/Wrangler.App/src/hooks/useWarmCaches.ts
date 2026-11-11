@@ -4,7 +4,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useSelectedRepositories } from "../routes/settings/-hooks/useSelectedRepositories";
 import { usePrAuthors } from "../routes/pull-requests/-hooks/usePrAuthors";
 import { hasDashboardWorkflows, isAttentionOptedIn } from "../routes/settings/-hooks/repositoryFeatures";
-import { workflowsQueryOptions } from "../routes/dashboard/-hooks/useWorkflows";
+import { dashboardQueries } from "../routes/dashboard/-hooks/useWorkflows";
 import { pullRequestsQueryOptions } from "../routes/pull-requests/-hooks/usePullRequests";
 import { gatesQueryOptions } from "../routes/gates/-hooks/useGates";
 import { attentionQueryOptions } from "../routes/attention/-hooks/useAttention";
@@ -50,7 +50,7 @@ export const useWarmCaches = (enabled: boolean = true) => {
                 .map((r) => ({ owner: r.owner, name: r.name }));
 
             if (dashboardRepos.length > 0) {
-                queryClient.prefetchQuery(workflowsQueryOptions(selectedRepositories, readBranchFilter(localStorage)));
+                for (const query of dashboardQueries(selectedRepositories, readBranchFilter(localStorage))) queryClient.prefetchQuery(query);
                 queryClient.prefetchQuery(gatesQueryOptions(gateRepos));
             }
             if (prRepos.length > 0) {

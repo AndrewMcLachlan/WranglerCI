@@ -1,37 +1,48 @@
 import type { RepositoryModel } from "../../../../api";
+import type { SelectedRepository } from "../../../settings/-hooks/repositoryFeatures";
 import { useWorkflows } from "../../-hooks/useWorkflows";
-import { Spinner } from "../../../../components/Spinner";
 import { AccountSection } from "./AccountSection";
 import { RefreshFailed } from "../shared/RefreshFailed";
 
-export const Overview = () => {
-  const { data: repositories, isLoading, isError, error } = useWorkflows();
+interface AccountGroup {
+  owner: string;
+  title: string;
+  repos: RepositoryModel[];
+  loading: SelectedRepository[];
+}
 
-  if (isError && !repositories) {
+export const Overview = () => {
+  const { data: repositories, loading, isLoading, isError, error } = useWorkflows();
+
+  if (isError && repositories.length === 0 && loading.length === 0) {
     console.error("Error fetching dashboard data:", error);
     return <p>Error loading build info.</p>;
   }
 
-  const showSpinner = isLoading && !repositories;
-
-  const sorted = [...(repositories ?? [])].sort((a, b) => a.name.localeCompare(b.name));
-  const grouped = sorted.reduce<Record<string, RepositoryModel[]>>((acc, repo) => {
-    (acc[repo.owner] ??= []).push(repo);
-    return acc;
-  }, {});
   // Grouped by login, which is what identifies an account; headed by the
   // display name, which is what people call it.
-  const sortedGroups = Object.entries(grouped)
-    .map(([owner, repos]) => ({ owner, title: repos[0].ownerName || owner, repos }))
-    .sort((a, b) => a.title.localeCompare(b.title));
+  const groups = new Map<string, AccountGroup>();
+  const groupFor = (owner: string) => {
+    const key = owner.toLowerCase();
+    let group = groups.get(key);
+    if (!group) groups.set(key, group = { owner, title: owner, repos: [], loading: [] });
+    return group;
+  };
+  for (const repo of repositories) {
+    const group = groupFor(repo.owner);
+    group.repos.push(repo);
+    group.title = repo.ownerName || repo.owner;
+  }
+  for (const repo of loading) groupFor(repo.owner).loading.push(repo);
+
+  const sortedGroups = [...groups.values()].sort((a, b) => a.title.localeCompare(b.title));
 
   return (
     <div className="overview">
       {isError && <RefreshFailed />}
-      {showSpinner && <Spinner />}
-      {!showSpinner && (!repositories || repositories.length === 0) && <p>No workflows found.</p>}
-      {sortedGroups.map(({ owner, title, repos }) => (
-        <AccountSection key={owner} owner={title} repositories={repos} />
+      {!isLoading && repositories.length === 0 && <p>No workflows found.</p>}
+      {sortedGroups.map(({ owner, title, repos, loading }) => (
+        <AccountSection key={owner} owner={title} repositories={repos} loading={loading} />
       ))}
     </div>
   );

@@ -1,0 +1,64 @@
+@scope (.repository-placeholder) {
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  filter: grayscale(1);
+  opacity: 0.55;
+
+  .repository-placeholder-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+    h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+  }
+
+  .repository-placeholder-dot,
+  .repository-placeholder-bar {
+    display: block;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.12);
+    animation: repository-placeholder-pulse 1.6s ease-in-out infinite;
+  }
+
+  .repository-placeholder-dot {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .repository-placeholder-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .repository-placeholder-bar {
+    height: 0.8rem;
+    width: 70%;
+
+    & + .repository-placeholder-bar {
+      width: 45%;
+    }
+  }
+}
+
+@keyframes repository-placeholder-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .repository-placeholder-dot,
+  .repository-placeholder-bar {
+    animation: none;
+  }
+}
