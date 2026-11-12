@@ -15,23 +15,29 @@ const repository = (workflows: WorkflowModel[]): RepositoryModel => ({
 
 describe("narrowToSelection", () => {
   it("drops workflows no longer selected", () => {
-    const { repositories, missing } = narrowToSelection([repository([workflow(1), workflow(2)])], [1]);
+    const { repositories, added } = narrowToSelection([repository([workflow(1), workflow(2)])], [1], [1, 2]);
 
     expect(repositories[0].workflows?.map((w) => w.id)).toEqual([1]);
-    expect(missing).toBe(0);
+    expect(added).toEqual([]);
   });
 
-  it("counts selected workflows the data has no runs for", () => {
-    const { repositories, missing } = narrowToSelection([repository([workflow(1)])], [1, 2, 3]);
+  it("lists only the workflows selected since the data was fetched", () => {
+    const { added } = narrowToSelection([repository([workflow(1)])], [1, 2, 3, 4], [1, 2, 3]);
 
-    expect(repositories[0].workflows?.map((w) => w.id)).toEqual([1]);
-    expect(missing).toBe(2);
+    expect(added).toEqual([4]);
+  });
+
+  it("does not count a selected workflow that simply has no runs", () => {
+    const { repositories, added } = narrowToSelection([repository([workflow(1)])], [1, 2], [1, 2]);
+
+    expect(repositories[0].workflows).toHaveLength(1);
+    expect(added).toEqual([]);
   });
 
   it("matches ids whether stored as numbers or strings", () => {
-    const { repositories, missing } = narrowToSelection([repository([workflow(1)])], ["1"]);
+    const { repositories, added } = narrowToSelection([repository([workflow(1)])], ["1", 2], [1, "2"]);
 
     expect(repositories[0].workflows).toHaveLength(1);
-    expect(missing).toBe(0);
+    expect(added).toEqual([]);
   });
 });

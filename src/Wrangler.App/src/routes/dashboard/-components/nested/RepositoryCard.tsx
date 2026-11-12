@@ -1,5 +1,6 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
 import type { RepositoryModel } from "../../../../api";
+import type { PendingWorkflow } from "../../-hooks/useWorkflows";
 import { Collapsible } from "../shared/Collapsible";
 import StatusIndicator from "../shared/StatusIndicator";
 import { WorkflowList } from "./WorkflowList";
@@ -20,5 +21,5 @@ export const RepositoryCard: React.FC<RepositoryCardProps> = ({ repository, pend
 
 export interface RepositoryCardProps {
   repository: RepositoryModel
-  pendingWorkflows?: number
+  pendingWorkflows?: PendingWorkflow[]
 }

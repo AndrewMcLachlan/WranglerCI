@@ -1,5 +1,5 @@
 import type { RepositoryModel } from "../../../../api";
-import { repositoryKey } from "../../-hooks/useWorkflows";
+import { repositoryKey, type PendingWorkflow } from "../../-hooks/useWorkflows";
 import { RepositoryCard } from "./RepositoryCard";
 
 export const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, pendingWorkflows }) => {
@@ -16,5 +16,5 @@ export const RepositoryList: React.FC<RepositoryListProps> = ({ repositories, pe
 }
 export interface RepositoryListProps {
   repositories: RepositoryModel[]
-  pendingWorkflows?: Map<string, number>
+  pendingWorkflows?: Map<string, PendingWorkflow[]>
 }

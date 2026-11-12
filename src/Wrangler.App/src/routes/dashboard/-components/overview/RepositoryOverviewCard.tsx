@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Icon } from "@andrewmclachlan/moo-ds";
 import type { RepositoryModel, WorkflowModel } from "../../../../api";
+import type { PendingWorkflow } from "../../-hooks/useWorkflows";
 import { PlaceholderRow } from "../shared/Placeholder";
+import { withPending, workflowItemKey } from "../shared/withPending";
 import StatusIndicator from "../shared/StatusIndicator";
 import { WorkflowRow } from "./WorkflowRow";
 
@@ -10,12 +12,13 @@ const isAttentionNeeded = (workflow: WorkflowModel): boolean => {
   return status === "Red" || status === "Amber";
 };
 
-export const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel; pendingWorkflows?: number }> = ({ repository, pendingWorkflows = 0 }) => {
+export const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel; pendingWorkflows?: PendingWorkflow[] }> = ({ repository, pendingWorkflows }) => {
   const [expanded, setExpanded] = useState(false);
   const workflows = [...(repository.workflows ?? [])].sort((a, b) => a.name.localeCompare(b.name));
   const attentionWorkflows = workflows.filter(isAttentionNeeded);
   const passingWorkflows = workflows.filter((w) => !isAttentionNeeded(w));
   const hasCollapsible = attentionWorkflows.length > 0 && passingWorkflows.length > 0;
+  const shown = withPending(hasCollapsible ? attentionWorkflows : workflows, pendingWorkflows);
 
   return (
     <div className="overview-card">
@@ -27,20 +30,20 @@ export const RepositoryOverviewCard: React.FC<{ repository: RepositoryModel; pen
         </a>
       </div>
       <div className="overview-card-body">
-        {attentionWorkflows.map((w) => (
-          <WorkflowRow key={w.id} workflow={w} />
-        ))}
+        {shown.map((item) => item.workflow
+          ? <WorkflowRow key={workflowItemKey(item)} workflow={item.workflow} />
+          : <PlaceholderRow key={workflowItemKey(item)} name={item.pending.name} />
+        )}
         {hasCollapsible && !expanded && (
           <button className="passing-summary" onClick={() => setExpanded(true)}>
             +{passingWorkflows.length} passing
           </button>
         )}
-        {(!hasCollapsible || expanded) &&
+        {hasCollapsible && expanded &&
           passingWorkflows.map((w) => (
             <WorkflowRow key={w.id} workflow={w} />
           ))
         }
-        {Array.from({ length: pendingWorkflows }, (_, i) => <PlaceholderRow key={i} />)}
       </div>
     </div>
   );

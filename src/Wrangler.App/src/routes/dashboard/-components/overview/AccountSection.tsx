@@ -1,13 +1,13 @@
 import type { RepositoryModel } from "../../../../api";
 import type { SelectedRepository } from "../../../settings/-hooks/repositoryFeatures";
-import { repositoryKey } from "../../-hooks/useWorkflows";
+import { repositoryKey, type PendingWorkflow } from "../../-hooks/useWorkflows";
 import { PlaceholderCard } from "../shared/Placeholder";
 import { RepositoryOverviewCard } from "./RepositoryOverviewCard";
 import { RepositoryWorkflowsExpanded } from "./RepositoryWorkflowsExpanded";
 
 const ExpandedWorkflowThreshold = 5;
 
-export const AccountSection: React.FC<{ owner: string; repositories: RepositoryModel[]; loading?: SelectedRepository[]; pendingWorkflows: Map<string, number> }> = ({ owner, repositories, loading = [], pendingWorkflows }) => {
+export const AccountSection: React.FC<{ owner: string; repositories: RepositoryModel[]; loading?: SelectedRepository[]; pendingWorkflows: Map<string, PendingWorkflow[]> }> = ({ owner, repositories, loading = [], pendingWorkflows }) => {
   const items = [
     ...repositories.map((repo) => ({ name: repo.name, repo })),
     ...loading.map((repo) => ({ name: repo.name, repo: undefined })),
@@ -21,8 +21,8 @@ export const AccountSection: React.FC<{ owner: string; repositories: RepositoryM
       <div className="account-section-body">
         {items.map(({ name, repo }) => {
           if (!repo) return <PlaceholderCard key={`loading:${name}`} title={name} label={`Loading ${name}`} />;
-          const pending = pendingWorkflows.get(repositoryKey(repo)) ?? 0;
-          return (repo.workflows?.length ?? 0) + pending > ExpandedWorkflowThreshold
+          const pending = pendingWorkflows.get(repositoryKey(repo));
+          return (repo.workflows?.length ?? 0) + (pending?.length ?? 0) > ExpandedWorkflowThreshold
             ? <RepositoryWorkflowsExpanded key={repo.nodeId} repository={repo} pendingWorkflows={pending} />
             : <RepositoryOverviewCard key={repo.nodeId} repository={repo} pendingWorkflows={pending} />;
         })}
