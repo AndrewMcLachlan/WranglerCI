@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { useQueries, useQueryClient, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
+import { useQueries, useQuery, useQueryClient, type QueryClient, type UseQueryResult } from "@tanstack/react-query";
+import { getRepositoriesGroupedOptions } from "../../../api/@tanstack/react-query.gen";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { useDashboardContext } from "../-providers/DashboardProvider";
 import { fetchRepositoryWorkflows } from "./workflowsBatch";
@@ -7,7 +8,7 @@ import { hasDashboardWorkflows } from "../../settings/-hooks/repositoryFeatures"
 import { PAGE_STALE_TIME } from "../../../pageFreshness";
 import { applyPendingGates } from "../../../hooks/gateStatus";
 import { useGates } from "../../gates/-hooks/useGates";
-import type { RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
+import type { AccountModel, RepositoryModel, WorkflowModel, WorkflowStatus } from "../../../api";
 import type { SelectedRepository } from "../../settings/-hooks/repositoryFeatures";
 
 // Keep only workflows whose overall status is selected, and drop repositories
@@ -142,26 +143,43 @@ export const dashboardQueries = (selectedRepositories: SelectedRepository[], bra
   ...(includeFakeData ? [fakeWorkflowsQueryOptions(branchFilter)] : []),
 ];
 
-/** The repository's most recent runs under any branch filter or workflow selection, to show while the current one loads. */
-const latestCachedWorkflows = (queryClient: QueryClient, { owner, name }: SelectedRepository) =>
+/** The repository's most recent fetch under any branch filter or workflow selection, to show while the current one loads. */
+const latestCachedQuery = (queryClient: QueryClient, { owner, name }: SelectedRepository) =>
   queryClient.getQueryCache()
     .findAll({ queryKey: ["getWorkflows", { owner, name }] })
     .filter((query) => query.state.data !== undefined)
-    .sort((a, b) => b.state.dataUpdatedAt - a.state.dataUpdatedAt)[0]?.state.data as RepositoryModel[] | undefined;
+    .sort((a, b) => b.state.dataUpdatedAt - a.state.dataUpdatedAt)[0];
 
 /** Identifies a repository regardless of the case GitHub or the user gave its owner and name in. */
 export const repositoryKey = ({ owner, name }: { owner: string; name: string }) => `${owner}/${name}`.toLowerCase();
 
+/** A workflow selected since the shown runs were fetched. The name is known once the settings repository list has loaded. */
+export interface PendingWorkflow {
+  id: number | string;
+  name?: string;
+}
+
 /**
  * Narrow stand-in data to the workflows now selected, so a removed workflow
- * disappears at once, and count the selected workflows it has no runs for yet.
+ * disappears at once, and list the workflows selected since it was fetched.
  * Exported for unit testing.
  */
-export const narrowToSelection = (repositories: RepositoryModel[], selected: (number | string)[]) => {
+export const narrowToSelection = (repositories: RepositoryModel[], selected: (number | string)[], fetchedFor: (number | string)[]) => {
   const wanted = new Set(selected.map(String));
-  const narrowed = repositories.map((repo) => ({ ...repo, workflows: repo.workflows?.filter((w) => wanted.has(String(w.id))) }));
-  const present = new Set(narrowed.flatMap((repo) => repo.workflows ?? []).map((w) => String(w.id)));
-  return { repositories: narrowed, missing: [...wanted].filter((id) => !present.has(id)).length };
+  const fetched = new Set(fetchedFor.map(String));
+  return {
+    repositories: repositories.map((repo) => ({ ...repo, workflows: repo.workflows?.filter((w) => wanted.has(String(w.id))) })),
+    added: selected.filter((id) => !fetched.has(String(id))),
+  };
+};
+
+const workflowNames = (accounts: AccountModel[] | undefined, pending: Map<string, (number | string)[]>) => {
+  const names = new Map<string, PendingWorkflow[]>();
+  for (const [key, ids] of pending) {
+    const workflows = accounts?.flatMap((a) => a.repositories ?? []).find((r) => repositoryKey(r) === key)?.workflows ?? [];
+    names.set(key, ids.map((id) => ({ id, name: workflows.find((w) => String(w.id) === String(id))?.name })));
+  }
+  return names;
 };
 
 const combineResults = (results: UseQueryResult<RepositoryModel[]>[]) => ({
@@ -174,7 +192,7 @@ const combineResults = (results: UseQueryResult<RepositoryModel[]>[]) => ({
 
 /**
  * The dashboard's repositories as loaded so far, unfiltered, the selected
- * repositories still waiting on their first load (loading), and how many newly
+ * repositories still waiting on their first load (loading), and the newly
  * selected workflows each shown repository is still waiting on (pendingWorkflows).
  */
 export const useDashboardWorkflows = () => {
@@ -191,16 +209,16 @@ export const useDashboardWorkflows = () => {
         ...workflowsQueryOptions(repository, branchFilter),
         // A branch filter change moves every repository to a new key, which
         // would otherwise blank the dashboard while it refetches.
-        placeholderData: () => latestCachedWorkflows(queryClient, repository),
+        placeholderData: () => latestCachedQuery(queryClient, repository)?.state.data as RepositoryModel[] | undefined,
       })),
       ...(includeFakeData ? [fakeWorkflowsQueryOptions(branchFilter)] : []),
     ],
     combine: combineResults,
   });
 
-  return useMemo(() => {
+  const { loaded, added } = useMemo(() => {
     const loaded: RepositoryModel[] = [];
-    const pendingWorkflows = new Map<string, number>();
+    const added = new Map<string, (number | string)[]>();
     data.forEach((d, i) => {
       if (!d) return;
       const repository = repositories[i];
@@ -208,20 +226,25 @@ export const useDashboardWorkflows = () => {
         loaded.push(...d);
         return;
       }
-      const { repositories: narrowed, missing } = narrowToSelection(d, repository.workflows ?? []);
-      loaded.push(...narrowed);
-      if (missing > 0) pendingWorkflows.set(repositoryKey(repository), missing);
+      const fetchedFor = (latestCachedQuery(queryClient, repository)?.queryKey[1] as SelectedRepository | undefined)?.workflows ?? [];
+      const narrowed = narrowToSelection(d, repository.workflows ?? [], fetchedFor);
+      loaded.push(...narrowed.repositories);
+      if (narrowed.added.length > 0) added.set(repositoryKey(repository), narrowed.added);
     });
+    return { loaded, added };
+  }, [data, placeholder, repositories, queryClient]);
 
-    return {
-      data: loaded,
-      loading: repositories.filter((_, i) => pending[i]),
-      pendingWorkflows,
-      isLoading: pending.some(Boolean),
-      isError,
-      error,
-    };
-  }, [data, placeholder, pending, repositories, isError, error]);
+  const { data: accounts } = useQuery({ ...getRepositoriesGroupedOptions(), enabled: added.size > 0, staleTime: Infinity });
+  const pendingWorkflows = useMemo(() => workflowNames(accounts, added), [accounts, added]);
+
+  return useMemo(() => ({
+    data: loaded,
+    loading: repositories.filter((_, i) => pending[i]),
+    pendingWorkflows,
+    isLoading: pending.some(Boolean),
+    isError,
+    error,
+  }), [loaded, pending, pendingWorkflows, repositories, isError, error]);
 };
 
 export const useWorkflows = () => {

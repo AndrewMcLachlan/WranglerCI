@@ -1,10 +1,12 @@
 import { Icon } from "@andrewmclachlan/moo-ds";
 import type { RepositoryModel } from "../../../../api";
+import type { PendingWorkflow } from "../../-hooks/useWorkflows";
 import { PlaceholderCard } from "../shared/Placeholder";
+import { withPending, workflowItemKey } from "../shared/withPending";
 import StatusIndicator from "../shared/StatusIndicator";
 import { WorkflowOverviewCard } from "./WorkflowOverviewCard";
 
-export const RepositoryWorkflowsExpanded: React.FC<{ repository: RepositoryModel; pendingWorkflows?: number }> = ({ repository, pendingWorkflows = 0 }) => {
+export const RepositoryWorkflowsExpanded: React.FC<{ repository: RepositoryModel; pendingWorkflows?: PendingWorkflow[] }> = ({ repository, pendingWorkflows }) => {
   const workflows = [...(repository.workflows ?? [])].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
@@ -17,10 +19,10 @@ export const RepositoryWorkflowsExpanded: React.FC<{ repository: RepositoryModel
         </a>
       </div>
       <div className="repo-expanded-grid">
-        {workflows.map((w) => (
-          <WorkflowOverviewCard key={w.id} workflow={w} />
-        ))}
-        {Array.from({ length: pendingWorkflows }, (_, i) => <PlaceholderCard key={i} label="Loading workflow" />)}
+        {withPending(workflows, pendingWorkflows).map((item) => item.workflow
+          ? <WorkflowOverviewCard key={workflowItemKey(item)} workflow={item.workflow} />
+          : <PlaceholderCard key={workflowItemKey(item)} title={item.pending.name} label={`Loading ${item.pending.name ?? "workflow"}`} />
+        )}
       </div>
     </div>
   );

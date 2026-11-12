@@ -72,6 +72,13 @@
   .placeholder-bar {
     width: 50%;
   }
+
+  .placeholder-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
 }
 
 @keyframes placeholder-pulse {

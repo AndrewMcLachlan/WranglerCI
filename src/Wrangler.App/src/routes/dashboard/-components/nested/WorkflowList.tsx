@@ -1,19 +1,21 @@
 import type { WorkflowModel } from "../../../../api";
+import type { PendingWorkflow } from "../../-hooks/useWorkflows";
 import { PlaceholderCard } from "../shared/Placeholder";
+import { withPending, workflowItemKey } from "../shared/withPending";
 import { WorkflowCard } from "./WorkflowCard";
 
-export const WorkflowList: React.FC<WorkflowListProps> = ({ workflows = [], pendingWorkflows = 0 }) => {
+export const WorkflowList: React.FC<WorkflowListProps> = ({ workflows = [], pendingWorkflows = [] }) => {
 
-  if (workflows.length === 0 && pendingWorkflows === 0) {
+  if (workflows.length === 0 && pendingWorkflows.length === 0) {
     return <p>No workflows found.</p>;
   }
 
   return (
     <section className="workflow-list">
-      {workflows.map((workflow) => (
-        <WorkflowCard key={workflow.id} workflow={workflow} />
-      ))}
-      {Array.from({ length: pendingWorkflows }, (_, i) => <PlaceholderCard key={i} label="Loading workflow" />)}
+      {withPending(workflows, pendingWorkflows).map((item) => item.workflow
+        ? <WorkflowCard key={workflowItemKey(item)} workflow={item.workflow} />
+        : <PlaceholderCard key={workflowItemKey(item)} title={item.pending.name} label={`Loading ${item.pending.name ?? "workflow"}`} />
+      )}
     </section>
 
   );
@@ -21,5 +23,5 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({ workflows = [], pend
 
 export interface WorkflowListProps {
   workflows?: WorkflowModel[]
-  pendingWorkflows?: number
+  pendingWorkflows?: PendingWorkflow[]
 }

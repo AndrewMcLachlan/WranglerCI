@@ -13,9 +13,9 @@ export const PlaceholderCard: React.FC<{ title?: string; label: string }> = ({ t
 );
 
 /** Stands in for a workflow row whose runs are still loading. */
-export const PlaceholderRow: React.FC = () => (
-  <div className="placeholder-row" aria-busy="true" aria-label="Loading workflow">
+export const PlaceholderRow: React.FC<{ name?: string }> = ({ name }) => (
+  <div className="placeholder-row" aria-busy="true" aria-label={`Loading ${name ?? "workflow"}`}>
     <span className="placeholder-dot" />
-    <span className="placeholder-bar" />
+    {name ? <span className="placeholder-name">{name}</span> : <span className="placeholder-bar" />}
   </div>
 );
