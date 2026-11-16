@@ -7,7 +7,7 @@ import { RepositoryWorkflowsExpanded } from "./RepositoryWorkflowsExpanded";
 
 const ExpandedWorkflowThreshold = 5;
 
-export const AccountSection: React.FC<{ owner: string; repositories: RepositoryModel[]; loading?: SelectedRepository[]; pendingWorkflows: Map<string, PendingWorkflow[]> }> = ({ owner, repositories, loading = [], pendingWorkflows }) => {
+export const AccountSection: React.FC<{ login: string; owner: string; repositories: RepositoryModel[]; loading?: SelectedRepository[]; pendingWorkflows: Map<string, PendingWorkflow[]> }> = ({ login, owner, repositories, loading = [], pendingWorkflows }) => {
   const items = [
     ...repositories.map((repo) => ({ name: repo.name, repo })),
     ...loading.map((repo) => ({ name: repo.name, repo: undefined })),
@@ -16,6 +16,7 @@ export const AccountSection: React.FC<{ owner: string; repositories: RepositoryM
   return (
     <section className="account-section">
       <div className="account-section-header">
+        <img className="account-avatar" src={`https://github.com/${encodeURIComponent(login)}.png?size=64`} alt="" onError={(e) => { e.currentTarget.hidden = true; }} />
         <h2>{owner}</h2>
       </div>
       <div className="account-section-body">
