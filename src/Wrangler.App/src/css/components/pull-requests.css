@@ -39,19 +39,66 @@
         }
     }
 
-    .pr-title-cell {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        align-items: flex-start;
+    tr, .row-card {
+        &:has(.pr-state[data-state="ready"]) { --pr-state-colour: #6bcc6b; }
+        &:has(.pr-state[data-state="waiting"]) { --pr-state-colour: #e8c44a; }
+        &:has(.pr-state[data-state="fix"]) { --pr-state-colour: #ff6b6b; }
+        &:has(.pr-state[data-state="draft"]) { --pr-state-colour: #9ea3a8; }
+    }
 
-        a {
-            color: inherit;
+    /* A tight left radius keeps the state edge straight; the swipe row clips to the same shape. */
+    .row-card-list .swipe-row,
+    :scope .row-card {
+        border-radius: 4px 8px 8px 4px;
+    }
 
-            &:hover {
-                color: var(--primary);
-            }
+    :scope .row-card,
+    :scope .row-card.selected {
+        border-left: 3px solid var(--pr-state-colour, var(--border-colour));
+    }
+
+    .row-card {
+
+        .row-card-subtitle {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
         }
+
+        .pr-context {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
+            max-width: 100%;
+        }
+
+        .badge.branch {
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .pr-branch-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .pr-context {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.15rem 0.9rem;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .pr-owner,
+    .pr-number,
+    .pr-muted {
+        color: rgba(255, 255, 255, 0.45);
     }
 
     .pr-blockers {

@@ -1,0 +1,32 @@
+/* The app's table look, layered over moo-ds's .table (every DataGrid). */
+.table {
+    width: 100%;
+
+    th, td {
+        padding: 0.45rem 0.6rem;
+        text-align: left;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--border-colour);
+    }
+
+    > thead th {
+        background-color: transparent;
+        color: var(--body-colour);
+        text-transform: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    > thead::after {
+        content: "";
+        display: table-row;
+        height: 0.3rem;
+    }
+
+    :is(th, td):first-child:has(input[type="checkbox"]) {
+        width: 2rem;
+        padding-left: 1rem;
+        text-align: center;
+    }
+}
