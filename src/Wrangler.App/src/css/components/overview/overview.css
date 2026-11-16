@@ -10,7 +10,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.34rem 1rem;
-    background-color: lab(from var(--card-bg) l a b / 0.75 );
+    background-color: var(--card-bg);
     border-radius: 8px 8px 0 0;
     border-bottom: 1px solid rgba(100, 120, 180, 0.1);
 
@@ -53,7 +53,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.625rem 1rem;
-    background-color: lab(from var(--card-bg) l a b / 0.6 );
+    background-color: lab(from var(--card-bg) l a b / 0.8 );
     border-radius: 8px;
     border: 1px solid rgba(100, 120, 180, 0.08);
 
@@ -80,7 +80,7 @@
 }
 
 @scope (.overview-card) {
-  background-color: lab(from var(--card-bg) l a b / 0.4 );
+  background-color: lab(from var(--card-bg) l a b / 0.5 );
   border-radius: 8px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.04);
