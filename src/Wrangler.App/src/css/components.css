@@ -1,4 +1,6 @@
+@import "./components/table.css";
 @import "./components/badge.css";
+@import "./components/copy-text.css";
 @import "./components/branch-link.css";
 @import "./components/collapsible.css";
 @import "./components/controls.css";
@@ -23,7 +25,6 @@
 @import "./components/nested/workflow-list.css";
 @import "./components/nested/workflow-run-card.css";
 @import "./components/nested/workflow-run-list.css";
-@import "./components/list/workflow-run-table.css";
 
 @import "./components/pull-request-table.css";
 @import "./components/pull-requests.css";

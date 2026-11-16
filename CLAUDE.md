@@ -2,23 +2,6 @@
 
 A GitHub Actions & pull request dashboard.
 
-## Project Structure
-
-- `src/Wrangler.Api/` — .NET backend (ASP.NET Core minimal API)
-- `src/Wrangler.App/` — React frontend (Vite + TanStack Router)
-
-## Build Commands
-
-### Backend
-```bash
-cd src/Wrangler.Api && dotnet build
-```
-
-### Frontend
-```bash
-cd src/Wrangler.App && npm run build
-```
-
 ## API Client Generation
 
 The frontend API client (`src/Wrangler.App/src/api/`) is auto-generated from the backend's OpenAPI spec. **Do not manually edit files in `src/api/`.**

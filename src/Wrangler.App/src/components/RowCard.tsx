@@ -14,9 +14,13 @@ export interface RowCardProps {
   selectDisabled?: boolean;
   selectLabel?: string;
   title: ReactNode;
+  /** Secondary context, shown directly under the title. */
+  subtitle?: ReactNode;
   /** Status badges and the like, shown under the title. */
   meta?: ReactNode;
   details?: RowCardDetail[];
+  /** Shown last, along the bottom of the card. */
+  footer?: ReactNode;
   /** Opened in a new tab from the card's top-right corner. */
   href?: string;
   hrefLabel?: string;
@@ -29,7 +33,7 @@ export interface RowCardProps {
  */
 export const RowCard: React.FC<RowCardProps> = ({
   onSelect, selected = false, selectDisabled = false, selectLabel,
-  title, meta, details, href, hrefLabel,
+  title, subtitle, meta, details, footer, href, hrefLabel,
 }) => {
   const selectable = !!onSelect && !selectDisabled;
 
@@ -59,6 +63,7 @@ export const RowCard: React.FC<RowCardProps> = ({
           </a>
         )}
       </div>
+      {subtitle && <div className="row-card-subtitle">{subtitle}</div>}
       {meta && <div className="row-card-meta">{meta}</div>}
       {details && details.length > 0 && (
         <dl className="row-card-details">
@@ -70,6 +75,7 @@ export const RowCard: React.FC<RowCardProps> = ({
           ))}
         </dl>
       )}
+      {footer && <div className="row-card-footer">{footer}</div>}
     </article>
   );
 };

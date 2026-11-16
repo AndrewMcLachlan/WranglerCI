@@ -3,7 +3,6 @@ import { Alert, ComboBox, DataGrid, Tab, Tabs, type ColumnDef } from "@andrewmcl
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { DateTime } from "luxon";
 import { summaryToast } from "../../../utils/summaryToast";
 import { isPullRequestScope, usePullRequests } from "../-hooks/usePullRequests";
 import { usePrTab } from "../-hooks/usePrTab";
@@ -14,18 +13,15 @@ import { useSelectedRepositories } from "../../settings/-hooks/useSelectedReposi
 import { NoRepositories } from "../../../components/NoRepositories";
 import { useUserSearch } from "../-hooks/useUserSearch";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
-import { Badge } from "@andrewmclachlan/moo-ds";
-import { CheckStatusBadge } from "./CheckStatusBadge";
 import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
 import { useIsNarrow } from "../../../hooks/useIsNarrow";
 import { PullRequestCards } from "./PullRequestCards";
-import { MergeBlockerBadges, unresolvedCount } from "./MergeBlockerBadges";
+import { unresolvedCount } from "./MergeBlockerBadges";
+import { CheckStatusBadge } from "./CheckStatusBadge";
+import { MergeCell, PullRequestCell, UpdatedCell } from "./PullRequestCells";
+import { canMerge } from "./prState";
 import { NarrowFilters, type AppliedFilter } from "../../../components/filters/NarrowFilters";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
-
-export const canMerge = (pr: PullRequestModel) => pr.checkStatus === "Success" && (pr.blockers ?? []).length === 0;
-
-const formatter = new Intl.RelativeTimeFormat(navigator.language, { style: "long" });
 
 const STATUS_OPTIONS: CheckStatus[] = ["Success", "Failure", "Pending", "Unknown"];
 
@@ -266,34 +262,9 @@ export const PullRequests = () => {
       enableSorting: false,
     },
     {
-      field: (pr) => `${pr.repositoryOwner}/${pr.repositoryName}`,
-      id: "repository",
-      header: "Repository",
-      enableSorting: true,
-    },
-    {
       field: "title",
-      header: "Title",
-      cell: ({ row }) => (
-        <div className="pr-title-cell">
-          <a href={row.htmlUrl!} target="_blank" rel="noopener noreferrer">{row.title}</a>
-          {row.labels && row.labels.length > 0 && (
-            <span className="pr-labels">
-              {row.labels.map((label) => (
-                <Badge
-                  key={label.name}
-                  className="pr-label"
-                  pill
-                  muted
-                  colour={`#${label.color}`}
-                >
-                  {label.name}
-                </Badge>
-              ))}
-            </span>
-          )}
-        </div>
-      ),
+      header: "Pull request",
+      cell: ({ row }) => <PullRequestCell pullRequest={row} />,
       enableSorting: true,
     },
     {
@@ -303,29 +274,21 @@ export const PullRequests = () => {
     },
     {
       field: "checkStatus",
-      header: "Status",
+      header: "Checks",
       cell: ({ row }) => <CheckStatusBadge status={row.checkStatus} />,
       enableSorting: true,
     },
     {
       field: (pr) => (pr.blockers ?? []).length + unresolvedCount(pr),
-      id: "blockers",
-      header: "Blockers",
-      cell: ({ row }) => (
-        <span className="pr-blockers">
-          <MergeBlockerBadges pullRequest={row} />
-        </span>
-      ),
+      id: "merge",
+      header: "Merge",
+      cell: ({ row }) => <MergeCell pullRequest={row} />,
       enableSorting: true,
     },
     {
       field: "updatedAt",
       header: "Updated",
-      cell: ({ value }) => {
-        const updatedAt = DateTime.fromISO(value as string);
-        const timeAgo = updatedAt.toRelative({ style: "long" }) || formatter.format(0, "seconds");
-        return <span title={updatedAt.toFormat("yyyy-MM-dd HH:mm:ss")}>{timeAgo}</span>;
-      },
+      cell: ({ row }) => <UpdatedCell pullRequest={row} />,
       enableSorting: true,
     },
     {

@@ -1,10 +1,9 @@
-import { Badge, SwipeRow } from "@andrewmclachlan/moo-ds";
-import { DateTime } from "luxon";
+import { SwipeRow } from "@andrewmclachlan/moo-ds";
 import { RowCard } from "../../../components/RowCard";
 import { ScrollRestoredList } from "../../../components/ScrollRestoredList";
 import { CheckStatusBadge } from "./CheckStatusBadge";
-import { MergeBlockerBadges } from "./MergeBlockerBadges";
-import { canMerge } from "./PullRequests";
+import { MergeCell, PullRequestContext, PullRequestLabels, UpdatedText } from "./PullRequestCells";
+import { canMerge } from "./prState";
 import type { PullRequestModel } from "../../../api";
 
 interface PullRequestCardsProps {
@@ -17,12 +16,6 @@ interface PullRequestCardsProps {
   loading: boolean;
   emptyMessage: string;
 }
-
-const relative = (iso?: string | null) => {
-  if (!iso) return "—";
-  const updatedAt = DateTime.fromISO(iso);
-  return updatedAt.toRelative({ style: "long" }) ?? "just now";
-};
 
 /** The narrow-viewport rendering of the pull request table. */
 export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
@@ -57,24 +50,26 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
           selectDisabled={!canMerge(pr) || disabled}
           selectLabel={`Select pull request ${pr.number}`}
           title={pr.title}
+          subtitle={
+            <>
+              <PullRequestContext pullRequest={pr} labels={false} />
+              {!!pr.labels?.length && <span className="pr-labels"><PullRequestLabels pullRequest={pr} /></span>}
+            </>
+          }
           href={pr.htmlUrl!}
           hrefLabel="Open pull request on GitHub"
           meta={
             <>
-              <CheckStatusBadge status={pr.checkStatus} />
-              <MergeBlockerBadges pullRequest={pr} />
-              {pr.labels?.map((label) => (
-                <Badge key={label.name} className="pr-label" pill muted colour={`#${label.color}`}>
-                  {label.name}
-                </Badge>
-              ))}
+              <CheckStatusBadge status={pr.checkStatus} long />
+              <MergeCell pullRequest={pr} long />
             </>
           }
-          details={[
-            { label: "Repository", value: `${pr.repositoryOwner}/${pr.repositoryName}` },
-            { label: "Author", value: pr.author },
-            { label: "Updated", value: relative(pr.updatedAt) },
-          ]}
+          footer={
+            <>
+              <span>{pr.author}</span>
+              <UpdatedText pullRequest={pr} />
+            </>
+          }
         />
         </SwipeRow>
       ))}

@@ -1,15 +1,25 @@
 @scope (.pull-request-table) {
-    width: 100%;
-
-    th, td {
-        padding: 0.5rem;
-        text-align: left;
-        border-bottom: 1px solid var(--border-colour);
+    td:first-child {
+        box-shadow: inset 3px 0 0 var(--pr-state-colour, transparent);
     }
 
-    th:first-child,
-    td:first-child {
-        width: 2rem;
-        text-align: center;
+    .pr-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+        min-width: 0;
+    }
+
+    .pr-title {
+        color: inherit;
+        font-weight: 500;
+
+        &:hover {
+            color: var(--primary);
+        }
+    }
+
+    .pr-muted {
+        font-size: 0.8rem;
     }
 }
