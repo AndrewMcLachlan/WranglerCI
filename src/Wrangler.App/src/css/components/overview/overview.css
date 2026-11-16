@@ -9,15 +9,23 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 1rem;
+    padding: 0.34rem 1rem;
     background-color: lab(from var(--card-bg) l a b / 0.75 );
     border-radius: 8px 8px 0 0;
     border-bottom: 1px solid rgba(100, 120, 180, 0.1);
 
     h2 {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: 1.6rem;
+      line-height: 1.1;
     }
+  }
+
+  .account-avatar {
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 6px;
+    flex-shrink: 0;
   }
 
   .account-section-body {

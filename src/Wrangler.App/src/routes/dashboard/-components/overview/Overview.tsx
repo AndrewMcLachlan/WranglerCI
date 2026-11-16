@@ -42,7 +42,7 @@ export const Overview = () => {
       {isError && <RefreshFailed />}
       {!isLoading && repositories.length === 0 && <p>No workflows found.</p>}
       {sortedGroups.map(({ owner, title, repos, loading }) => (
-        <AccountSection key={owner} owner={title} repositories={repos} loading={loading} pendingWorkflows={pendingWorkflows} />
+        <AccountSection key={owner} login={owner} owner={title} repositories={repos} loading={loading} pendingWorkflows={pendingWorkflows} />
       ))}
     </div>
   );
