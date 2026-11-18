@@ -1,8 +1,7 @@
-import { Badge } from "@andrewmclachlan/moo-ds";
+import { Badge, CopyText } from "@andrewmclachlan/moo-ds";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DateTime } from "luxon";
 import type { CheckStatus, PullRequestModel } from "../../../api";
-import { CopyText } from "../../../components/CopyText";
 import { MergeBlockerBadges, unresolvedCount } from "./MergeBlockerBadges";
 import { canMerge, prState } from "./prState";
 
