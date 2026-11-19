@@ -93,6 +93,20 @@ describe("createStreamRefresher", () => {
     close();
   });
 
+  it("uses the given on-page delay", async () => {
+    const { client, fetches } = setup();
+    const refresher = createStreamRefresher(client, ["pullRequests"], 10_000);
+    const close = openPage(client, fetches);
+
+    refresher.schedule();
+    await vi.advanceTimersByTimeAsync(onPageRefetchDelayMs);
+    expect(fetches).toEqual([]);
+
+    await vi.advanceTimersByTimeAsync(10_000 - onPageRefetchDelayMs);
+    expect(fetches).toEqual(["current"]);
+    close();
+  });
+
   it("fires nothing once disposed", async () => {
     const { fetches, refresher } = setup();
 

@@ -16,6 +16,7 @@ export const STREAM_BACKED_QUERY_KEYS: readonly (readonly string[])[] = [
   ["getWorkflowRuns"],
   ["pullRequests"],
   ["gates"],
+  ["attention"],
 ];
 
 /**

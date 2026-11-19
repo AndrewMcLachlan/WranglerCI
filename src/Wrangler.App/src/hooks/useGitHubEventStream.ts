@@ -7,6 +7,8 @@ import { createStreamRefresher } from "./streamRefresher";
 import { createReconnectTracker, createStreamWatchdog, isSilent, reopenDelayFor, silenceTimeoutFor, STREAM_BACKED_QUERY_KEYS } from "./streamReconnect";
 import type { DeploymentGateModel, PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
+const attentionRefetchDelayMs = 15_000;
+
 interface GitHubEvent {
   type: string;
   action?: string;
@@ -38,6 +40,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     const source = new EventSource("/api/events/stream", { withCredentials: true });
     const pullRequests = createStreamRefresher(queryClient, ["pullRequests"]);
     const gates = createStreamRefresher(queryClient, ["gates"]);
+    // The header's bell keeps the feed on screen everywhere, and each refetch fans out across every opted-in repo.
+    const attention = createStreamRefresher(queryClient, ["attention"], attentionRefetchDelayMs);
 
     let rebuilt = false;
     let reopenTimer: ReturnType<typeof setTimeout> | undefined;
@@ -161,13 +165,18 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       switch (parsed.type) {
         case "workflow_run":
           handleWorkflowRun(parsed);
+          if (parsed.run?.status === "completed") attention.schedule();
           break;
         case "pull_request":
           handlePullRequest(parsed);
+          attention.schedule();
+          break;
+        case "pull_request_review":
+          pullRequests.schedule();
+          attention.schedule();
           break;
         case "check_run":
         case "check_suite":
-        case "pull_request_review":
           pullRequests.schedule();
           break;
         case "deployment_review":
@@ -223,6 +232,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       source.close();
       pullRequests.dispose();
       gates.dispose();
+      attention.dispose();
     };
   }, [enabled, queryClient, connection]);
 };

@@ -14,7 +14,7 @@ export const offPageRefetchDelayMs = 30_000;
  * A burst of events costs one refetch, which fires a fixed delay after the
  * first event rather than after the last, so a busy repo cannot hold it off.
  */
-export const createStreamRefresher = (queryClient: QueryClient, queryKey: QueryKey) => {
+export const createStreamRefresher = (queryClient: QueryClient, queryKey: QueryKey, onPageDelayMs: number = onPageRefetchDelayMs) => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let dueAt = 0;
 
@@ -40,7 +40,7 @@ export const createStreamRefresher = (queryClient: QueryClient, queryKey: QueryK
       // Must mark the list stale now: arriving before the timer fires would otherwise show it as current.
       if (!onPage) queryClient.invalidateQueries({ queryKey, refetchType: "none" });
 
-      const delay = onPage ? onPageRefetchDelayMs : offPageRefetchDelayMs;
+      const delay = onPage ? onPageDelayMs : offPageRefetchDelayMs;
       const now = Date.now();
       if (timer !== undefined && dueAt <= now + delay) return;
 
