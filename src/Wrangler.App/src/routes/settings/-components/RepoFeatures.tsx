@@ -1,9 +1,11 @@
 import { useSelectedRepositories, useUpdateSelectedRepositories, type SelectedRepository } from "../-hooks/useSelectedRepositories";
 import { upsertRepository } from "../-hooks/repositoryFeatures";
+import { selectedCount, setWorkflows, visibleWorkflows } from "../-hooks/settingsLists";
+import { ClearableInput, Input } from "@andrewmclachlan/moo-ds";
 import type { SettingsRepositoryModel, WorkflowBase } from "../../../api";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
-export const RepoFeatures: React.FC<React.PropsWithChildren<RepoFeaturesProps>> = ({ repository }) => {
+export const RepoFeatures: React.FC<React.PropsWithChildren<RepoFeaturesProps>> = ({ repository, back }) => {
 
   const { data: repositories } = useSelectedRepositories();
 
@@ -30,41 +32,44 @@ export const RepoFeatures: React.FC<React.PropsWithChildren<RepoFeaturesProps>> 
     });
   }
 
-  const selectAll = () => {
-    commit({ workflows: repository.workflows?.map(wf => wf.id!) ?? [] });
-  };
+  const [filter, setFilter] = useState("");
 
-  const clear = () => {
-    commit({ workflows: [] });
-  };
-
-  const hasWorkflows = (repository.workflows?.length ?? 0) > 0;
+  const allWorkflows = repository.workflows ?? [];
+  const hasWorkflows = allWorkflows.length > 0;
+  const shown = visibleWorkflows(allWorkflows, filter);
 
   return (
     <div className="repo-features">
-      <h3>Features</h3>
+      <div className="repo-title">
+        {back}
+        <h3>{repository.name}</h3>
+      </div>
       <ul className="feature-switches">
-        <li className="form-check form-switch">
-          <input id="feature-pull-requests" type="checkbox" className="form-check-input" checked={repositoryEntry.pullRequests === true} onChange={() => commit({ pullRequests: repositoryEntry.pullRequests !== true })} />
-          <label htmlFor="feature-pull-requests" className="form-check-label">Pull Requests</label>
-        </li>
-        <li className="form-check form-switch">
-          <input id="feature-security-alerts" type="checkbox" className="form-check-input" checked={repositoryEntry.securityAlerts === true} onChange={() => commit({ securityAlerts: repositoryEntry.securityAlerts !== true })} />
-          <label htmlFor="feature-security-alerts" className="form-check-label">Security Alerts</label>
-        </li>
+        <li><Input.Switch id="feature-pull-requests" label="Pull requests" checked={repositoryEntry.pullRequests === true} onChange={() => commit({ pullRequests: repositoryEntry.pullRequests !== true })} /></li>
+        <li><Input.Switch id="feature-security-alerts" label="Security alerts" checked={repositoryEntry.securityAlerts === true} onChange={() => commit({ securityAlerts: repositoryEntry.securityAlerts !== true })} /></li>
       </ul>
-      <h3>Dashboard Workflows</h3>
+      <h4>Dashboard workflows</h4>
       {hasWorkflows ? (
         <>
-          <div><button className="btn btn-link" onClick={selectAll}>Select All</button> <button className="btn btn-link" onClick={clear}>Clear</button></div>
-          <ul>
-            {repository.workflows?.map(workflow => (
-              <li key={workflow.id} className="form-check form-switch">
-                <input id={workflow.id?.toString()} type="checkbox" className="form-check-input" checked={workflows.some(wf => wf === workflow.id)} onChange={() => handleWorkflowsChange(workflow)} />
-                <label htmlFor={workflow.id?.toString()} className="form-check-label">{workflow.name}</label>
-              </li>
-            ))}
-          </ul>
+          <div className="workflow-toolbar">
+            <ClearableInput className="form-control" aria-label="Filter workflows" clearable placeholder="Filter workflows…" value={filter} onChange={e => setFilter(e.target.value)} />
+          </div>
+          <div className="workflow-count">
+            <span>{selectedCount(allWorkflows, workflows)} of {allWorkflows.length} on dashboard</span>
+            <button type="button" className="btn btn-link" onClick={() => commit({ workflows: setWorkflows(workflows, shown, true) })}>Select shown</button>
+            <button type="button" className="btn btn-link" onClick={() => commit({ workflows: setWorkflows(workflows, shown, false) })}>Clear shown</button>
+          </div>
+          {shown.length > 0 ? (
+            <ul className="workflow-switches">
+              {shown.map(workflow => (
+                <li key={workflow.id}>
+                  <Input.Switch id={workflow.id?.toString()} label={workflow.name} checked={workflows.some(wf => wf === workflow.id)} onChange={() => handleWorkflowsChange(workflow)} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="no-workflows">No workflows match.</p>
+          )}
         </>
       ) : (
         <p className="no-workflows">No GitHub Actions workflows in this repository.</p>
@@ -75,4 +80,5 @@ export const RepoFeatures: React.FC<React.PropsWithChildren<RepoFeaturesProps>> 
 
 export interface RepoFeaturesProps {
   repository: SettingsRepositoryModel;
+  back?: React.ReactNode;
 }
