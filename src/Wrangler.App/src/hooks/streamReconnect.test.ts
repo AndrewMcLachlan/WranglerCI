@@ -72,6 +72,7 @@ describe("STREAM_BACKED_QUERY_KEYS", () => {
       "getWorkflowRuns",
       "pullRequests",
       "gates",
+      "attention",
     ]);
   });
 });
