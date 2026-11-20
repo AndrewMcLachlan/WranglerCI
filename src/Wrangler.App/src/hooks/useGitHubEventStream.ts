@@ -8,6 +8,7 @@ import { createReconnectTracker, createStreamWatchdog, isSilent, reopenDelayFor,
 import type { DeploymentGateModel, PullRequestModel, RepositoryModel, WorkflowRunModel } from "../api";
 
 const attentionRefetchDelayMs = 15_000;
+const pullRequestEventRefetchDelayMs = 10_000;
 
 interface GitHubEvent {
   type: string;
@@ -40,6 +41,8 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
     const source = new EventSource("/api/events/stream", { withCredentials: true });
     const pullRequests = createStreamRefresher(queryClient, ["pullRequests"]);
     const gates = createStreamRefresher(queryClient, ["gates"]);
+    // GitHub can still read a PR as it was for a few seconds after its pull_request delivery, and the refetch would undo the merge below.
+    const pullRequestEvents = createStreamRefresher(queryClient, ["pullRequests"], pullRequestEventRefetchDelayMs);
     // The header's bell keeps the feed on screen everywhere, and each refetch fans out across every opted-in repo.
     const attention = createStreamRefresher(queryClient, ["attention"], attentionRefetchDelayMs);
 
@@ -123,7 +126,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       }
 
       // The merge below shows the metadata at once; checks, conflicts and labels need the refetch.
-      pullRequests.schedule();
+      pullRequestEvents.schedule();
 
       const isCached = queryClient
         .getQueryCache()
@@ -232,6 +235,7 @@ export const useGitHubEventStream = (enabled: boolean = true) => {
       source.close();
       pullRequests.dispose();
       gates.dispose();
+      pullRequestEvents.dispose();
       attention.dispose();
     };
   }, [enabled, queryClient, connection]);

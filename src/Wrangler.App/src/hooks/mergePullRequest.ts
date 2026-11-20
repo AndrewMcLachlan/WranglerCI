@@ -1,4 +1,4 @@
-import type { PullRequestModel } from "../api";
+import type { MergeBlocker, PullRequestModel } from "../api";
 
 // The metadata a pull_request webhook delivery carries, mirroring the backend's
 // PullRequestEventData record (camelCase over the wire). Deliberately narrower
@@ -18,6 +18,8 @@ export interface PushedPullRequest {
   createdAt: string;
   updatedAt: string;
   state: string;
+  draft: boolean;
+  autoMerge: boolean;
 }
 
 // Identity match between a cached PR and a pushed webhook PR. Matches by id first,
@@ -60,9 +62,17 @@ export const mergePullRequest = (
     headSha: pushed.headSha,
     headRef: pushed.headRef,
     updatedAt: pushed.updatedAt,
+    blockers: withDraft(prs[index].blockers ?? [], pushed.draft),
+    autoMerge: pushed.autoMerge,
   };
 
   return prs.map((pr, i) => (i === index ? updated : pr));
+};
+
+// The delivery is the truth on draft: a refetch straight after it can still read the PR as it was.
+const withDraft = (blockers: MergeBlocker[], draft: boolean): MergeBlocker[] => {
+  if (draft === blockers.includes("Draft")) return blockers;
+  return draft ? ["Draft", ...blockers] : blockers.filter((b) => b !== "Draft");
 };
 
 // Pure removal of a pushed pull_request from the cached PR list. The PR list is

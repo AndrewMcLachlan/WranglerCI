@@ -35,6 +35,8 @@ const makePushed = (overrides: Partial<PushedPullRequest> = {}): PushedPullReque
   createdAt: "2026-01-01T00:00:00Z",
   updatedAt: "2026-01-02T00:00:00Z",
   state: "open",
+  draft: false,
+  autoMerge: false,
   ...overrides,
 });
 
@@ -120,6 +122,23 @@ describe("mergePullRequest", () => {
     const result = mergePullRequest(prs, pushed);
 
     expect(result[1]).toBe(sibling);
+  });
+});
+
+describe("mergePullRequest draft and auto-merge", () => {
+  it("marks a PR converted to draft", () => {
+    const [merged] = mergePullRequest([makePr({ blockers: ["Conflict"] })], makePushed({ draft: true }));
+    expect(merged.blockers).toEqual(["Draft", "Conflict"]);
+  });
+
+  it("clears the draft blocker from a PR marked ready for review", () => {
+    const [merged] = mergePullRequest([makePr({ blockers: ["Draft", "Conflict"] })], makePushed({ draft: false }));
+    expect(merged.blockers).toEqual(["Conflict"]);
+  });
+
+  it("takes auto-merge from the delivery", () => {
+    const [merged] = mergePullRequest([makePr()], makePushed({ autoMerge: true }));
+    expect(merged.autoMerge).toBe(true);
   });
 });
 
