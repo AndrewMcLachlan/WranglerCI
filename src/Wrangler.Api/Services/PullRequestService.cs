@@ -277,15 +277,19 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             }
             catch (Exception ex)
             {
-                return new ApprovalResult
+                // Approving can trigger the PR's auto-merge, which beats this call to it and fails it with "Base branch was modified".
+                if (!await IsMergedAsync(owner, repo, number, cancellationToken))
                 {
-                    RepositoryOwner = owner,
-                    RepositoryName = repo,
-                    PullRequestNumber = number,
-                    Approved = true,
-                    Merged = false,
-                    Error = GitHubErrors.Describe(ex),
-                };
+                    return new ApprovalResult
+                    {
+                        RepositoryOwner = owner,
+                        RepositoryName = repo,
+                        PullRequestNumber = number,
+                        Approved = true,
+                        Merged = false,
+                        Error = GitHubErrors.Describe(ex),
+                    };
+                }
             }
 
             return new ApprovalResult
@@ -300,6 +304,20 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         finally
         {
             _gate.Release();
+        }
+    }
+
+    private async Task<bool> IsMergedAsync(string owner, string repo, int number, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var pullRequest = await OctoCall(() => gitHubClient.PullRequest.Get(owner, repo, number), cancellationToken);
+            return pullRequest.Merged;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not check whether {Owner}/{Repo}#{Number} merged", owner, repo, number);
+            return false;
         }
     }
 }

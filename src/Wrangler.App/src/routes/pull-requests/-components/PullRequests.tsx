@@ -9,6 +9,7 @@ import { usePrTab } from "../-hooks/usePrTab";
 import { usePrAuthors, useUpdatePrAuthors } from "../-hooks/usePrAuthors";
 import { usePrStatusFilter } from "../-hooks/usePrStatusFilter";
 import { usePrIncludeTags, usePrExcludeTags, usePrTagColours } from "../-hooks/usePrTagFilter";
+import { usePrExcludeBots } from "../-hooks/usePrExcludeBots";
 import { useSelectedRepositories } from "../../settings/-hooks/useSelectedRepositories";
 import { NoRepositories } from "../../../components/NoRepositories";
 import { useUserSearch } from "../-hooks/useUserSearch";
@@ -74,15 +75,16 @@ export const PullRequests = () => {
   const { data: authors } = usePrAuthors();
   const { mutate: updateAuthors } = useUpdatePrAuthors();
   const { data: pullRequests, isLoading, isError, error, refetch } = usePullRequests(scope);
-  const [statusFilter, setStatusFilter] = usePrStatusFilter();
+  const [statusFilter, setStatusFilter] = usePrStatusFilter(scope);
 
   // A link straight to a tab counts as visiting it.
   useEffect(() => {
     if (tab && tab !== lastTab) setLastTab(tab);
   }, [tab, lastTab, setLastTab]);
 
-  const [includeTags, setIncludeTags] = usePrIncludeTags();
-  const [excludeTags, setExcludeTags] = usePrExcludeTags();
+  const [includeTags, setIncludeTags] = usePrIncludeTags(scope);
+  const [excludeTags, setExcludeTags] = usePrExcludeTags(scope);
+  const [excludeBots, setExcludeBots] = usePrExcludeBots();
   const [tagColours, setTagColours] = usePrTagColours();
   const [alerts, setAlerts] = useState<ApprovalResult[]>([]);
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
@@ -163,9 +165,20 @@ export const PullRequests = () => {
 
   const includeSet = useMemo(() => new Set(includeTags), [includeTags]);
   const excludeSet = useMemo(() => new Set(excludeTags), [excludeTags]);
+  const excludeBotSet = useMemo(() => new Set(scope === "bots" ? excludeBots : []), [scope, excludeBots]);
+
+  const availableBots = useMemo<AuthorOption[]>(() => {
+    if (scope !== "bots") return [];
+    const logins = new Set((pullRequests ?? []).map((pr) => pr.author).filter((login): login is string => !!login));
+    for (const login of excludeBots) logins.delete(login);
+    return [...logins].sort((a, b) => a.localeCompare(b)).map((login) => ({ login }));
+  }, [scope, pullRequests, excludeBots]);
+
+  const excludeBotItems = useMemo<AuthorOption[]>(() => excludeBots.map((login) => ({ login })), [excludeBots]);
 
   const visiblePullRequests = useMemo(
     () => (pullRequests ?? []).filter((pr) => {
+      if (pr.author && excludeBotSet.has(pr.author)) return false;
       if (statusSet.size !== 0 && !statusSet.has(pr.checkStatus)) return false;
       const labelNames = (pr.labels ?? []).map((l) => l.name);
       // Inclusive filter (OR): empty means no constraint.
@@ -175,7 +188,7 @@ export const PullRequests = () => {
       if (labelNames.some((n) => excludeSet.has(n))) return false;
       return true;
     }),
-    [pullRequests, statusSet, includeSet, excludeSet],
+    [pullRequests, statusSet, includeSet, excludeSet, excludeBotSet],
   );
   const approvable = visiblePullRequests.filter(canMerge);
 
@@ -327,6 +340,11 @@ export const PullRequests = () => {
       label: login,
       onRemove: () => updateAuthors(authors.filter((a) => a !== login)),
     })),
+    ...(scope === "bots" ? excludeBots : []).map((login) => ({
+      key: `bot:${login}`,
+      label: `not ${login}`,
+      onRemove: () => setExcludeBots(excludeBots.filter((b) => b !== login)),
+    })),
     ...statusFilter.map((status) => ({
       key: `status:${status}`,
       label: status,
@@ -348,7 +366,32 @@ export const PullRequests = () => {
     setStatusFilter([]);
     setIncludeTags([]);
     setExcludeTags([]);
+    if (scope === "bots") setExcludeBots([]);
   };
+
+  const addExcludeBot = (value: string) => {
+    const login = value.trim();
+    if (login !== "" && !excludeBots.includes(login)) {
+      setExcludeBots([...excludeBots, login]);
+    }
+  };
+
+  const excludeBotCombo = (
+    <ComboBox<AuthorOption>
+      className="filter-combo"
+      placeholder="Exclude bots..."
+      multiSelect
+      clearable
+      creatable
+      createLabel={(input) => `Exclude "${input.trim()}"`}
+      items={availableBots}
+      selectedItems={excludeBotItems}
+      labelField={(o) => o.login}
+      valueField={(o) => o.login}
+      onCreate={addExcludeBot}
+      onChange={(items) => setExcludeBots(items.map((o) => o.login))}
+    />
+  );
 
   const authorCombo = (
     <ComboBox<AuthorOption>
@@ -429,6 +472,7 @@ export const PullRequests = () => {
   };
 
   const showAuthors = scope === "all";
+  const showBots = scope === "bots";
 
   const body = (
     <>
@@ -440,6 +484,7 @@ export const PullRequests = () => {
             onClearAll={clearAllFilters}
           >
             {showAuthors && authorCombo}
+            {showBots && excludeBotCombo}
             {statusCombo}
             {includeCombo}
             {excludeCombo}
@@ -447,6 +492,7 @@ export const PullRequests = () => {
         ) : (
           <div className="filter-row">
             {showAuthors && authorCombo}
+            {showBots && excludeBotCombo}
             {statusCombo}
             {includeCombo}
             {excludeCombo}
