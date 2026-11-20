@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions, useQuery } fr
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { getMe, getRepositories, getRepositoriesGrouped, getUsersSearch, getWorkflowsForARepository, type Options, postAttention, postGates, postGatesApprove, postPullRequests, postPullRequestsApprove, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
-import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetUsersSearchData, GetUsersSearchResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostAttentionData, PostAttentionResponse, PostGatesApproveData, PostGatesApproveResponse, PostGatesData, PostGatesResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
+import { getMe, getRepositories, getRepositoriesGrouped, getUsersSearch, getWorkflowsForARepository, type Options, postAttention, postGates, postGatesApprove, postPullRequests, postPullRequestsApprove, postPullRequestsAutoMerge, postRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRuns, postWorkflows } from '../sdk.gen';
+import type { GetMeData, GetMeResponse, GetRepositoriesData, GetRepositoriesGroupedData, GetRepositoriesGroupedResponse, GetRepositoriesResponse, GetUsersSearchData, GetUsersSearchResponse, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponse, PostAttentionData, PostAttentionResponse, PostGatesApproveData, PostGatesApproveResponse, PostGatesData, PostGatesResponse, PostPullRequestsApproveData, PostPullRequestsApproveResponse, PostPullRequestsAutoMergeData, PostPullRequestsAutoMergeResponse, PostPullRequestsData, PostPullRequestsResponse, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponse, PostWorkflowsData, PostWorkflowsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -168,6 +168,20 @@ export const postPullRequestsApproveMutation = (options?: Partial<Options<PostPu
     const mutationOptions: UseMutationOptions<PostPullRequestsApproveResponse, AxiosError<DefaultError>, Options<PostPullRequestsApproveData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await postPullRequestsApprove({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const postPullRequestsAutoMergeMutation = (options?: Partial<Options<PostPullRequestsAutoMergeData>>): UseMutationOptions<PostPullRequestsAutoMergeResponse, AxiosError<DefaultError>, Options<PostPullRequestsAutoMergeData>> => {
+    const mutationOptions: UseMutationOptions<PostPullRequestsAutoMergeResponse, AxiosError<DefaultError>, Options<PostPullRequestsAutoMergeData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await postPullRequestsAutoMerge({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

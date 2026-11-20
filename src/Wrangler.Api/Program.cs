@@ -310,6 +310,7 @@ static void AddApp(WebApplication app)
 
     api.MapQuery<PullRequests, IEnumerable<PullRequestModel>>("pull-requests", QueryMethod.Post).DisableAntiforgery();
     api.MapCommand<ApprovePullRequests, IEnumerable<ApprovalResult>>("pull-requests/approve");
+    api.MapCommand<EnableAutoMerge, IEnumerable<ApprovalResult>>("pull-requests/auto-merge");
 
     api.MapQuery<Attention, IEnumerable<AttentionItem>>("attention", QueryMethod.Post).DisableAntiforgery();
     api.MapQuery<Gates, IEnumerable<DeploymentGateModel>>("gates", QueryMethod.Post).DisableAntiforgery();

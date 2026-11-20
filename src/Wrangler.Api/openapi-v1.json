@@ -328,6 +328,38 @@
         }
       }
     },
+    "/pull-requests/auto-merge": {
+      "post": {
+        "tags": [
+          "Asm.Wrangler.Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnableAutoMerge"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApprovalResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/attention": {
       "post": {
         "tags": [
@@ -516,6 +548,9 @@
             "type": "boolean"
           },
           "merged": {
+            "type": "boolean"
+          },
+          "autoMergeEnabled": {
             "type": "boolean"
           },
           "error": {
@@ -775,6 +810,17 @@
           },
           "currentUserCanApprove": {
             "type": "boolean"
+          }
+        }
+      },
+      "EnableAutoMerge": {
+        "type": "object",
+        "properties": {
+          "pullRequests": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PullRequestReference"
+            }
           }
         }
       },
@@ -1101,6 +1147,9 @@
             "items": {
               "$ref": "#/components/schemas/MergeBlocker"
             }
+          },
+          "autoMerge": {
+            "type": "boolean"
           },
           "labels": {
             "type": "array",

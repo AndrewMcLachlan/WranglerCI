@@ -77,4 +77,36 @@ public class PullRequestStatusResponseTests
         Assert.Equal("ada", pullRequest.Author!.Login);
         Assert.Equal(ReviewDecision.ReviewRequired, pullRequest.ToStatus().ReviewDecision);
     }
+
+    [Fact]
+    public void Reads_the_merge_contexts_node_id_and_merge_state()
+    {
+        const string json = """{"data":{"repository":{"pull_request":{"id":"PR_kwDO","number":7,"merge_state_status":"CLEAN","auto_merge_request":{"enabled_at":"2026-11-20T01:02:03Z"}}}}}""";
+
+        var pullRequest = new SimpleJsonSerializer().Deserialize<MergeContextResponse>(json).Data!.Repository!.PullRequest!;
+
+        Assert.Equal("PR_kwDO", pullRequest.Id);
+        Assert.Equal(MergeState.Clean, pullRequest.ToStatus().MergeState);
+        Assert.True(pullRequest.ToStatus().AutoMerge);
+    }
+
+    [Theory]
+    [InlineData("""{"enabled_at":"2026-11-20T01:02:03Z"}""", true)]
+    [InlineData("null", false)]
+    public void Reads_whether_auto_merge_is_enabled(string autoMergeRequest, bool expected)
+    {
+        var json = """{"data":{"repository":{"pull_requests":{"nodes":[{"number":1,"auto_merge_request":""" + autoMergeRequest + """}]}}}}""";
+
+        Assert.Equal(expected, new SimpleJsonSerializer().Deserialize<PullRequestStatusResponse>(json).ByNumber()[1].AutoMerge);
+    }
+
+    [Fact]
+    public void Reads_the_errors_enabling_auto_merge()
+    {
+        const string json = """{"data":{"enable_pull_request_auto_merge":null},"errors":[{"message":"Auto merge is not allowed for this repository"}]}""";
+
+        var response = new SimpleJsonSerializer().Deserialize<EnableAutoMergeResponse>(json);
+
+        Assert.Equal("Auto merge is not allowed for this repository", Assert.Single(response.Errors!).Message);
+    }
 }

@@ -14,3 +14,8 @@ export const prState = (pr: PullRequestModel): PrState => {
   if (canMerge(pr)) return "ready";
   return "waiting";
 };
+
+/** Whether turning on auto-merge would help: GitHub would merge it once whatever it is waiting on clears. */
+export const canAutoMerge = (pr: PullRequestModel) => !pr.autoMerge && ["ready", "waiting"].includes(prState(pr));
+
+export const canSelect = (pr: PullRequestModel) => canMerge(pr) || canAutoMerge(pr);

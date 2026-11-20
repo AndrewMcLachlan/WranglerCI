@@ -40,6 +40,8 @@ internal sealed class GitHubWebhookEventProcessor(
         PullRequestAction.Unlabeled,
         PullRequestAction.Assigned,
         PullRequestAction.Unassigned,
+        PullRequestAction.AutoMergeEnabled,
+        PullRequestAction.AutoMergeDisabled,
     ];
 
     /// <summary>

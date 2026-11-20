@@ -31,6 +31,15 @@ public interface IPullRequestService
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The result of each approve-and-merge operation.</returns>
     Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequests request, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Enables auto-merge on the specified pull requests, approving each first where the current user's approval is needed and allowed.
+    /// A pull request that can merge already is merged now, as GitHub refuses auto-merge for it.
+    /// </summary>
+    /// <param name="request">The pull requests to enable auto-merge on.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The result for each pull request.</returns>
+    Task<IEnumerable<ApprovalResult>> EnableAutoMergeAsync(EnableAutoMerge request, CancellationToken cancellationToken);
 }
 
 internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache cache, ICacheKeyService cacheKeyService, IRepoVersionService versions, IHttpContextAccessor httpContextAccessor, ILogger<PullRequestService> logger) : GitHubService(cache, logger), IPullRequestService
@@ -58,12 +67,18 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         return results.SelectMany(r => r);
     }
 
-    public async Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequests request, CancellationToken cancellationToken)
+    public Task<IEnumerable<ApprovalResult>> ApprovePullRequestsAsync(ApprovePullRequests request, CancellationToken cancellationToken) =>
+        ForEachByRepoAsync(request.PullRequests, ApproveAndMergeAsync, cancellationToken);
+
+    public Task<IEnumerable<ApprovalResult>> EnableAutoMergeAsync(EnableAutoMerge request, CancellationToken cancellationToken) =>
+        ForEachByRepoAsync(request.PullRequests, ApproveAndEnableAutoMergeAsync, cancellationToken);
+
+    private async Task<IEnumerable<ApprovalResult>> ForEachByRepoAsync(IEnumerable<ApprovePullRequests.PullRequestReference> pullRequests, Func<string, string, int, PullRequestMergeMethod, CancellationToken, Task<ApprovalResult>> action, CancellationToken cancellationToken)
     {
         // Group by repo so that PRs targeting the same base branch are merged
         // sequentially, avoiding "Base branch was modified" race conditions.
         // Different repos are still processed in parallel.
-        var repoGroups = request.PullRequests.GroupBy(pr => (pr.Owner, pr.Repo));
+        var repoGroups = pullRequests.GroupBy(pr => (pr.Owner, pr.Repo));
 
         var repoTasks = repoGroups.Select(async group =>
         {
@@ -110,7 +125,13 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
 
             foreach (var pr in group)
             {
-                results.Add(await ApproveAndMergeAsync(pr.Owner, pr.Repo, pr.Number, mergeMethod.Value, cancellationToken));
+                results.Add(await action(pr.Owner, pr.Repo, pr.Number, mergeMethod.Value, cancellationToken));
+            }
+
+            // The refetch that follows must not be served the cached list, which still shows these as unmerged and not auto-merging.
+            if (results.Any(r => r.Merged || r.AutoMergeEnabled))
+            {
+                await versions.BumpAsync(group.Key.Owner, group.Key.Repo, RepoDataKind.Pulls, cancellationToken);
             }
             return results;
         });
@@ -195,6 +216,7 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
                     ReviewDecision = status?.ReviewDecision,
                     MergeState = status?.MergeState,
                     Blockers = MergeBlockers.For(status?.MergeState, status?.ReviewDecision, status?.UnresolvedThreads ?? 0, isOwn, pr.Draft),
+                    AutoMerge = status?.AutoMerge ?? false,
                     Labels = [.. pr.Labels.Select(l => new PullRequestLabel { Name = l.Name, Color = l.Color })],
                 };
             }).ToList();
@@ -229,17 +251,26 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
         }
     }
 
-    private async Task<bool> NeedsApprovalAsync(string owner, string repo, int number, CancellationToken cancellationToken)
+    private async Task<PullRequestStatusNode?> GetMergeContextAsync(string owner, string repo, int number, CancellationToken cancellationToken)
     {
         var body = new { query = MergeContextResponse.Query, variables = new Dictionary<string, object> { ["owner"] = owner, ["name"] = repo, ["number"] = number } };
         var response = await OctoCall(() => gitHubClient.Connection.Post<MergeContextResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
-        var pullRequest = response.Body?.Data?.Repository?.PullRequest;
+        return response.Body?.Data?.Repository?.PullRequest;
+    }
 
+    private bool NeedsApproval(PullRequestStatusNode? pullRequest)
+    {
         var viewer = httpContextAccessor.HttpContext?.Session.GetString(SessionKeys.User);
         var isOwn = String.Equals(pullRequest?.Author?.Login, viewer, StringComparison.OrdinalIgnoreCase);
 
         return MergeBlockers.NeedsApproval(pullRequest?.ToStatus().ReviewDecision, isOwn);
     }
+
+    private Task ApproveAsync(string owner, string repo, int number, CancellationToken cancellationToken) =>
+        OctoCall(() => gitHubClient.PullRequest.Review.Create(owner, repo, number, new PullRequestReviewCreate
+        {
+            Event = PullRequestReviewEvent.Approve,
+        }), cancellationToken);
 
     private async Task<ApprovalResult> ApproveAndMergeAsync(string owner, string repo, int number, PullRequestMergeMethod mergeMethod, CancellationToken cancellationToken)
     {
@@ -250,60 +281,101 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
 
             try
             {
-                if (await NeedsApprovalAsync(owner, repo, number, cancellationToken))
+                if (NeedsApproval(await GetMergeContextAsync(owner, repo, number, cancellationToken)))
                 {
-                    await OctoCall(() => gitHubClient.PullRequest.Review.Create(owner, repo, number, new PullRequestReviewCreate
-                    {
-                        Event = PullRequestReviewEvent.Approve,
-                    }), cancellationToken);
+                    await ApproveAsync(owner, repo, number, cancellationToken);
                 }
             }
             catch (Exception ex)
             {
-                return new ApprovalResult
-                {
-                    RepositoryOwner = owner,
-                    RepositoryName = repo,
-                    PullRequestNumber = number,
-                    Approved = false,
-                    Merged = false,
-                    Error = GitHubErrors.Describe(ex),
-                };
+                return Result(owner, repo, number, approved: false, error: GitHubErrors.Describe(ex));
             }
 
-            try
-            {
-                await OctoCall(() => gitHubClient.PullRequest.Merge(owner, repo, number, new MergePullRequest { MergeMethod = mergeMethod }), cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                // Approving can trigger the PR's auto-merge, which beats this call to it and fails it with "Base branch was modified".
-                if (!await IsMergedAsync(owner, repo, number, cancellationToken))
-                {
-                    return new ApprovalResult
-                    {
-                        RepositoryOwner = owner,
-                        RepositoryName = repo,
-                        PullRequestNumber = number,
-                        Approved = true,
-                        Merged = false,
-                        Error = GitHubErrors.Describe(ex),
-                    };
-                }
-            }
-
-            return new ApprovalResult
-            {
-                RepositoryOwner = owner,
-                RepositoryName = repo,
-                PullRequestNumber = number,
-                Approved = true,
-                Merged = true,
-            };
+            return await MergeNowAsync(owner, repo, number, mergeMethod, cancellationToken);
         }
         finally
         {
             _gate.Release();
+        }
+    }
+
+    private async Task<ApprovalResult> ApproveAndEnableAutoMergeAsync(string owner, string repo, int number, PullRequestMergeMethod mergeMethod, CancellationToken cancellationToken)
+    {
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            await Jitter(cancellationToken);
+
+            PullRequestStatusNode? pullRequest;
+            try
+            {
+                pullRequest = await GetMergeContextAsync(owner, repo, number, cancellationToken);
+                if (NeedsApproval(pullRequest))
+                {
+                    await ApproveAsync(owner, repo, number, cancellationToken);
+                    pullRequest = await GetMergeContextAsync(owner, repo, number, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result(owner, repo, number, approved: false, error: GitHubErrors.Describe(ex));
+            }
+
+            if (pullRequest?.AutoMergeRequest is not null) return Result(owner, repo, number, approved: true, autoMergeEnabled: true);
+            if (CanMergeNow(pullRequest)) return await MergeNowAsync(owner, repo, number, mergeMethod, cancellationToken);
+
+            try
+            {
+                var body = new { query = EnableAutoMergeResponse.Mutation, variables = new Dictionary<string, object?> { ["id"] = pullRequest?.Id, ["method"] = mergeMethod.ToString().ToUpperInvariant() } };
+                var response = await OctoCall(() => gitHubClient.Connection.Post<EnableAutoMergeResponse>(GraphQLUri, body, "application/json", "application/json"), cancellationToken);
+                if (response.Body?.Errors is { Count: > 0 } errors) throw new InvalidOperationException(String.Join(" ", errors.Select(e => e.Message)));
+            }
+            catch (Exception ex)
+            {
+                if (await IsMergedAsync(owner, repo, number, cancellationToken)) return Result(owner, repo, number, approved: true, merged: true);
+
+                // GitHub refuses auto-merge on a pull request that became mergeable after the context was read.
+                if (CanMergeNow(await TryGetMergeContextAsync(owner, repo, number, cancellationToken))) return await MergeNowAsync(owner, repo, number, mergeMethod, cancellationToken);
+
+                return Result(owner, repo, number, approved: true, error: GitHubErrors.Describe(ex));
+            }
+
+            return Result(owner, repo, number, approved: true, autoMergeEnabled: true);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    private async Task<ApprovalResult> MergeNowAsync(string owner, string repo, int number, PullRequestMergeMethod mergeMethod, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await OctoCall(() => gitHubClient.PullRequest.Merge(owner, repo, number, new MergePullRequest { MergeMethod = mergeMethod }), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Approving can trigger the PR's auto-merge, which beats this call to it and fails it with "Base branch was modified".
+            if (!await IsMergedAsync(owner, repo, number, cancellationToken))
+            {
+                return Result(owner, repo, number, approved: true, error: GitHubErrors.Describe(ex));
+            }
+        }
+
+        return Result(owner, repo, number, approved: true, merged: true);
+    }
+
+    private async Task<PullRequestStatusNode?> TryGetMergeContextAsync(string owner, string repo, int number, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await GetMergeContextAsync(owner, repo, number, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "Could not read the merge state of {Owner}/{Repo}#{Number}", owner, repo, number);
+            return null;
         }
     }
 
@@ -320,4 +392,18 @@ internal class PullRequestService(IGitHubClient gitHubClient, IDistributedCache 
             return false;
         }
     }
+
+    private static bool CanMergeNow(PullRequestStatusNode? pullRequest) =>
+        pullRequest?.ToStatus().MergeState is MergeState.Clean or MergeState.HasHooks or MergeState.Unstable;
+
+    private static ApprovalResult Result(string owner, string repo, int number, bool approved, bool merged = false, bool autoMergeEnabled = false, string? error = null) => new()
+    {
+        RepositoryOwner = owner,
+        RepositoryName = repo,
+        PullRequestNumber = number,
+        Approved = approved,
+        Merged = merged,
+        AutoMergeEnabled = autoMergeEnabled,
+        Error = error,
+    };
 }

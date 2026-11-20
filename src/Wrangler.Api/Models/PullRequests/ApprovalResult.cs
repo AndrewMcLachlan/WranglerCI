@@ -1,7 +1,7 @@
 namespace Asm.Wrangler.Api.Models.PullRequests;
 
 /// <summary>
-/// The result of merging a single pull request, approving it first where needed.
+/// The result of merging a single pull request, or enabling its auto-merge, approving it first where needed.
 /// </summary>
 public record ApprovalResult
 {
@@ -29,6 +29,11 @@ public record ApprovalResult
     /// Whether the pull request was successfully merged.
     /// </summary>
     public required bool Merged { get; init; }
+
+    /// <summary>
+    /// Whether auto-merge was enabled, leaving GitHub to merge the pull request once nothing blocks it.
+    /// </summary>
+    public bool AutoMergeEnabled { get; init; }
 
     /// <summary>
     /// The error message if approval or merge failed; <c>null</c> on success.

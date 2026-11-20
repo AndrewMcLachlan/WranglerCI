@@ -87,6 +87,11 @@
     --badge-fg: #3fc1c9;
   }
 
+  &.auto-merge {
+    --badge-bg: rgba(88, 166, 255, 0.14);
+    --badge-fg: #58a6ff;
+  }
+
   /* Shown for information: it isn't what stops the merge. */
   &.advisory {
     --badge-bg: transparent;
