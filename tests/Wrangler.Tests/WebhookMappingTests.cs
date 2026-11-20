@@ -140,6 +140,8 @@ public class WebhookMappingTests
         Set(pr, "CreatedAt", createdAt);
         Set(pr, "UpdatedAt", updatedAt);
         Set(pr, "State", MakeWebhooksStringEnum<Octokit.Webhooks.Models.PullRequestEvent.PullRequestState>("open"));
+        Set(pr, "Draft", true);
+        Set(pr, "AutoMerge", RuntimeHelpers.GetUninitializedObject(typeof(WPullRequest).GetProperty("AutoMerge")!.PropertyType));
 
         var data = WebhookMapping.ToPullRequestMetadata(pr, "owner", "repo");
 
@@ -156,6 +158,8 @@ public class WebhookMappingTests
         Assert.Equal(createdAt, data.CreatedAt);
         Assert.Equal(updatedAt, data.UpdatedAt);
         Assert.Equal("open", data.State);
+        Assert.True(data.Draft);
+        Assert.True(data.AutoMerge);
     }
 
     private static T New<T>() => (T)RuntimeHelpers.GetUninitializedObject(typeof(T));

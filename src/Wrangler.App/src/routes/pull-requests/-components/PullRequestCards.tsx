@@ -3,7 +3,7 @@ import { RowCard } from "../../../components/RowCard";
 import { ScrollRestoredList } from "../../../components/ScrollRestoredList";
 import { CheckStatusBadge } from "./CheckStatusBadge";
 import { MergeCell, PullRequestContext, PullRequestLabels, UpdatedText } from "./PullRequestCells";
-import { canMerge } from "./prState";
+import { canMerge, canSelect } from "./prState";
 import type { PullRequestModel } from "../../../api";
 
 interface PullRequestCardsProps {
@@ -47,7 +47,7 @@ export const PullRequestCards: React.FC<PullRequestCardsProps> = ({
         <RowCard
           onSelect={() => onToggle(pr)}
           selected={selected.has(pr.number)}
-          selectDisabled={!canMerge(pr) || disabled}
+          selectDisabled={!canSelect(pr) || disabled}
           selectLabel={`Select pull request ${pr.number}`}
           title={pr.title}
           subtitle={

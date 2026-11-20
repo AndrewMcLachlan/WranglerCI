@@ -106,6 +106,11 @@ public record PullRequestModel
     public IReadOnlyList<MergeBlocker> Blockers { get; init; } = [];
 
     /// <summary>
+    /// Whether GitHub will merge the pull request on its own once nothing blocks it.
+    /// </summary>
+    public bool AutoMerge { get; init; }
+
+    /// <summary>
     /// The labels applied to the pull request, in the order GitHub returns them.
     /// </summary>
     public IReadOnlyList<PullRequestLabel> Labels { get; init; } = [];

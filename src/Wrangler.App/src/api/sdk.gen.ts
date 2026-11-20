@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetMeData, GetMeErrors, GetMeResponses, GetRepositoriesData, GetRepositoriesErrors, GetRepositoriesGroupedData, GetRepositoriesGroupedErrors, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchErrors, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionErrors, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesErrors, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsData, PostPullRequestsErrors, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
+import type { GetMeData, GetMeErrors, GetMeResponses, GetRepositoriesData, GetRepositoriesErrors, GetRepositoriesGroupedData, GetRepositoriesGroupedErrors, GetRepositoriesGroupedResponses, GetRepositoriesResponses, GetUsersSearchData, GetUsersSearchErrors, GetUsersSearchResponses, GetWorkflowsForARepositoryData, GetWorkflowsForARepositoryResponses, PostAttentionData, PostAttentionErrors, PostAttentionResponses, PostGatesApproveData, PostGatesApproveResponses, PostGatesData, PostGatesErrors, PostGatesResponses, PostPullRequestsApproveData, PostPullRequestsApproveResponses, PostPullRequestsAutoMergeData, PostPullRequestsAutoMergeResponses, PostPullRequestsData, PostPullRequestsErrors, PostPullRequestsResponses, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsData, PostRepositoriesByOwnerByRepoWorkflowsByWorkflowIdRunsResponses, PostWorkflowsData, PostWorkflowsErrors, PostWorkflowsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -85,6 +85,16 @@ export const postPullRequests = <ThrowOnError extends boolean = false>(options: 
 export const postPullRequestsApprove = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsApproveData, ThrowOnError>): RequestResult<PostPullRequestsApproveResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostPullRequestsApproveResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/pull-requests/approve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postPullRequestsAutoMerge = <ThrowOnError extends boolean = false>(options: Options<PostPullRequestsAutoMergeData, ThrowOnError>): RequestResult<PostPullRequestsAutoMergeResponses, unknown, ThrowOnError> => (options.client ?? client).post<PostPullRequestsAutoMergeResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/pull-requests/auto-merge',
     ...options,
     headers: {
         'Content-Type': 'application/json',

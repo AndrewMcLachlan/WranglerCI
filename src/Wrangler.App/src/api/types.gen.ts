@@ -25,6 +25,7 @@ export type ApprovalResult = {
     pullRequestNumber: number | string;
     approved: boolean;
     merged: boolean;
+    autoMergeEnabled?: boolean;
     error?: null | string;
 };
 
@@ -88,6 +89,10 @@ export type DeploymentGateModel = {
     environmentId: number | string;
     environmentName: string;
     currentUserCanApprove: boolean;
+};
+
+export type EnableAutoMerge = {
+    pullRequests?: Array<PullRequestReference>;
 };
 
 export type GateApprovalResult = {
@@ -157,6 +162,7 @@ export type PullRequestModel = {
     reviewDecision?: null | ReviewDecision;
     mergeState?: null | MergeState;
     blockers?: Array<MergeBlocker>;
+    autoMerge?: boolean;
     labels?: Array<PullRequestLabel>;
 };
 
@@ -572,6 +578,22 @@ export type PostPullRequestsApproveResponses = {
 };
 
 export type PostPullRequestsApproveResponse = PostPullRequestsApproveResponses[keyof PostPullRequestsApproveResponses];
+
+export type PostPullRequestsAutoMergeData = {
+    body: EnableAutoMerge;
+    path?: never;
+    query?: never;
+    url: '/pull-requests/auto-merge';
+};
+
+export type PostPullRequestsAutoMergeResponses = {
+    /**
+     * OK
+     */
+    200: Array<ApprovalResult>;
+};
+
+export type PostPullRequestsAutoMergeResponse = PostPullRequestsAutoMergeResponses[keyof PostPullRequestsAutoMergeResponses];
 
 export type PostAttentionData = {
     body: Attention;

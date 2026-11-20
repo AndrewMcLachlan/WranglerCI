@@ -5,7 +5,7 @@ namespace Asm.Wrangler.Api.GraphQL;
 /// <summary>
 /// The merge-readiness GitHub reports for one pull request.
 /// </summary>
-internal record PullRequestStatus(int UnresolvedThreads, ReviewDecision? ReviewDecision, MergeState? MergeState, CheckStatus CheckStatus);
+internal record PullRequestStatus(int UnresolvedThreads, ReviewDecision? ReviewDecision, MergeState? MergeState, CheckStatus CheckStatus, bool AutoMerge = false);
 
 /// <summary>
 /// The response to <see cref="Query"/>, shaped for Octokit's serializer.
@@ -14,7 +14,7 @@ internal class PullRequestStatusResponse
 {
     // Fields must be aliased to snake_case: Octokit's serializer binds no other casing.
     // Pages must stay small: GitHub times out (502/504) on large repos at 100 per page.
-    public const string Query = "query($owner: String!, $name: String!, $cursor: String) { repository(owner: $owner, name: $name) { pull_requests: pullRequests(states: OPEN, first: 25, after: $cursor) { page_info: pageInfo { has_next_page: hasNextPage end_cursor: endCursor } nodes { number review_decision: reviewDecision merge_state_status: mergeStateStatus review_threads: reviewThreads(first: 100) { nodes { is_resolved: isResolved } } commits(last: 1) { nodes { commit { status_check_rollup: statusCheckRollup { state } } } } } } } }";
+    public const string Query = "query($owner: String!, $name: String!, $cursor: String) { repository(owner: $owner, name: $name) { pull_requests: pullRequests(states: OPEN, first: 25, after: $cursor) { page_info: pageInfo { has_next_page: hasNextPage end_cursor: endCursor } nodes { number review_decision: reviewDecision merge_state_status: mergeStateStatus auto_merge_request: autoMergeRequest { enabled_at: enabledAt } review_threads: reviewThreads(first: 100) { nodes { is_resolved: isResolved } } commits(last: 1) { nodes { commit { status_check_rollup: statusCheckRollup { state } } } } } } } }";
 
     public PullRequestStatusData? Data { get; set; }
 
@@ -58,6 +58,8 @@ internal class PageInfo
 
 internal class PullRequestStatusNode
 {
+    public string? Id { get; set; }
+
     public int Number { get; set; }
 
     public PullRequestAuthor? Author { get; set; }
@@ -70,11 +72,14 @@ internal class PullRequestStatusNode
 
     public PullRequestStatusConnection<HeadCommitNode>? Commits { get; set; }
 
+    public AutoMergeRequest? AutoMergeRequest { get; set; }
+
     public PullRequestStatus ToStatus() => new(
         (ReviewThreads?.Nodes ?? []).Count(t => !t.IsResolved),
         ParseEnum<ReviewDecision>(ReviewDecision),
         ParseEnum<MergeState>(MergeStateStatus),
-        CheckStatusOf(Commits?.Nodes?.LastOrDefault()?.Commit));
+        CheckStatusOf(Commits?.Nodes?.LastOrDefault()?.Commit),
+        AutoMergeRequest is not null);
 
     // A head commit with no rollup has no checks or statuses at all, which counts as passing.
     private static CheckStatus CheckStatusOf(HeadCommit? commit) => commit is null ? CheckStatus.Unknown : commit.StatusCheckRollup?.State switch
@@ -104,6 +109,11 @@ internal class StatusCheckRollup
     public string? State { get; set; }
 }
 
+internal class AutoMergeRequest
+{
+    public DateTimeOffset? EnabledAt { get; set; }
+}
+
 internal class PullRequestAuthor
 {
     public string? Login { get; set; }
@@ -115,11 +125,26 @@ internal class ReviewThread
 }
 
 /// <summary>
-/// The response to <see cref="Query"/>: what deciding whether to approve before merging needs.
+/// The response to <see cref="Query"/>: what deciding whether to approve, merge now or enable auto-merge needs.
 /// </summary>
 internal class MergeContextResponse
 {
-    public const string Query = "query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { pull_request: pullRequest(number: $number) { number author { login } review_decision: reviewDecision } } }";
+    public const string Query = "query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { pull_request: pullRequest(number: $number) { id number author { login } review_decision: reviewDecision merge_state_status: mergeStateStatus auto_merge_request: autoMergeRequest { enabled_at: enabledAt } } } }";
 
     public PullRequestStatusData? Data { get; set; }
+}
+
+/// <summary>
+/// The response to <see cref="Mutation"/>, which enables auto-merge on one pull request.
+/// </summary>
+internal class EnableAutoMergeResponse
+{
+    public const string Mutation = "mutation($id: ID!, $method: PullRequestMergeMethod!) { enable_pull_request_auto_merge: enablePullRequestAutoMerge(input: { pullRequestId: $id, mergeMethod: $method }) { client_mutation_id: clientMutationId } }";
+
+    public List<GraphQLError>? Errors { get; set; }
+}
+
+internal class GraphQLError
+{
+    public string? Message { get; set; }
 }

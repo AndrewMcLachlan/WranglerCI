@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Alert, ComboBox, DataGrid, Tab, Tabs, type ColumnDef } from "@andrewmclachlan/moo-ds";
+import { Alert, ComboBox, DataGrid, Menu, SplitButton, Tab, Tabs, type ColumnDef } from "@andrewmclachlan/moo-ds";
+import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
@@ -14,13 +15,14 @@ import { useSelectedRepositories } from "../../settings/-hooks/useSelectedReposi
 import { NoRepositories } from "../../../components/NoRepositories";
 import { useUserSearch } from "../-hooks/useUserSearch";
 import { useApprovePullRequests } from "../-hooks/useApprovePullRequests";
+import { useEnableAutoMerge } from "../-hooks/useEnableAutoMerge";
 import { dotLabel, optionSearch } from "../../../components/filters/filterOptions";
 import { useIsNarrow } from "../../../hooks/useIsNarrow";
 import { PullRequestCards } from "./PullRequestCards";
 import { unresolvedCount } from "./MergeBlockerBadges";
 import { CheckStatusBadge } from "./CheckStatusBadge";
 import { MergeCell, PullRequestCell, UpdatedCell } from "./PullRequestCells";
-import { canMerge } from "./prState";
+import { canMerge, canSelect } from "./prState";
 import { NarrowFilters, type AppliedFilter } from "../../../components/filters/NarrowFilters";
 import type { ApprovalResult, CheckStatus, PullRequestModel } from "../../../api";
 
@@ -60,6 +62,18 @@ interface TagOption {
 // For a tag whose colour has never been seen: 6-char hex, no leading '#'.
 const FALLBACK_TAG_COLOUR = "d4a24e";
 
+type BulkAction = "merge" | "autoMerge";
+
+interface FailedResult {
+  result: ApprovalResult;
+  action: BulkAction;
+}
+
+const failureText: Record<BulkAction, string> = {
+  merge: "Merge failed",
+  autoMerge: "Enabling auto-merge failed",
+};
+
 export const PullRequests = () => {
 
   const queryClient = useQueryClient();
@@ -86,7 +100,7 @@ export const PullRequests = () => {
   const [excludeTags, setExcludeTags] = usePrExcludeTags(scope);
   const [excludeBots, setExcludeBots] = usePrExcludeBots();
   const [tagColours, setTagColours] = usePrTagColours();
-  const [alerts, setAlerts] = useState<ApprovalResult[]>([]);
+  const [alerts, setAlerts] = useState<FailedResult[]>([]);
   const [selected, setSelected] = useState<Set<number | string>>(new Set());
   const [authorQuery, setAuthorQuery] = useState("");
   const { data: authorSuggestions } = useUserSearch(authorQuery);
@@ -102,37 +116,54 @@ export const PullRequests = () => {
 
   const selectedAuthorItems = useMemo<AuthorOption[]>(() => authors.map((login) => ({ login })), [authors]);
 
-  const { mutate: approvePullRequests, isPending: isApproving } = useApprovePullRequests({
-    onResults: (results) => {
-      const merged = results.filter((result) => result.merged);
-      const failures = results.filter((result) => !result.merged);
-      const mergedKeys = new Set(merged.map((result) => prKey(result.repositoryOwner, result.repositoryName, result.pullRequestNumber)));
+  const handleResults = (results: ApprovalResult[], action: BulkAction) => {
+    const merged = results.filter((result) => result.merged);
+    const autoMerging = results.filter((result) => result.autoMergeEnabled);
+    const failures = results.filter((result) => !result.merged && !result.autoMergeEnabled);
+    const keyOf = (result: ApprovalResult) => prKey(result.repositoryOwner, result.repositoryName, result.pullRequestNumber);
+    const mergedKeys = new Set(merged.map(keyOf));
+    const autoMergingKeys = new Set(autoMerging.map(keyOf));
+    const doneKeys = new Set([...mergedKeys, ...autoMergingKeys]);
 
+    if (action === "autoMerge") {
+      summaryToast(merged, (result) => `${result.repositoryOwner}/${result.repositoryName} #${result.pullRequestNumber}: Ready to merge, so merged now instead of auto-merging`, "pull requests were ready to merge, so merged now instead of auto-merging");
+    } else {
       summaryToast(merged, (result) => `${result.repositoryOwner}/${result.repositoryName} #${result.pullRequestNumber}: Merged`, "pull requests merged");
+    }
+    summaryToast(autoMerging, (result) => `${result.repositoryOwner}/${result.repositoryName} #${result.pullRequestNumber}: Auto-merge enabled`, "pull requests set to auto-merge");
 
-      // Optimistically drop merged PRs from the cached list so the table
-      // updates before the background refetch returns.
-      if (mergedKeys.size > 0) {
-        queryClient.setQueriesData<PullRequestModel[]>(
-          { queryKey: ["pullRequests"] },
-          (prev) => prev?.filter((pr) => !mergedKeys.has(prKey(pr.repositoryOwner, pr.repositoryName, pr.number))),
-        );
+    // Optimistically update the cached list so the table changes before the background refetch returns.
+    if (doneKeys.size > 0) {
+      queryClient.setQueriesData<PullRequestModel[]>(
+        { queryKey: ["pullRequests"] },
+        (prev) => prev
+          ?.filter((pr) => !mergedKeys.has(prKey(pr.repositoryOwner, pr.repositoryName, pr.number)))
+          .map((pr) => (autoMergingKeys.has(prKey(pr.repositoryOwner, pr.repositoryName, pr.number)) ? { ...pr, autoMerge: true } : pr)),
+      );
 
-        // Clear selection for PRs we just merged; leave selection intact for
-        // anything that failed so the user can re-try.
-        setSelected((prev) => {
-          if (prev.size === 0) return prev;
-          const next = new Set(prev);
-          for (const pr of pullRequests ?? []) {
-            if (mergedKeys.has(prKey(pr.repositoryOwner, pr.repositoryName, pr.number))) next.delete(pr.number);
-          }
-          return next;
-        });
-      }
+      // Leave anything that failed selected so the user can re-try.
+      setSelected((prev) => {
+        if (prev.size === 0) return prev;
+        const next = new Set(prev);
+        for (const pr of pullRequests ?? []) {
+          if (doneKeys.has(prKey(pr.repositoryOwner, pr.repositoryName, pr.number))) next.delete(pr.number);
+        }
+        return next;
+      });
+    }
 
-      setAlerts(failures);
-    },
+    setAlerts(failures.map((result) => ({ result, action })));
+  };
+
+  const { mutate: approvePullRequests, isPending: isApproving } = useApprovePullRequests({
+    onResults: (results) => handleResults(results, "merge"),
   });
+
+  const { mutate: enableAutoMerge, isPending: isEnablingAutoMerge } = useEnableAutoMerge({
+    onResults: (results) => handleResults(results, "autoMerge"),
+  });
+
+  const isBusy = isApproving || isEnablingAutoMerge;
 
   const statusSet = useMemo(() => new Set(statusFilter), [statusFilter]);
 
@@ -190,10 +221,10 @@ export const PullRequests = () => {
     }),
     [pullRequests, statusSet, includeSet, excludeSet, excludeBotSet],
   );
-  const approvable = visiblePullRequests.filter(canMerge);
+  const selectable = visiblePullRequests.filter(canSelect);
 
   const toggleSelection = (pr: PullRequestModel) => {
-    if (!canMerge(pr) || isApproving) return;
+    if (!canSelect(pr) || isBusy) return;
     setSelected(prev => {
       const next = new Set(prev);
       if (next.has(pr.number)) {
@@ -205,14 +236,14 @@ export const PullRequests = () => {
     });
   };
 
-  const allSelected = approvable.length > 0 && approvable.every(pr => selected.has(pr.number));
+  const allSelected = selectable.length > 0 && selectable.every(pr => selected.has(pr.number));
 
   const toggleSelectAll = () => {
-    if (isApproving) return;
+    if (isBusy) return;
     if (allSelected) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(approvable.map(pr => pr.number)));
+      setSelected(new Set(selectable.map(pr => pr.number)));
     }
   };
 
@@ -221,16 +252,20 @@ export const PullRequests = () => {
   const approveOne = (pr: PullRequestModel) =>
     approvePullRequests([{ owner: pr.repositoryOwner, repo: pr.repositoryName, number: pr.number }]);
 
-  const handleApprove = () => {
-    if (!pullRequests) return;
-    const toApprove = pullRequests
-      .filter(pr => selected.has(pr.number))
-      .map(pr => ({ owner: pr.repositoryOwner, repo: pr.repositoryName, number: pr.number }));
-    approvePullRequests(toApprove);
-    // Keep the selection on the rows while the round-trip is in flight; the
-    // onResults callback clears successfully-merged rows and leaves failures
-    // selected so the user can act on them again.
+  const selectedPullRequests = (pullRequests ?? []).filter(pr => selected.has(pr.number));
+  const toReference = (pr: PullRequestModel) => ({ owner: pr.repositoryOwner, repo: pr.repositoryName, number: pr.number });
+
+  // The selection stays on the rows while the round-trip is in flight; handleResults clears the ones that succeeded.
+  const mergeSelected = () => {
+    const ready = selectedPullRequests.filter(canMerge);
+    if (ready.length === 0) {
+      toast.info("None of the selected pull requests are ready to merge. Enable auto-merge instead.");
+      return;
+    }
+    approvePullRequests(ready.map(toReference));
   };
+
+  const enableAutoMergeSelected = () => enableAutoMerge(selectedPullRequests.map(toReference));
 
   // Add an author by exact login — used by the ComboBox's creatable option
   // (so bots like dependabot[bot], which user search won't surface, stay
@@ -270,8 +305,8 @@ export const PullRequests = () => {
   const columns: ColumnDef<PullRequestModel>[] = useMemo(() => [
     {
       id: "select",
-      header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={approvable.length === 0 || isApproving} />,
-      cell: ({ row }) => <input type="checkbox" checked={selected.has(row.number)} onChange={() => toggleSelection(row)} disabled={!canMerge(row) || isApproving} />,
+      header: () => <input type="checkbox" checked={allSelected} onChange={toggleSelectAll} disabled={selectable.length === 0 || isBusy} />,
+      cell: ({ row }) => <input type="checkbox" checked={selected.has(row.number)} onChange={() => toggleSelection(row)} disabled={!canSelect(row) || isBusy} />,
       enableSorting: false,
     },
     {
@@ -321,7 +356,7 @@ export const PullRequests = () => {
       ),
       enableSorting: false,
     },
-  ], [selected, allSelected, approvable.length, isApproving]);
+  ], [selected, allSelected, selectable.length, isBusy]);
 
   if (prRepositories.length === 0) {
     return (
@@ -499,21 +534,30 @@ export const PullRequests = () => {
           </div>
         )}
         <div className="actions">
-          <button className="btn btn-primary" onClick={handleApprove} disabled={selected.size === 0 || isApproving} title="Approves each first where your review is needed">
-            {isApproving ? "Merging..." : "Merge Selected"}
-          </button>
+          <SplitButton
+            id="pr-bulk-actions"
+            label={isApproving ? "Merging..." : isEnablingAutoMerge ? "Enabling auto-merge..." : "Merge Selected"}
+            toggleLabel="More merge options"
+            onClick={mergeSelected}
+            disabled={selected.size === 0 || isBusy}
+            title="Merges the selected pull requests that are ready, approving each first where your review is needed"
+          >
+            <Menu.Item onClick={enableAutoMergeSelected} title="GitHub merges each once nothing blocks it, approving each first where your review is needed">
+              Enable auto-merge
+            </Menu.Item>
+          </SplitButton>
         </div>
       </div>
 
-      {alerts.map(result => (
+      {alerts.map(({ result, action }) => (
         <Alert
           key={`${result.repositoryOwner}/${result.repositoryName}#${result.pullRequestNumber}`}
           variant={result.approved ? "warning" : "danger"}
           dismissible
-          onClose={() => setAlerts(prev => prev.filter(a => a !== result))}
+          onClose={() => setAlerts(prev => prev.filter(a => a.result !== result))}
         >
           {result.repositoryOwner}/{result.repositoryName} #{result.pullRequestNumber}:
-          {result.approved ? " Merge failed" : " Approval failed"}
+          {result.approved ? ` ${failureText[action]}` : " Approval failed"}
           {result.error && <span> - {result.error}</span>}
         </Alert>
       ))}
@@ -525,7 +569,7 @@ export const PullRequests = () => {
           onToggle={toggleSelection}
           onApprove={approveOne}
           onRefresh={refetch}
-          disabled={isApproving}
+          disabled={isBusy}
           loading={isLoading}
           emptyMessage="No open pull requests found."
         />

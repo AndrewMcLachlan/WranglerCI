@@ -37,8 +37,15 @@ const waitingOnChecks: Partial<Record<CheckStatus, string>> = {
   Failure: "Blocked by checks",
 };
 
+const AutoMergeBadge: React.FC = () => <Badge className="auto-merge" icon={<FontAwesomeIcon icon="code-merge" />} title="GitHub will merge this once nothing blocks it">Auto-merge</Badge>;
+
 /** `long` labels the Ready badge as being about merging, for places without a "Merge" column header. */
-export const MergeCell: React.FC<{ pullRequest: PullRequestModel; long?: boolean }> = ({ pullRequest: pr, long = false }) => {
+export const MergeCell: React.FC<{ pullRequest: PullRequestModel; long?: boolean }> = ({ pullRequest, long }) =>
+  pullRequest.autoMerge
+    ? <span className="pr-blockers"><AutoMergeBadge /><MergeStatus pullRequest={pullRequest} long={long} /></span>
+    : <MergeStatus pullRequest={pullRequest} long={long} />;
+
+const MergeStatus: React.FC<{ pullRequest: PullRequestModel; long?: boolean }> = ({ pullRequest: pr, long = false }) => {
   if ((pr.blockers ?? []).length === 0 && unresolvedCount(pr) === 0) {
     if (canMerge(pr)) return <ReadyBadge long={long} />;
     const waiting = waitingOnChecks[pr.checkStatus];

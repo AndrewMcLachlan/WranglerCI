@@ -23,7 +23,9 @@ public record PullRequestEventData(
     string HeadRef,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    string State);
+    string State,
+    bool Draft,
+    bool AutoMerge);
 
 /// <summary>
 /// Pure payload-to-model mappers for GitHub webhook deliveries. The webhook delivery already contains
@@ -84,5 +86,7 @@ public static class WebhookMapping
         HeadRef: pr.Head.Ref,
         CreatedAt: pr.CreatedAt,
         UpdatedAt: pr.UpdatedAt,
-        State: pr.State.StringValue);
+        State: pr.State.StringValue,
+        Draft: pr.Draft,
+        AutoMerge: pr.AutoMerge is not null);
 }
